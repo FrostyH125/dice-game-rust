@@ -13,7 +13,6 @@ impl Button {
         Button {
             pos: Vector2 { x: rect.x, y: rect.y },
             rect,
-            is_active: false,
         }
     }
 
