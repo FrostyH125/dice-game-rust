@@ -1,0 +1,9 @@
+[package]
+name = "dice-game-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+basic-raylib-core = { path = "../basic-raylib-core"}
+rand = "0.10.0"
+raylib = "5.5.1"
