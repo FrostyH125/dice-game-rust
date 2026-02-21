@@ -14,9 +14,9 @@ pub struct AttackDiceBox {
 
 impl AttackDiceBox {
 
-    pub fn new(pos: Vector2) -> Self {
+    pub fn new() -> Self {
         AttackDiceBox { 
-            data: DiceBoxData::new(pos),
+            data: DiceBoxData::new(Vector2 { x: 5.0, y: 100.0}),
             player_damage_this_turn: 0,
             attack_timer: 0.0
         }
@@ -24,19 +24,13 @@ impl AttackDiceBox {
 
     pub fn update(&mut self, dice_in_hand: &mut Vec<Dice>, input_state: &InputState, confirm_button: &mut ConfirmButton, dt: f32) {
         dice_box::update(&mut self.data, dice_in_hand, input_state, confirm_button, dt);
-
-        if self.data.state == DiceBoxState::Acting {
-            if self.attack(dt) {
-                dice_box::reset_box(&mut self.data, dice_in_hand);
-            }
-        }
     }
     
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         dice_box::draw(d, texture, &mut self.data, &ATTACK_DICE_BOX_SPRITE);
     }
     
-    fn attack(&mut self, dt: f32) -> bool {
+    pub fn attack(&mut self, dt: f32) -> bool {
         self.attack_timer += dt;
         
         if self.data.total_tally == 0 {
@@ -62,5 +56,9 @@ impl AttackDiceBox {
         
         return false;
         
+    }
+    
+    pub fn reset(&mut self, hand_dice: &mut Vec<Dice>) {
+        dice_box::reset_box(&mut self.data, hand_dice);
     }
 }

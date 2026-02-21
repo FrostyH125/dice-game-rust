@@ -1,4 +1,4 @@
-use crate::system::input_handler::{InputState, MouseState};
+use crate::{entities::hand::HandState, system::input_handler::{InputState, MouseState}};
 
 use self::DiceState::*;
 use basic_raylib_core::graphics::{
@@ -46,9 +46,14 @@ impl Dice {
         }
     }
 
-    pub fn update(&mut self, other_dice_dragged: &mut bool, input_state: &InputState, dt: f32) {
+    pub fn update(&mut self, other_dice_dragged: &mut bool, hand_state: &HandState, input_state: &InputState, dt: f32) {
         match self.state {
             Stopped => {
+                
+                if *hand_state != HandState::StoppedDice {
+                    return;
+                }
+                
                 let mouse_dragging = input_state.mouse_state == MouseState::Dragging;
                 let mouse_over_this = {
                     let rect = Rectangle {

@@ -14,7 +14,8 @@ static BUTTON_DEFAULT_SPRITE: Sprite = Sprite::new(16.0, 16.0, 64.0, 32.0);
 static BUTTON_CLICK_SPRITE: Sprite = Sprite::new(16.0, 48.0, 64.0, 32.0);
 
 #[derive(PartialEq)]
-enum HandState {
+pub enum HandState {
+    Inactive,
     RollingDice,
     StoppingDice,
     StoppedDice,
@@ -26,7 +27,7 @@ pub struct Hand {
     stop_button: Button,
     dice_stop_time_per_dice: f32,
     dice_stop_timer: f32,
-    state: HandState,
+    pub state: HandState,
     is_any_dice_dragged: bool,
 }
 
@@ -56,7 +57,7 @@ impl Hand {
         // dragged, which is not the desired behavior
         // now the topmost dice gets updated (and subsequently dragged) first
         for i in (0..self.dice.len()).rev() {
-            self.dice[i].update(&mut self.is_any_dice_dragged, input_state, dt);
+            self.dice[i].update(&mut self.is_any_dice_dragged, &self.state, input_state, dt);
         }     
         
         match self.state {
@@ -75,7 +76,7 @@ impl Hand {
             // this will be checking for if the game state is your turn again
             // or if you choose to reroll some dice
             // in case of reroll or being your turn again, reset dice, and set state to rolling dice,
-            HandState::StoppedDice => (), 
+            _ => (), 
         }
     }
 
@@ -141,7 +142,7 @@ impl Hand {
             self.dice[i].reset();
         }
         
-        self.state = HandState::RollingDice;
+        self.state = HandState::Inactive;
     }
     
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
