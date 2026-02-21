@@ -2,7 +2,10 @@ use std::i8;
 
 use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::{
-    color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, texture::Texture2D
+    color::Color,
+    math::{Rectangle, Vector2},
+    prelude::{RaylibDraw, RaylibDrawHandle},
+    texture::Texture2D,
 };
 
 use crate::{
@@ -13,11 +16,12 @@ use crate::{
     system::input_handler::InputState,
 };
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum DiceBoxState {
     WaitingForDice,
     TallyingPoints,
     Acting,
+    Inactive,
 }
 
 const DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 34.0, y: -15.0 };
@@ -28,9 +32,9 @@ const DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 34.0, y: -15.0 };
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
     current_index_dice_being_tallied: usize,
-    total_tally: i64,
-    total_multi_for_this_tally: i64,
-    base_multi_for_this_dice_box: i64,
+    pub total_tally: i64,
+    pub total_multi_for_this_tally: i64,
+    pub base_multi_for_this_dice_box: i64,
     pos: Vector2,
     pub state: DiceBoxState,
     dice_collection_rect: Rectangle,
@@ -70,7 +74,7 @@ pub fn update(
     dt: f32,
 ) {
     set_dice_positions(dice_box_data);
-    
+
     match dice_box_data.state {
         DiceBoxState::WaitingForDice => {
             for i in (0..dice_in_hand.len()).rev() {
@@ -141,9 +145,8 @@ fn tally_points(data: &mut DiceBoxData, dt: f32) -> bool {
 }
 
 pub fn reset_box(data: &mut DiceBoxData, hand_dice: &mut Vec<Dice>) {
-    for _ in 0..data.dice_in_box.len() {
-        let current_dice = data.dice_in_box.pop().unwrap();
-        hand_dice.push(current_dice);
+    while let Some(dice) = data.dice_in_box.pop() {
+        hand_dice.push(dice);
     }
 
     data.state = DiceBoxState::WaitingForDice;
@@ -153,26 +156,6 @@ pub fn reset_box(data: &mut DiceBoxData, hand_dice: &mut Vec<Dice>) {
     data.timer_for_tallying_dice = 0.0;
     data.total_multi_for_this_tally = 1;
     data.total_tally = 0;
-}
-
-pub fn draw(
-    d: &mut RaylibDrawHandle,
-    texture: &Texture2D,
-    dice_box_data: &mut DiceBoxData,
-    dice_box_sprite: &Sprite,
-) {
-    dice_box_sprite.draw(d, dice_box_data.pos, texture);
-    d.draw_rectangle_lines(
-        dice_box_data.dice_collection_rect.x as i32,
-        dice_box_data.dice_collection_rect.y as i32,
-        dice_box_data.dice_collection_rect.width as i32,
-        dice_box_data.dice_collection_rect.height as i32,
-        Color::WHITE,
-    );
-    draw_dice(dice_box_data, d, texture);
-    //draw_multi();
-    //draw_base_multi();
-    //draw_border_around_currently_being_tallied_dice();
 }
 
 fn set_dice_positions(dice_box_data: &mut DiceBoxData) {
@@ -187,6 +170,26 @@ fn set_dice_positions(dice_box_data: &mut DiceBoxData) {
             draw_pos.x += DICE_WIDTH_HEIGHT * 3.0;
             draw_pos.y -= DICE_WIDTH_HEIGHT;
             times_increased_x = 0;
+        }
+    }
+}
+
+pub fn draw(d: &mut RaylibDrawHandle, texture: &Texture2D, dice_box_data: &mut DiceBoxData, dice_box_sprite: &Sprite) {
+    match dice_box_data.state {
+        DiceBoxState::Inactive => return,
+        _ => {
+            dice_box_sprite.draw(d, dice_box_data.pos, texture);
+            d.draw_rectangle_lines(
+                dice_box_data.dice_collection_rect.x as i32,
+                dice_box_data.dice_collection_rect.y as i32,
+                dice_box_data.dice_collection_rect.width as i32,
+                dice_box_data.dice_collection_rect.height as i32,
+                Color::WHITE,
+            );
+            draw_dice(dice_box_data, d, texture);
+            //draw_multi();
+            //draw_base_multi();
+            //draw_border_around_currently_being_tallied_dice();
         }
     }
 }
