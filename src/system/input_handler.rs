@@ -18,9 +18,9 @@ pub struct InputState {
 }
 
 impl InputState {
-    pub fn update(&mut self, rl: &mut RaylibHandle) {
+    pub fn update(&mut self, rl: &mut RaylibHandle, camera_zoom: f32) {
         
-        self.mouse_pos = rl.get_mouse_position() / 4.0;
+        self.mouse_pos = rl.get_mouse_position() / camera_zoom;
         
         let clicked = rl.is_mouse_button_pressed(MOUSE_BUTTON_LEFT);
         let held = rl.is_mouse_button_down(MOUSE_BUTTON_LEFT);

@@ -88,14 +88,16 @@ pub fn update(
             }
 
             if confirm_button.is_pressed(input_state) {
-                dice_box_data.state = DiceBoxState::TallyingPoints;
+                if dice_box_data.dice_in_box.is_empty() {
+                    dice_box_data.state = DiceBoxState::Inactive;
+                } else {     
+                    dice_box_data.state = DiceBoxState::TallyingPoints;
+                }
             }
         }
         DiceBoxState::TallyingPoints => {
-            if !dice_box_data.dice_in_box.is_empty() {
-                if tally_points(dice_box_data, dt) {
-                    dice_box_data.state = DiceBoxState::Acting;
-                }
+            if tally_points(dice_box_data, dt) {
+                dice_box_data.state = DiceBoxState::Acting;
             }
         }
         _ => (),
@@ -128,6 +130,11 @@ fn tally_points(data: &mut DiceBoxData, dt: f32) -> bool {
             data.current_streak = 1;
         }
 
+        println!(
+            "Current tally: {}, Current Multi: {}, value of the dice just tallied: {}",
+            data.total_tally, data.total_multi_for_this_tally, current_dice.value
+        );
+
         if data.current_index_dice_being_tallied == data.dice_in_box.len() - 1 {
             //data will reset after all things are used in a reset() function
             return true;
@@ -135,11 +142,7 @@ fn tally_points(data: &mut DiceBoxData, dt: f32) -> bool {
 
         data.previous_dice_value = current_dice.value;
         data.current_index_dice_being_tallied += 1;
-
-        println!(
-            "Current tally: {}, Current Multi: {}, value of the dice just tallied: {}",
-            data.total_tally, data.total_multi_for_this_tally, current_dice.value
-        );
+        data.timer_for_tallying_dice = 0.0;
     }
     return false;
 }
