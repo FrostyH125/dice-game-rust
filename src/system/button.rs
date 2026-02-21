@@ -16,7 +16,7 @@ impl Button {
         }
     }
 
-    pub fn is_pressed(&mut self, input_state: &InputState) -> bool {
+    pub fn is_pressed(&self, input_state: &InputState) -> bool {
         let is_clicked = self.rect.check_collision_point_rec(input_state.mouse_pos) && input_state.mouse_state == Clicked;
 
         if is_clicked {

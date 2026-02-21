@@ -43,11 +43,9 @@ impl InputState {
         //still correct, just using radius squared of the radius wanted, which is 0.1 here
         if held && distance_between_click_and_current_pos_squared >= 0.1 * 0.1 {
             self.mouse_state = Dragging;
-        }
-        
-        println!("state: {:?}", self.mouse_state)
-        
+        }    
     }
+    
     pub fn draw_mouse(&self, d: &mut RaylibDrawHandle, sprite_sheet: &Texture2D) {
         MOUSE_SPRITE.draw(d, self.mouse_pos, sprite_sheet);
     }

@@ -9,7 +9,7 @@ use raylib::prelude::*;
 
 pub const DICE_WIDTH_HEIGHT: f32 = 16.0;
 
-static ROLL_ANIM: AnimationData = AnimationData {
+pub static ROLL_ANIM: AnimationData = AnimationData {
     frames: &[
         Sprite::new(0.0, 0.0, 16.0, 16.0),
         Sprite::new(16.0, 0.0, 16.0, 16.0),
@@ -86,7 +86,7 @@ impl Dice {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+    pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         match self.state {
             Stopped => {
                 let frame_to_draw = self.value as usize - 1;

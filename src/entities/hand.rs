@@ -5,8 +5,8 @@ use raylib::prelude::*;
 use crate::{entities::dice::DiceState, system::{button::Button, input_handler::{InputState, MouseState}}};
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
+pub const DICE_Y_OFFSET: f32 = 72.0;
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
-const DICE_Y_OFFSET: f32 = 72.0;
 const STOP_BUTTON_WIDTH: f32 = 64.0;
 const STOP_BUTTON_HEIGHT: f32 = 32.0;
 
@@ -21,7 +21,7 @@ enum HandState {
 }
 
 pub struct Hand {
-    dice: Vec<Dice>,
+    pub dice: Vec<Dice>,
     current_index_of_dice_stopping: usize,
     stop_button: Button,
     dice_stop_time_per_dice: f32,
@@ -37,7 +37,7 @@ impl Hand {
             current_index_of_dice_stopping: Default::default(),
             stop_button: Button::new(
                 Rectangle {
-                    x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH / 2.0,
+                    x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH - 5.0,
                     y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
                     width: STOP_BUTTON_WIDTH, height: STOP_BUTTON_HEIGHT }),
             dice_stop_time_per_dice: Default::default(),

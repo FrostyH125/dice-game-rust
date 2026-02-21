@@ -2,7 +2,7 @@ pub mod entities;
 pub mod system;
 use raylib::prelude::*;
 
-use crate::{entities::hand::Hand, system::input_handler::InputState};
+use crate::{entities::{attack_dice_box::AttackDiceBox, confirm_button::ConfirmButton, dice_box::DiceBoxState, hand::Hand}, system::input_handler::InputState};
 
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
@@ -44,6 +44,8 @@ fn main() {
     let sprite_sheet = rl.load_texture(&thread, "SpriteSheet.png").unwrap();
     
     let mut hand = Hand::new();
+    let mut attack_box = AttackDiceBox::new(Vector2{ x: 5.0, y: 100.0});
+    let mut confirm_button = ConfirmButton::new();
     
     while !rl.window_should_close() {
         
@@ -51,6 +53,7 @@ fn main() {
         
         let dt = rl.get_frame_time();
         hand.update(&input_state, dt);
+        attack_box.update(&mut hand.dice, &input_state, &mut confirm_button, dt);
         input_state.update(&mut rl);
         
         //game world draw handle (will be screen space draw handle eventually)
@@ -60,7 +63,13 @@ fn main() {
         {
             let mut screen_handle = world_handle.begin_mode2D(&camera);
             hand.draw(&mut screen_handle, &sprite_sheet);
+            attack_box.draw(&mut screen_handle, &sprite_sheet);
+            confirm_button.draw(&mut screen_handle, &sprite_sheet);
             input_state.draw_mouse(&mut screen_handle, &sprite_sheet);
+        }
+        
+        if attack_box.data.state == DiceBoxState::Acting {
+            confirm_button.reset();
         }
         
         

@@ -1,0 +1,55 @@
+use crate::entities::dice::DICE_WIDTH_HEIGHT;
+use crate::entities::hand::DICE_Y_OFFSET;
+use basic_raylib_core::graphics::sprite::Sprite;
+use raylib::math::{Rectangle, Vector2};
+use raylib::prelude::RaylibDrawHandle;
+use raylib::texture::Texture2D;
+
+use crate::{
+    VIRTUAL_HEIGHT, VIRTUAL_WIDTH,
+    system::{button::Button, input_handler::InputState},
+};
+
+static CONFIRM_BUTTON_SPRITE: Sprite = Sprite::new(80.0, 16.0, 64.0, 32.0);
+static CONFIRM_BUTTON_DOWN_SPRITE: Sprite = Sprite::new(80.0, 48.0, 64.0, 32.0);
+
+pub struct ConfirmButton {
+    pub button: Button,
+    pos: Vector2,
+    down: bool,
+}
+
+impl ConfirmButton {
+    pub fn new() -> Self {
+        ConfirmButton {
+            button: Button::new(Rectangle {
+                x: VIRTUAL_WIDTH / 2.0,
+                y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
+                width: 64.0,
+                height: 32.0,
+            }),
+            pos: Vector2 {
+                x: VIRTUAL_WIDTH / 2.0,
+                y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
+            },
+            down: false,
+        }
+    }
+
+    pub fn is_pressed(&mut self, input_state: &InputState) -> bool {
+        self.down = self.button.is_pressed(input_state);
+        
+        return self.down;
+    }
+
+    pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+        match self.down {
+            true => CONFIRM_BUTTON_DOWN_SPRITE.draw(d, self.pos, texture),
+            false => CONFIRM_BUTTON_SPRITE.draw(d, self.pos, texture)
+        }
+    }
+    
+    pub fn reset(&mut self) {
+        self.down = false;
+    }
+}
