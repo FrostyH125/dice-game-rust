@@ -32,7 +32,7 @@ pub enum DiceState {
 pub struct Dice {
     pub pos: Vector2,
     roll_anim: SpriteAnimationInstance,
-    pub value: u8,
+    pub value: i8,
     pub state: DiceState,
 }
 
