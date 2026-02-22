@@ -1,8 +1,7 @@
 use super::dice::{Dice, DICE_WIDTH_HEIGHT};
-use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::prelude::*;
 
-use crate::{entities::{dice::DiceState, stop_button::StopButton}, system::{button::Button, input_handler::InputState}};
+use crate::{entities::{dice::{DiceKind, DiceState}, stop_button::StopButton}, system::input_handler::InputState};
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;
@@ -28,7 +27,7 @@ pub struct Hand {
 impl Hand {
     pub fn new() -> Self {
         Hand {
-            dice: std::iter::repeat_with(Dice::new).take(5).collect(),
+            dice: std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect(),
             current_index_of_dice_stopping: Default::default(),
             dice_stop_time_per_dice: Default::default(),
             dice_stop_timer: Default::default(),

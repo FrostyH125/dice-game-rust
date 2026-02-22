@@ -2,7 +2,7 @@ pub mod entities;
 pub mod system;
 use raylib::prelude::*;
 
-use crate::{entities::{confirm_button::ConfirmButton, hand::HandState, player::{Player, PlayerState}, stop_button::StopButton}, system::input_handler::InputState};
+use crate::{entities::{confirm_button::ConfirmButton, player::{Player, PlayerState}, stop_button::StopButton}, system::input_handler::InputState};
 
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;

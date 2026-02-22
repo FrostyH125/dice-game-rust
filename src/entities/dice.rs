@@ -1,4 +1,7 @@
-use crate::{entities::hand::HandState, system::input_handler::{InputState, MouseState}};
+use crate::{
+    entities::hand::HandState,
+    system::input_handler::{InputState, MouseState},
+};
 
 use self::DiceState::*;
 use basic_raylib_core::graphics::{
@@ -8,6 +11,20 @@ use rand::random_range;
 use raylib::prelude::*;
 
 pub const DICE_WIDTH_HEIGHT: f32 = 16.0;
+pub const DICE_ROLL_FRAME_DURATION: f32 = 0.2;
+
+pub static D6_ROLL_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(0.0, 0.0, 16.0, 16.0),
+        Sprite::new(16.0, 0.0, 16.0, 16.0),
+        Sprite::new(32.0, 0.0, 16.0, 16.0),
+        Sprite::new(48.0, 0.0, 16.0, 16.0),
+        Sprite::new(64.0, 0.0, 16.0, 16.0),
+        Sprite::new(80.0, 0.0, 16.0, 16.0),
+    ],
+    frame_duration: DICE_ROLL_FRAME_DURATION,
+    should_loop: true,
+};
 
 #[derive(PartialEq)]
 pub enum DiceState {
@@ -17,7 +34,15 @@ pub enum DiceState {
 }
 
 pub enum DiceKind {
-    SixSided,
+    D6,
+}
+
+impl DiceKind {
+    pub fn max_sides(&self) -> i8 {
+        match self {
+            DiceKind::D6 => 6,
+        }
+    }
 }
 
 pub struct Dice {
@@ -25,7 +50,7 @@ pub struct Dice {
     pub roll_anim: SpriteAnimationInstance,
     pub value: i8,
     pub state: DiceState,
-    kind: DiceKind,
+    pub kind: DiceKind,
 }
 
 impl Dice {
@@ -35,7 +60,7 @@ impl Dice {
             roll_anim: SpriteAnimationInstance::default(),
             value: Default::default(),
             state: Rolling,
-            kind
+            kind,
         }
     }
 
@@ -54,49 +79,50 @@ impl Dice {
                         width: DICE_WIDTH_HEIGHT,
                         height: DICE_WIDTH_HEIGHT,
                     };
-                    if rect.check_collision_point_rec(input_state.mouse_pos) {
-                        true
-                    } else {
-                        false
-                    }
+                    if rect.check_collision_point_rec(input_state.mouse_pos) { true } else { false }
                 };
 
                 if mouse_dragging && mouse_over_this && !*other_dice_dragged {
                     *other_dice_dragged = true;
-                    self.state = DiceState::Rolling;
+                    self.state = DiceState::Dragging;
                 }
             }
             DiceState::Dragging => {
                 if input_state.mouse_state == MouseState::Dragging {
-                    self.pos = input_state.mouse_pos - Vector2 { x: DICE_WIDTH_HEIGHT / 2.0 , y: DICE_WIDTH_HEIGHT / 2.0};
-                }
-                else {
+                    self.pos = input_state.mouse_pos
+                        - Vector2 {
+                            x: DICE_WIDTH_HEIGHT / 2.0,
+                            y: DICE_WIDTH_HEIGHT / 2.0,
+                        };
+                } else {
                     self.state = DiceState::Stopped;
                 }
-            }
-            DiceState::Rolling => {
-                match self.kind {
-                    DiceKind::SixSided => self.update_six_sided(other_dice_dragged, hand_state, input_state, dt),
-                }
+            },
+            DiceState::Rolling => self.update_roll_anim_random(dt),
         }
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+        
+        let anim = match self.kind {
+            DiceKind::D6 => &D6_ROLL_ANIM,
+        };
+        
         match self.state {
             Stopped => {
                 let frame_to_draw = self.value as usize - 1;
-                ROLL_ANIM.frames[frame_to_draw].draw(d, self.pos, texture)
+                anim.frames[frame_to_draw].draw(d, self.pos, texture)
             }
-            Rolling => ROLL_ANIM.draw(&self.roll_anim, d, texture, self.pos),
+            Rolling => anim.draw(&self.roll_anim, d, texture, self.pos),
             Dragging => {
                 let frame_to_draw = self.value as usize - 1;
-                ROLL_ANIM.frames[frame_to_draw].draw(d, self.pos, texture)
+                anim.frames[frame_to_draw].draw(d, self.pos, texture)
             }
         }
     }
 
     pub fn stop(&mut self) {
-        let new_value = random_range(1..=6);
+        let new_value = random_range(1..=self.kind.max_sides());
         self.value = new_value;
         self.state = Stopped;
     }
@@ -104,21 +130,14 @@ impl Dice {
     pub fn reset(&mut self) {
         self.state = Rolling;
     }
-}
 
-//only using because i cant actually implement it on the sprite animation instance itself
-trait RandomDiceAnimUpdate {
-    fn update_roll_anim_random(&self, animation_instance: &mut SpriteAnimationInstance, dt: f32);
-}
+    pub fn update_roll_anim_random(&mut self, dt: f32) {
+        self.roll_anim.current_frame_time += dt;
 
-impl RandomDiceAnimUpdate for AnimationData {
-    fn update_roll_anim_random(&self, animation_instance: &mut SpriteAnimationInstance, dt: f32) {
-        animation_instance.current_frame_time += dt;
-
-        while animation_instance.current_frame_time >= self.frame_duration {
-            let new_frame_index = random_range(0..=5);
-            animation_instance.current_frame_index = new_frame_index;
-            animation_instance.current_frame_time -= self.frame_duration;
+        while self.roll_anim.current_frame_time >= DICE_ROLL_FRAME_DURATION {
+            let new_frame_index = random_range(0..=self.kind.max_sides() as u8 - 1);
+            self.roll_anim.current_frame_index = new_frame_index;
+            self.roll_anim.current_frame_time -= DICE_ROLL_FRAME_DURATION;
         }
     }
 }
