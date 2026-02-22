@@ -10,17 +10,16 @@ use raylib::{
 
 use crate::{
     entities::{
-        confirm_button::ConfirmButton,
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceState},
     },
-    system::input_handler::InputState,
 };
 
 #[derive(PartialEq, Debug)]
 pub enum DiceBoxState {
     WaitingForDice,
     TallyingPoints,
-    Acting,
+    GettingData,
+    WaitingForAction,
     Inactive,
 }
 
@@ -35,6 +34,7 @@ pub struct DiceBoxData {
     pub total_tally: i64,
     pub total_multi_for_this_tally: i64,
     pub base_multi_for_this_dice_box: i64,
+    pub total_value_for_current_round: i64,
     pos: Vector2,
     pub state: DiceBoxState,
     dice_collection_rect: Rectangle,
@@ -51,6 +51,7 @@ impl DiceBoxData {
             total_tally: 0,
             total_multi_for_this_tally: 1,
             base_multi_for_this_dice_box: 1,
+            total_value_for_current_round: 0,
             pos,
             state: DiceBoxState::WaitingForDice,
             dice_collection_rect: Rectangle {
@@ -69,8 +70,6 @@ impl DiceBoxData {
 pub fn update(
     dice_box_data: &mut DiceBoxData,
     dice_in_hand: &mut Vec<Dice>,
-    input_state: &InputState,
-    confirm_button: &mut ConfirmButton,
     dt: f32,
 ) {
     set_dice_positions(dice_box_data);
@@ -86,19 +85,21 @@ pub fn update(
                     dice_box_data.dice_in_box.sort_by(|a, b| a.value.cmp(&b.value));
                 }
             }
-
-            if confirm_button.is_pressed(input_state) {
-                if dice_box_data.dice_in_box.is_empty() {
-                    dice_box_data.state = DiceBoxState::Inactive;
-                } else {     
-                    dice_box_data.state = DiceBoxState::TallyingPoints;
-                }
-            }
         }
         DiceBoxState::TallyingPoints => {
-            if tally_points(dice_box_data, dt) {
-                dice_box_data.state = DiceBoxState::Acting;
+            
+            if dice_box_data.dice_in_box.is_empty() {
+                dice_box_data.state = DiceBoxState::Inactive;
             }
+            
+            if tally_points(dice_box_data, dt) {
+                dice_box_data.state = DiceBoxState::GettingData;
+            }
+        }
+        
+        DiceBoxState::GettingData => {
+            dice_box_data.total_value_for_current_round = get_value(dice_box_data);
+            dice_box_data.state = DiceBoxState::WaitingForAction;
         }
         _ => (),
     }
@@ -151,7 +152,8 @@ pub fn reset_box(data: &mut DiceBoxData, hand_dice: &mut Vec<Dice>) {
     while let Some(dice) = data.dice_in_box.pop() {
         hand_dice.push(dice);
     }
-
+    
+    data.total_value_for_current_round = 0;
     data.state = DiceBoxState::WaitingForDice;
     data.current_index_dice_being_tallied = 0;
     data.current_streak = 1;
@@ -211,6 +213,10 @@ fn draw_base_multi() {
     todo!("need to implement drawing the base multiplier for this dice box")
 }
 
+fn draw_current_streak() {
+    todo!("need to implement drawing current streak")
+}
+
 fn draw_border_around_currently_being_tallied_dice() {
     todo!("need to draw border around currently being tallied dice")
 }
@@ -218,4 +224,10 @@ fn draw_border_around_currently_being_tallied_dice() {
 //need to update dice in order to check if theyre being picked up or not
 fn update_dice() {
     todo!("need to impl update dice")
+}
+
+fn get_value(dice_box_data: &DiceBoxData) -> i64 {
+    return dice_box_data.total_tally
+        * dice_box_data.base_multi_for_this_dice_box
+        * dice_box_data.total_multi_for_this_tally;
 }

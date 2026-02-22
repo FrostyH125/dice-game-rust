@@ -2,7 +2,7 @@ pub mod entities;
 pub mod system;
 use raylib::prelude::*;
 
-use crate::{entities::{attack_dice_box::AttackDiceBox, confirm_button::ConfirmButton, dice_box::DiceBoxState, hand::Hand, player::{Player, PlayerState}}, system::input_handler::InputState};
+use crate::{entities::{confirm_button::ConfirmButton, player::{Player, PlayerState}}, system::input_handler::InputState};
 
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
@@ -54,7 +54,7 @@ fn main() {
             input_state.draw_mouse(&mut screen_handle, &sprite_sheet);
         }
         
-        if player.attack_box.data.state == DiceBoxState::Acting {
+        if player.state == PlayerState::Acting {
             confirm_button.reset();
         }
         

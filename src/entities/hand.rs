@@ -2,7 +2,7 @@ use super::dice::{Dice, DICE_WIDTH_HEIGHT};
 use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::prelude::*;
 
-use crate::{entities::dice::DiceState, system::{button::Button, input_handler::{InputState, MouseState}}};
+use crate::{entities::dice::DiceState, system::{button::Button, input_handler::InputState}};
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;

@@ -20,11 +20,12 @@ static PLAYER_WALK_ANIM: AnimationData = AnimationData {
 };
 
 static PLAYER_IDLE_SPRITE: Sprite = Sprite::new(144.0, 80.0, 32.0, 48.0);
+const TIME_BETWEEN_ACTIONS: f32 = 1.0;
 
 #[derive(PartialEq)]
 pub enum PlayerState {
     Walking,            // waiting for enemy
-    PreparingForBattle, // setting hand and boxes to proper state
+    PreparingForRound, // setting hand and boxes to proper state
     RollingDice,        // can't pick up dice until this finishes
     ChoosingDice,       // selecting which dice go in which box
     TallyingTotal,      // wait for box to tally dice
@@ -36,9 +37,12 @@ pub enum PlayerState {
 pub struct Player {
     pub attack_box: AttackDiceBox,
     hand: Hand,
+    attack_power: i64,
     walk_anim: SpriteAnimationInstance,
     pos: raylib::math::Vector2,
     pub state: PlayerState,
+    acting_timer: f32,
+    attacked: bool,
 }
 
 impl Player {
@@ -49,22 +53,25 @@ impl Player {
             walk_anim: SpriteAnimationInstance::new(),
             pos: Vector2 { x: 20.0, y: 150.0 },
             state: PlayerState::Walking,
+            acting_timer: 0.0,
+            attack_power: 0,
+            attacked: false,
         }
     }
 
     pub fn update(&mut self, input_state: &InputState, confirm_button: &mut ConfirmButton, dt: f32) {
-        self.attack_box.update(&mut self.hand.dice, input_state, confirm_button, dt);
+        self.attack_box.update(&mut self.hand.dice, dt);
         self.hand.update(input_state, dt);
 
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
                 if self.walk_anim.current_frame_index == 1 && self.walk_anim.current_frame_time > 0.49 {
-                    self.state = PlayerState::PreparingForBattle;
+                    self.state = PlayerState::PreparingForRound;
                     self.walk_anim.reset();
                 }
             }
-            PlayerState::PreparingForBattle => {
+            PlayerState::PreparingForRound => {
                 self.hand.state = HandState::RollingDice;
                 self.attack_box.data.state = DiceBoxState::WaitingForDice;
                 self.state = PlayerState::RollingDice;
@@ -75,27 +82,37 @@ impl Player {
                 }
             }
             PlayerState::ChoosingDice => {  
-                
-                let waiting = self.attack_box.data.state == DiceBoxState::WaitingForDice;
-                let any_box_has_dice = self.attack_box.data.state == DiceBoxState::TallyingPoints;
-                
-                if any_box_has_dice && !waiting {
+                if confirm_button.is_pressed(input_state) {
                     self.state = PlayerState::TallyingTotal;
-                } else if !waiting && !any_box_has_dice {
-                    self.state = PlayerState::Resetting;
+                    self.attack_box.data.state = DiceBoxState::TallyingPoints;
                 }
             }
             PlayerState::TallyingTotal => {
-                let attack_box_acting = self.attack_box.data.state == DiceBoxState::Acting;
-                if attack_box_acting {
+                
+                if self.attack_box.data.state == DiceBoxState::WaitingForAction {
                     self.state = PlayerState::Acting;
+                }
+                
+                if self.attack_box.data.state == DiceBoxState::Inactive {
+                    self.state = PlayerState::Resetting;
                 }
             }
             PlayerState::Acting => {
-                if !self.attack_box.attack(dt) {
-                    return;
+                self.acting_timer += dt;
+                
+                if !self.attacked {
+                    if self.acting_timer >= TIME_BETWEEN_ACTIONS {
+                        //attack enemy
+                        self.attack_power = self.attack_box.data.total_value_for_current_round;
+                        self.acting_timer = 0.0;
+                        self.attacked = true;
+                    }
                 }
-                self.state = PlayerState::Resetting;
+                
+                if self.attacked {
+                    //when enemies exist, put it to wiaitng for enemy
+                    self.state = PlayerState::Resetting;
+                }
             }
             PlayerState::WaitingForEnemy => (),
             PlayerState::Resetting => {
