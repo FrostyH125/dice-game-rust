@@ -2,13 +2,12 @@ pub mod entities;
 pub mod system;
 use raylib::prelude::*;
 
-use crate::{entities::{confirm_button::ConfirmButton, player::{Player, PlayerState}}, system::input_handler::InputState};
+use crate::{entities::{confirm_button::ConfirmButton, hand::HandState, player::{Player, PlayerState}, stop_button::StopButton}, system::input_handler::InputState};
 
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
 
-// make unable to click confirm unless dice are stopped
-// make confirm button draw correct sprite when clicked (prehaps dont reset it until a certain point)
+
 // add enemy and integrate into control flow
 // when theres an enemy, do back and forth loop, only breaking if enemy is dead or player is dead
 
@@ -32,6 +31,7 @@ fn main() {
     
     let mut player = Player::new();
     let mut confirm_button = ConfirmButton::new();
+    let mut stop_button = StopButton::new();
     
     while !rl.window_should_close() {
         
@@ -39,7 +39,7 @@ fn main() {
         
         let dt = rl.get_frame_time();
         input_state.update(&mut rl, camera.zoom);
-        player.update(&input_state, &mut confirm_button, dt);
+        player.update(&input_state, &mut confirm_button, &mut stop_button, dt);
         
         //game world draw handle (will be screen space draw handle eventually)
         let mut world_handle = rl.begin_drawing(&thread);
@@ -48,16 +48,11 @@ fn main() {
         {
             let mut screen_handle = world_handle.begin_mode2D(&camera);
             player.draw(&mut screen_handle, &sprite_sheet);
-            if player.state != PlayerState::Walking {
+            if player.state != PlayerState::Walking || player.state != PlayerState::WaitingForEnemy {
                 confirm_button.draw(&mut screen_handle, &sprite_sheet);
+                stop_button.draw(&mut screen_handle, &sprite_sheet);
             }
             input_state.draw_mouse(&mut screen_handle, &sprite_sheet);
         }
-        
-        if player.state == PlayerState::Acting {
-            confirm_button.reset();
-        }
-        
-        
     }
 }

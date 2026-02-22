@@ -8,7 +8,7 @@ use crate::{
         attack_dice_box::AttackDiceBox,
         confirm_button::ConfirmButton,
         dice_box::DiceBoxState,
-        hand::{Hand, HandState},
+        hand::{Hand, HandState}, stop_button::StopButton,
     },
     system::input_handler::InputState,
 };
@@ -36,7 +36,7 @@ pub enum PlayerState {
 
 pub struct Player {
     pub attack_box: AttackDiceBox,
-    hand: Hand,
+    pub hand: Hand,
     attack_power: i64,
     walk_anim: SpriteAnimationInstance,
     pos: raylib::math::Vector2,
@@ -59,9 +59,9 @@ impl Player {
         }
     }
 
-    pub fn update(&mut self, input_state: &InputState, confirm_button: &mut ConfirmButton, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, confirm_button: &mut ConfirmButton, stop_button: &mut StopButton, dt: f32) {
         self.attack_box.update(&mut self.hand.dice, dt);
-        self.hand.update(input_state, dt);
+        self.hand.update(input_state, stop_button, dt);
 
         match self.state {
             PlayerState::Walking => {
@@ -89,12 +89,16 @@ impl Player {
             }
             PlayerState::TallyingTotal => {
                 
+                // extend this to being "if any of the boxes are waiting for action"
                 if self.attack_box.data.state == DiceBoxState::WaitingForAction {
                     self.state = PlayerState::Acting;
+                    confirm_button.reset();
                 }
                 
+                // extend this to being "if all of the boxes are inactive"
                 if self.attack_box.data.state == DiceBoxState::Inactive {
                     self.state = PlayerState::Resetting;
+                    confirm_button.reset();
                 }
             }
             PlayerState::Acting => {
@@ -104,20 +108,28 @@ impl Player {
                     if self.acting_timer >= TIME_BETWEEN_ACTIONS {
                         //attack enemy
                         self.attack_power = self.attack_box.data.total_value_for_current_round;
+                        
+                        println!("dealt {} damage!", self.attack_power);
+                        
                         self.acting_timer = 0.0;
                         self.attacked = true;
                     }
                 }
                 
+                // if all boxes acted (if self.attacked && self.healed && self.block_calculated && self.special)
                 if self.attacked {
-                    //when enemies exist, put it to wiaitng for enemy
-                    self.state = PlayerState::Resetting;
+                    self.state = PlayerState::WaitingForEnemy;
+                    self.attack_box.data.state = DiceBoxState::Inactive;
                 }
             }
             PlayerState::WaitingForEnemy => (),
+                // if enemy.data.state == waitingforplayer {
+                //  self.state == Resetting
+                // },
             PlayerState::Resetting => {
+                self.attacked = false;
                 self.attack_box.reset(&mut self.hand.dice);
-                self.hand.reset_dice();
+                self.hand.reset_hand();
                 self.state = PlayerState::Walking;
             }
         }

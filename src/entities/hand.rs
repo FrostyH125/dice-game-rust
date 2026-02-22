@@ -2,16 +2,11 @@ use super::dice::{Dice, DICE_WIDTH_HEIGHT};
 use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::prelude::*;
 
-use crate::{entities::dice::DiceState, system::{button::Button, input_handler::InputState}};
+use crate::{entities::{dice::DiceState, stop_button::StopButton}, system::{button::Button, input_handler::InputState}};
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
-const STOP_BUTTON_WIDTH: f32 = 64.0;
-const STOP_BUTTON_HEIGHT: f32 = 32.0;
-
-static BUTTON_DEFAULT_SPRITE: Sprite = Sprite::new(16.0, 16.0, 64.0, 32.0);
-static BUTTON_CLICK_SPRITE: Sprite = Sprite::new(16.0, 48.0, 64.0, 32.0);
 
 #[derive(PartialEq)]
 pub enum HandState {
@@ -24,7 +19,6 @@ pub enum HandState {
 pub struct Hand {
     pub dice: Vec<Dice>,
     current_index_of_dice_stopping: usize,
-    stop_button: Button,
     dice_stop_time_per_dice: f32,
     dice_stop_timer: f32,
     pub state: HandState,
@@ -36,11 +30,6 @@ impl Hand {
         Hand {
             dice: std::iter::repeat_with(Dice::new).take(5).collect(),
             current_index_of_dice_stopping: Default::default(),
-            stop_button: Button::new(
-                Rectangle {
-                    x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH - 5.0,
-                    y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
-                    width: STOP_BUTTON_WIDTH, height: STOP_BUTTON_HEIGHT }),
             dice_stop_time_per_dice: Default::default(),
             dice_stop_timer: Default::default(),
             state: HandState::RollingDice,
@@ -49,7 +38,7 @@ impl Hand {
     }
     
     
-    pub fn update(&mut self, input_state: &InputState, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, stop_button: &mut StopButton, dt: f32) {
         
         self.is_any_dice_dragged = self.dice.iter().any(|dice| dice.state == DiceState::Dragging);
         
@@ -62,7 +51,7 @@ impl Hand {
         
         match self.state {
             HandState::RollingDice => {
-                if self.stop_button.is_pressed(input_state) {
+                if stop_button.is_pressed(input_state) {
                     self.begin_dice_stop();
                     self.state = HandState::StoppingDice;
                 }
@@ -71,11 +60,13 @@ impl Hand {
             HandState::StoppingDice => {
                 if self.stop_dice(dt) {
                     self.state = HandState::StoppedDice;
+                    stop_button.reset();
                 }
             }
-            // this will be checking for if the game state is your turn again
-            // or if you choose to reroll some dice
-            // in case of reroll or being your turn again, reset dice, and set state to rolling dice,
+            HandState::StoppedDice => {
+              // check if stop button is pressed again
+              // if so, handstate == rolling dice again, except the ones that youre saving 
+            },
             _ => (), 
         }
     }
@@ -108,7 +99,7 @@ impl Hand {
     fn stop_dice(&mut self, dt: f32) -> bool {
         self.dice_stop_timer += dt;
         
-        while self.dice_stop_timer >= self.dice_stop_time_per_dice {
+        if self.dice_stop_timer >= self.dice_stop_time_per_dice {
             self.stop_current_dice();
             self.dice_stop_timer = 0.0;
             
@@ -129,15 +120,7 @@ impl Hand {
         self.current_index_of_dice_stopping >= self.dice.len()
     }
     
-    pub fn draw_stop_button(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        if self.state == HandState::StoppingDice {
-            BUTTON_CLICK_SPRITE.draw(d, self.stop_button.pos, texture);
-        } else {
-            BUTTON_DEFAULT_SPRITE.draw(d, self.stop_button.pos, texture);
-        }
-    }
-    
-    pub fn reset_dice(&mut self) {
+    pub fn reset_hand(&mut self) {
         for i in 0..self.dice.len() {
             self.dice[i].reset();
         }
@@ -149,7 +132,5 @@ impl Hand {
         for i in 0..self.dice.len() {
             self.dice[i].draw(d, texture);
         }
-        
-        self.draw_stop_button(d, texture);
     }
 }

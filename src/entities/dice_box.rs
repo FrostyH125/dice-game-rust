@@ -8,11 +8,7 @@ use raylib::{
     texture::Texture2D,
 };
 
-use crate::{
-    entities::{
-        dice::{DICE_WIDTH_HEIGHT, Dice, DiceState},
-    },
-};
+use crate::entities::dice::{DICE_WIDTH_HEIGHT, Dice, DiceState};
 
 #[derive(PartialEq, Debug)]
 pub enum DiceBoxState {
@@ -24,6 +20,10 @@ pub enum DiceBoxState {
 }
 
 const DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 34.0, y: -15.0 };
+const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
+    x: DICE_WIDTH_HEIGHT / 2.0,
+    y: -DICE_WIDTH_HEIGHT / 2.0,
+};
 
 // with any luck, the only things youll need from this mod are update() and draw(), the rest should happen automatically.
 // all that is left is checking data, doing something when it changes, and thats it
@@ -67,18 +67,16 @@ impl DiceBoxData {
     }
 }
 
-pub fn update(
-    dice_box_data: &mut DiceBoxData,
-    dice_in_hand: &mut Vec<Dice>,
-    dt: f32,
-) {
+pub fn update(dice_box_data: &mut DiceBoxData, dice_in_hand: &mut Vec<Dice>, dt: f32) {
     set_dice_positions(dice_box_data);
 
     match dice_box_data.state {
         DiceBoxState::WaitingForDice => {
             for i in (0..dice_in_hand.len()).rev() {
                 if dice_in_hand[i].state == DiceState::Stopped
-                    && dice_box_data.dice_collection_rect.check_collision_point_rec(dice_in_hand[i].pos)
+                    && dice_box_data
+                        .dice_collection_rect
+                        .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
                 {
                     let dice_to_add = dice_in_hand.remove(i);
                     dice_box_data.dice_in_box.push(dice_to_add);
@@ -87,16 +85,13 @@ pub fn update(
             }
         }
         DiceBoxState::TallyingPoints => {
-            
             if dice_box_data.dice_in_box.is_empty() {
                 dice_box_data.state = DiceBoxState::Inactive;
-            }
-            
-            if tally_points(dice_box_data, dt) {
+            } else if tally_points(dice_box_data, dt) {
                 dice_box_data.state = DiceBoxState::GettingData;
             }
         }
-        
+
         DiceBoxState::GettingData => {
             dice_box_data.total_value_for_current_round = get_value(dice_box_data);
             dice_box_data.state = DiceBoxState::WaitingForAction;
@@ -152,7 +147,7 @@ pub fn reset_box(data: &mut DiceBoxData, hand_dice: &mut Vec<Dice>) {
     while let Some(dice) = data.dice_in_box.pop() {
         hand_dice.push(dice);
     }
-    
+
     data.total_value_for_current_round = 0;
     data.state = DiceBoxState::WaitingForDice;
     data.current_index_dice_being_tallied = 0;

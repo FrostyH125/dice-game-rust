@@ -10,6 +10,8 @@ use crate::{
     system::{button::Button, input_handler::InputState},
 };
 
+const CONFIRM_BUTTON_WIDTH: f32 = 64.0;
+const CONFIRM_BUTTON_HEIGHT: f32 = 32.0;
 static CONFIRM_BUTTON_SPRITE: Sprite = Sprite::new(80.0, 16.0, 64.0, 32.0);
 static CONFIRM_BUTTON_DOWN_SPRITE: Sprite = Sprite::new(80.0, 48.0, 64.0, 32.0);
 
@@ -25,8 +27,8 @@ impl ConfirmButton {
             button: Button::new(Rectangle {
                 x: VIRTUAL_WIDTH / 2.0,
                 y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
-                width: 64.0,
-                height: 32.0,
+                width: CONFIRM_BUTTON_WIDTH,
+                height: CONFIRM_BUTTON_HEIGHT,
             }),
             pos: Vector2 {
                 x: VIRTUAL_WIDTH / 2.0,
