@@ -1,7 +1,7 @@
 use basic_raylib_core::graphics::{
     animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance,
 };
-use raylib::{math::Vector2, prelude::RaylibDrawHandle, texture::Texture2D};
+use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{entities::{confirm_button::ConfirmButton, dice::{Dice, DiceKind}, dice_box_data::DiceBoxState, hand::{Hand, HandState}, stop_button::StopButton}, system::input_handler::InputState};
 use crate::entities::player_dice_boxes::attack_dice_box::AttackDiceBox;
@@ -130,13 +130,13 @@ impl Player {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self.state {
             PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, texture, self.pos),
             _ => {
                 PLAYER_IDLE_SPRITE.draw(d, self.pos, texture);
                 self.hand.draw(d, texture);
-                self.attack_box.draw(d, texture);
+                self.attack_box.draw(d, texture, font);
             }
         }
     }

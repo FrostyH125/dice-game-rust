@@ -16,33 +16,33 @@ pub enum DiceBoxState {
 }
 
 // big multi number that gets bigger as the number gets bigger, "x2, x3, x4," etc
-const CURRENT_MULTI_OFFSET: Vector2 = Vector2 { x: 48.0, y: -24.0 };
+pub const CURRENT_MULTI_OFFSET: Vector2 = Vector2 { x: 56.0, y: -35.0 };
 
 // smaller number set inside of the box itself, denotes the current base multiplier
 // most likely will be determined by weapon
 // will also likely have a symbol next to it denoting the type of damage it is
 // "slash, blunt, pierce, fire, lightning, etc"
 // will also be symbols for healing and blocking as well
-const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 34.0, y: 4.0 };
+pub const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 34.0, y: 4.0 };
 
 // planning for this to be under the scoring box
 // will continuously count a streak if its over 1
 // "2 streak!, 3 streak!, 4 streak!"
 // will likely get bigger as the streak gets larger as well
-const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 18.0 };
+pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 18.0 };
 
 // where the border needs to be drawn relative to the dice
-const CURRENT_DICE_BORDER_OFFSET: Vector2 = Vector2 { x: -1.0, y: -1.0 };
-const DICE_BORDER_SIZE: Vector2 = Vector2 {
+pub const CURRENT_DICE_BORDER_OFFSET: Vector2 = Vector2 { x: -1.0, y: -1.0 };
+pub const DICE_BORDER_SIZE: Vector2 = Vector2 {
     x: DICE_WIDTH_HEIGHT + 2.0,
     y: DICE_WIDTH_HEIGHT + 2.0,
 };
 
-const D6_DICE_BORDER_SPRITE: Sprite = Sprite::new(223.0, 15.0, 18.0, 18.0);
-const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191.0, 15.0, 18.0, 18.0);
+pub const D6_DICE_BORDER_SPRITE: Sprite = Sprite::new(223.0, 15.0, 18.0, 18.0);
+pub const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191.0, 15.0, 18.0, 18.0);
 
-const DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 34.0, y: -15.0 };
-const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
+pub const DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 34.0, y: -15.0 };
+pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
     x: DICE_WIDTH_HEIGHT / 2.0,
     y: -DICE_WIDTH_HEIGHT / 2.0,
 };

@@ -12,7 +12,7 @@ const VIRTUAL_HEIGHT: f32 = 270.0;
 // when theres an enemy, do back and forth loop, only breaking if enemy is dead or player is dead
 
 fn main() {
-    let (mut rl, thread) = raylib::init().size(VIRTUAL_WIDTH as i32 * 2, VIRTUAL_HEIGHT as i32 * 2).title("Dice Game").build();
+    let (mut rl, thread) = raylib::init().size(VIRTUAL_WIDTH as i32 * 3, VIRTUAL_HEIGHT as i32 * 3).title("Dice Game").build();
     
     let font = rl.load_font(&thread, "PublicPixel.ttf").unwrap();
     
@@ -20,7 +20,7 @@ fn main() {
         offset: Default::default(),
         target: Default::default(),
         rotation: Default::default(),
-        zoom: 2.0,
+        zoom: 3.0,
     };
     
     let mut input_state = InputState {
@@ -49,7 +49,7 @@ fn main() {
         
         {
             let mut screen_handle = world_handle.begin_mode2D(&camera);
-            player.draw(&mut screen_handle, &sprite_sheet);
+            player.draw(&mut screen_handle, &sprite_sheet, &font);
             if player.state != PlayerState::Walking || player.state != PlayerState::WaitingForEnemy {
                 confirm_button.draw(&mut screen_handle, &sprite_sheet, &font);
                 stop_button.draw(&mut screen_handle, &sprite_sheet);
