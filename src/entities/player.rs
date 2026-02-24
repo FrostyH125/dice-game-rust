@@ -3,15 +3,8 @@ use basic_raylib_core::graphics::{
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, texture::Texture2D};
 
-use crate::{
-    entities::{
-        attack_dice_box::AttackDiceBox,
-        confirm_button::ConfirmButton,
-        dice_box::DiceBoxState,
-        hand::{Hand, HandState}, stop_button::StopButton,
-    },
-    system::input_handler::InputState,
-};
+use crate::{entities::{confirm_button::ConfirmButton, dice::{Dice, DiceKind}, dice_box_data::DiceBoxState, hand::{Hand, HandState}, stop_button::StopButton}, system::input_handler::InputState};
+use crate::entities::player_dice_boxes::attack_dice_box::AttackDiceBox;
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
     frames: &[Sprite::new(80.0, 80.0, 32.0, 48.0), Sprite::new(112.0, 80.0, 32.0, 48.0)],
@@ -38,6 +31,7 @@ pub struct Player {
     pub attack_box: AttackDiceBox,
     pub hand: Hand,
     attack_power: i64,
+    health: i64,
     walk_anim: SpriteAnimationInstance,
     pos: raylib::math::Vector2,
     pub state: PlayerState,
@@ -49,9 +43,10 @@ impl Player {
     pub fn new() -> Self {
         Player {
             attack_box: AttackDiceBox::new(),
-            hand: Hand::new(),
+            hand: Hand::new(std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect()),
             walk_anim: SpriteAnimationInstance::new(),
             pos: Vector2 { x: 20.0, y: 150.0 },
+            health: 100,
             state: PlayerState::Walking,
             acting_timer: 0.0,
             attack_power: 0,

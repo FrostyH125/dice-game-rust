@@ -25,9 +25,9 @@ pub struct Hand {
 }
 
 impl Hand {
-    pub fn new() -> Self {
+    pub fn new(dice: Vec<Dice>) -> Self {
         Hand {
-            dice: std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect(),
+            dice,
             current_index_of_dice_stopping: Default::default(),
             dice_stop_time_per_dice: Default::default(),
             dice_stop_timer: Default::default(),

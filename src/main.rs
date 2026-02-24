@@ -14,6 +14,8 @@ const VIRTUAL_HEIGHT: f32 = 270.0;
 fn main() {
     let (mut rl, thread) = raylib::init().size(VIRTUAL_WIDTH as i32 * 2, VIRTUAL_HEIGHT as i32 * 2).title("Dice Game").build();
     
+    let font = rl.load_font(&thread, "PublicPixel.ttf").unwrap();
+    
     let camera = Camera2D {
         offset: Default::default(),
         target: Default::default(),
@@ -49,7 +51,7 @@ fn main() {
             let mut screen_handle = world_handle.begin_mode2D(&camera);
             player.draw(&mut screen_handle, &sprite_sheet);
             if player.state != PlayerState::Walking || player.state != PlayerState::WaitingForEnemy {
-                confirm_button.draw(&mut screen_handle, &sprite_sheet);
+                confirm_button.draw(&mut screen_handle, &sprite_sheet, &font);
                 stop_button.draw(&mut screen_handle, &sprite_sheet);
             }
             input_state.draw_mouse(&mut screen_handle, &sprite_sheet);

@@ -15,15 +15,26 @@ pub const DICE_ROLL_FRAME_DURATION: f32 = 0.2;
 
 pub static D6_ROLL_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(0.0, 0.0, 16.0, 16.0),
-        Sprite::new(16.0, 0.0, 16.0, 16.0),
-        Sprite::new(32.0, 0.0, 16.0, 16.0),
-        Sprite::new(48.0, 0.0, 16.0, 16.0),
-        Sprite::new(64.0, 0.0, 16.0, 16.0),
-        Sprite::new(80.0, 0.0, 16.0, 16.0),
+        Sprite::new(0.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(16.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(32.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(48.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(64.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(80.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
     ],
     frame_duration: DICE_ROLL_FRAME_DURATION,
     should_loop: true,
+};
+
+pub static D4_ROLL_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(96.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(112.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(128.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(144.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+    ],
+    frame_duration: DICE_ROLL_FRAME_DURATION,
+    should_loop: true
 };
 
 #[derive(PartialEq)]
@@ -34,13 +45,22 @@ pub enum DiceState {
 }
 
 pub enum DiceKind {
+    D4,
     D6,
 }
 
 impl DiceKind {
-    pub fn max_sides(&self) -> i8 {
+    pub fn num_of_sides(&self) -> i8 {
         match self {
+            DiceKind::D4 => 4,
             DiceKind::D6 => 6,
+        }
+    }
+    
+    pub fn anim(&self) -> &AnimationData {
+        match self {
+            DiceKind::D4 => &D4_ROLL_ANIM,
+            DiceKind::D6 => &D6_ROLL_ANIM,
         }
     }
 }
@@ -97,16 +117,14 @@ impl Dice {
                 } else {
                     self.state = DiceState::Stopped;
                 }
-            },
+            }
             DiceState::Rolling => self.update_roll_anim_random(dt),
         }
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         
-        let anim = match self.kind {
-            DiceKind::D6 => &D6_ROLL_ANIM,
-        };
+        let anim = self.kind.anim();
         
         match self.state {
             Stopped => {
@@ -122,7 +140,7 @@ impl Dice {
     }
 
     pub fn stop(&mut self) {
-        let new_value = random_range(1..=self.kind.max_sides());
+        let new_value = random_range(1..=self.kind.num_of_sides());
         self.value = new_value;
         self.state = Stopped;
     }
@@ -133,9 +151,9 @@ impl Dice {
 
     pub fn update_roll_anim_random(&mut self, dt: f32) {
         self.roll_anim.current_frame_time += dt;
-
+        
         while self.roll_anim.current_frame_time >= DICE_ROLL_FRAME_DURATION {
-            let new_frame_index = random_range(0..=self.kind.max_sides() as u8 - 1);
+            let new_frame_index = random_range(0..=self.kind.num_of_sides() as u8 - 1);
             self.roll_anim.current_frame_index = new_frame_index;
             self.roll_anim.current_frame_time -= DICE_ROLL_FRAME_DURATION;
         }
