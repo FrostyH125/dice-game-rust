@@ -1,5 +1,6 @@
 pub mod entities;
 pub mod system;
+pub mod utilities;
 use raylib::prelude::*;
 
 use crate::{entities::{confirm_button::ConfirmButton, player::{Player, PlayerState}, stop_button::StopButton}, system::input_handler::InputState};
