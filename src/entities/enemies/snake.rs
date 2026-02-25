@@ -1,13 +1,13 @@
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, rgui::RaylibDrawGui, texture::Texture2D};
 
 use crate::entities::{
-    dice::{Dice, DiceKind}, enemy_data::{EnemyData, EnemyState}, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand
+    dice::{Dice, DiceKind}, enemy::{EnemyData, EnemyState}, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand
 };
 
 pub struct Snake {
-    data: EnemyData,
-    hand: Hand, // 3 D4
-    snake_eyes_box: SnakeEyes,
+    pub data: EnemyData,
+    pub hand: Hand, // 3 D4
+    pub snake_eyes_box: SnakeEyes,
 }
 
 impl Snake {

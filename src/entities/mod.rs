@@ -5,7 +5,7 @@ pub mod player_dice_boxes;
 pub mod confirm_button;
 pub mod player;
 pub mod stop_button;
-pub mod enemy_data;
+pub mod enemy;
 pub mod effect;
 pub mod enemies;
 pub mod enemy_dice_boxes;

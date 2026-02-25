@@ -16,14 +16,14 @@ pub enum DiceBoxState {
 }
 
 // big multi number that gets bigger as the number gets bigger, "x2, x3, x4," etc
-pub const CURRENT_MULTI_OFFSET: Vector2 = Vector2 { x: 56.0, y: -35.0 };
+pub const CURRENT_MULTI_OFFSET: Vector2 = Vector2 { x: 60.0, y: -40.0 };
 
 // smaller number set inside of the box itself, denotes the current base multiplier
 // most likely will be determined by weapon
 // will also likely have a symbol next to it denoting the type of damage it is
 // "slash, blunt, pierce, fire, lightning, etc"
 // will also be symbols for healing and blocking as well
-pub const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 34.0, y: 4.0 };
+pub const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 20.0, y: 7.0 };
 
 // planning for this to be under the scoring box
 // will continuously count a streak if its over 1
@@ -44,11 +44,8 @@ pub const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191.0, 15.0, 18.0, 18.0);
 pub const DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 34.0, y: -15.0 };
 pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
     x: DICE_WIDTH_HEIGHT / 2.0,
-    y: -DICE_WIDTH_HEIGHT / 2.0,
+    y: DICE_WIDTH_HEIGHT / 2.0,
 };
-
-// with any luck, the only things youll need from this mod are update() and draw(), the rest should happen automatically.
-// all that is left is checking data, doing something when it changes, and thats it
 
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
@@ -112,6 +109,9 @@ impl DiceBoxData {
             let is_last_dice = self.current_index_dice_being_tallied == self.dice_in_box.len() - 1;
             let continue_streak = self.previous_dice_value == current_dice.value;
 
+            let is_first = self.current_index_dice_being_tallied == 0;
+            let should_finalize = !is_first && (!continue_streak || is_last_dice);
+            
             self.total_tally += current_dice.value as i64;
 
             if continue_streak {
@@ -119,11 +119,15 @@ impl DiceBoxData {
             }
 
             // if you dont skip the first dice, the other statement will always return true
-            if ((is_last_dice || !continue_streak) && self.current_streak > 1)
-                && self.current_index_dice_being_tallied != 0
-            {
-                self.total_multi_for_this_tally *= self.current_streak as i64;
-                self.current_streak = 1;
+            
+            if should_finalize {
+                if self.current_streak > 1 {
+                    self.total_multi_for_this_tally *= self.current_streak as i64;
+                }
+            
+                if !is_last_dice {
+                    self.current_streak = 1;
+                }
             }
 
             println!(

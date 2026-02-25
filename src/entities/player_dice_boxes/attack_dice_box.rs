@@ -9,7 +9,7 @@ use raylib::{
 
 use crate::entities::{
     dice::Dice,
-    dice_box_data::{CURRENT_MULTI_OFFSET, DiceBoxData, DiceBoxState},
+    dice_box_data::{BASE_MULTI_OFFSET, CURRENT_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, DiceBoxState},
 };
 
 static ATTACK_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 80.0, 52.0, 16.0);
@@ -78,6 +78,8 @@ impl AttackDiceBox {
                 );
                 self.data.draw_dice(d, texture);
                 self.draw_multi(d, font);
+                self.draw_base_multi(d, font);
+                self.draw_current_streak(d, font);
                 //draw multi, base multi, current streak, border around dice, arrow pointing to dice
             }
         }
@@ -94,18 +96,39 @@ impl AttackDiceBox {
             font,
             &format!("x {}", multi),
             self.data.pos + CURRENT_MULTI_OFFSET, //pos + offset
-            15.0 + 2.0 * multi as f32, // 15 base size + (2 X MULTI) size
+            10.0 + 2.0 * multi as f32,            // 15 base size + (2 X MULTI) size
             0.5,
             Color::RED,
         );
     }
 
-    fn draw_base_multi() {
-        todo!("need to implement drawing the base multiplier for this dice box")
+    fn draw_base_multi(&self, d: &mut RaylibDrawHandle, font: &Font) {
+        d.draw_text_ex(
+            font,
+            &format!("base: x{}", self.data.base_multi_for_this_dice_box),
+            self.data.pos + BASE_MULTI_OFFSET,
+            3.0,
+            0.0,
+            Color { r: 208, g: 184, b: 184, a: 255 },
+        );
     }
 
-    fn draw_current_streak() {
-        todo!("need to implement drawing current streak")
+    fn draw_current_streak(&self, d: &mut RaylibDrawHandle, font: &Font) {
+        
+        let streak = self.data.current_streak;
+        
+        if streak <= 1 {
+            return;
+        }
+        
+        d.draw_text_ex(
+            font,
+            &format!("Streak {} !", streak),
+            self.data.pos + CURRENT_STREAK_OFFSET,
+            5.0,
+            0.0,
+            Color { r: 208, g: 184, b: 184, a: 255 },
+        );
     }
 
     pub fn reset(&mut self, hand_dice: &mut Vec<Dice>) {
