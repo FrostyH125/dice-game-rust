@@ -122,7 +122,7 @@ impl DiceBoxData {
             
             if should_finalize {
                 if self.current_streak > 1 {
-                    self.total_multi_for_this_tally *= self.current_streak as i64;
+                    self.total_multi_for_this_tally += self.current_streak as i64;
                 }
             
                 if !is_last_dice {

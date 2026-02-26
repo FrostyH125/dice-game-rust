@@ -9,6 +9,10 @@ const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
 
 
+// snake draw method
+// check player control flow and make sure player is consistent with player/box relationship
+// add enemy to player flow after
+
 // add enemy and integrate into control flow
 // when theres an enemy, do back and forth loop, only breaking if enemy is dead or player is dead
 

@@ -18,7 +18,7 @@ const SNAKE_EYES_DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 2.0 + DICE_WIDTH
 const SNAKE_EYES_PLACEHOLDER_DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 2.0, y: -15.0 };
 
 pub struct SnakeEyes {
-    data: DiceBoxData,
+    pub data: DiceBoxData,
 }
 
 impl SnakeEyes {
@@ -71,7 +71,7 @@ impl SnakeEyes {
         // draw_snake_eyes()
     }
     
-    fn tally_snake_eyes(&self) -> i64 {
+    pub fn tally_snake_eyes(&self) -> i64 {
         
         let mut num_of_ones = 0;
         
@@ -85,23 +85,6 @@ impl SnakeEyes {
             return 25;
         } else {
             return 0;
-        }
-    }
-    
-    fn check_for_two_dice_with_value_one_in_hand(dice_in_hand: &[Dice]) -> bool {
-        
-        let mut num_of_ones = 0;
-        
-        for dice in dice_in_hand {
-            if dice.value == 1 {
-                num_of_ones += 1;
-            }
-        }
-        
-        if num_of_ones >= 2 {
-            return true;
-        } else {
-            return false;
         }
     }
     
