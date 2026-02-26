@@ -1,12 +1,12 @@
-use raylib::{math::Vector2, prelude::RaylibDrawHandle, texture::Texture2D};
+use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
-use crate::entities::{
+use crate::{entities::{
     dice::{Dice, DiceKind},
     dice_box_data::DiceBoxState,
     enemy::{EnemyData, EnemyState},
     enemy_dice_boxes::snake_eyes::SnakeEyes,
-    hand::{Hand, HandState}, player::{Player, PlayerState},
-};
+    hand::{Hand, HandState}, player::{Player, PlayerState}, stop_button::StopButton,
+}, system::input_handler::InputState};
 
 const TIME_PER_DICE_CHOOSING: f32 = 1.0;
 
@@ -38,14 +38,24 @@ impl Snake {
         }
     }
 
-    pub fn update(&mut self, dt: f32, player: Player) {
+    pub fn update(&mut self, input_state: &InputState, stop_button: &mut StopButton, player: &Player, dt: f32) {
+        
+        self.hand.update(input_state, stop_button, dt);
+        self.snake_eyes_box.update(&mut self.hand.dice, dt);
+        
         match self.data.state {
             EnemyState::StartTurn => {
                 self.snake_eyes_box.data.state = DiceBoxState::WaitingForDice;
                 self.hand.state = HandState::RollingDice;
+                self.data.state = EnemyState::RollingDice;
             }
             EnemyState::RollingDice => {
                 if self.hand.state == HandState::StoppedDice {
+                    
+                    // i chose to put this check in rolling dice instead of
+                    // choosing dice because i didnt want it to do a check every
+                    // single frame in choosing dice and also didnt want to
+                    // add a boolean to manage for if it had two dice.
                     if self.check_for_two_dice_with_value_one_in_hand() {
                         //actually add the dice
                         self.data.state = EnemyState::ChoosingDice;
@@ -88,11 +98,12 @@ impl Snake {
                 self.hand.reset_hand();
                 self.data.state = EnemyState::StartTurn;
             },
+            EnemyState::Dead => ()
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+
     }
 
     fn add_one_die(&mut self) {

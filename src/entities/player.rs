@@ -3,7 +3,7 @@ use basic_raylib_core::graphics::{
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
-use crate::{entities::{confirm_button::ConfirmButton, dice::{Dice, DiceKind}, dice_box_data::DiceBoxState, hand::{Hand, HandState}, stop_button::StopButton}, system::input_handler::InputState};
+use crate::{entities::{confirm_button::ConfirmButton, dice::{Dice, DiceKind}, dice_box_data::DiceBoxState, enemy::{Enemy, EnemyState}, hand::{Hand, HandState}, stop_button::StopButton}, system::input_handler::InputState};
 use crate::entities::player_dice_boxes::attack_dice_box::AttackDiceBox;
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
@@ -18,7 +18,7 @@ const TIME_BETWEEN_ACTIONS: f32 = 1.0;
 #[derive(PartialEq)]
 pub enum PlayerState {
     Walking,            // waiting for enemy
-    PreparingForRound, // setting hand and boxes to proper state
+    StartTurn, // setting hand and boxes to proper state
     RollingDice,        // can't pick up dice until this finishes
     ChoosingDice,       // selecting which dice go in which box
     TallyingTotal,      // wait for box to tally dice
@@ -34,8 +34,10 @@ pub struct Player {
     health: i64,
     walk_anim: SpriteAnimationInstance,
     pos: raylib::math::Vector2,
-    pub state: PlayerState,
     acting_timer: f32,
+    pub walk_timer: f32,
+    pub time_to_walk_this_cycle: f32,
+    pub state: PlayerState,
     attacked: bool,
 }
 
@@ -51,22 +53,28 @@ impl Player {
             acting_timer: 0.0,
             attack_power: 0,
             attacked: false,
+            time_to_walk_this_cycle: 0.0,
+            walk_timer: 0.0,
         }
     }
 
-    pub fn update(&mut self, input_state: &InputState, confirm_button: &mut ConfirmButton, stop_button: &mut StopButton, dt: f32) {
-        self.attack_box.update(&mut self.hand.dice, dt);
+    pub fn update(&mut self, input_state: &InputState, confirm_button: &mut ConfirmButton, stop_button: &mut StopButton,  enemy: &Enemy, dt: f32) {
         self.hand.update(input_state, stop_button, dt);
+        self.attack_box.update(&mut self.hand.dice, dt);
+        
+        if enemy.get_data().state == EnemyState::Dead {
+            self.state = PlayerState::Walking;
+        }
 
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
                 if self.walk_anim.current_frame_index == 1 && self.walk_anim.current_frame_time > 0.49 {
-                    self.state = PlayerState::PreparingForRound;
+                    self.state = PlayerState::StartTurn;
                     self.walk_anim.reset();
                 }
             }
-            PlayerState::PreparingForRound => {
+            PlayerState::StartTurn => {
                 self.hand.state = HandState::RollingDice;
                 self.attack_box.data.state = DiceBoxState::WaitingForDice;
                 self.state = PlayerState::RollingDice;
@@ -117,10 +125,12 @@ impl Player {
                     self.attack_box.data.state = DiceBoxState::Inactive;
                 }
             }
-            PlayerState::WaitingForEnemy => (),
-                // if enemy.data.state == waitingforplayer {
-                //  self.state == Resetting
-                // },
+            PlayerState::WaitingForEnemy => {
+                if enemy.get_data().state == EnemyState::WaitingForPlayer {
+                    self.state = PlayerState::Resetting;
+                }
+            },
+                
             PlayerState::Resetting => {
                 self.attacked = false;
                 self.attack_box.reset(&mut self.hand.dice);
