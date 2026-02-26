@@ -62,6 +62,8 @@ impl Snake {
                     } else {
                         //just end turn, default value for box data is 0 anyway
                         self.data.state = EnemyState::WaitingForPlayer;
+                        self.hand.state = HandState::Inactive;
+                        self.snake_eyes_box.data.state = DiceBoxState::Inactive;
                     }
                 }
             }
@@ -85,7 +87,9 @@ impl Snake {
             }
             EnemyState::Acting => {
                 println!("Dealt {} Damage with snake eyes!", self.snake_eyes_box.data.total_value_for_current_round);
-                self.data.state = EnemyState::WaitingForPlayer
+                self.data.state = EnemyState::WaitingForPlayer;
+                self.hand.state = HandState::Inactive;
+                self.snake_eyes_box.data.state = DiceBoxState::Inactive;
             },
             EnemyState::WaitingForPlayer => {
                 if player.state == PlayerState::WaitingForEnemy {
@@ -103,7 +107,9 @@ impl Snake {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-
+        // draw hand
+        // draw box
+        // draw self
     }
 
     fn add_one_die(&mut self) {
