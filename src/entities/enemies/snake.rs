@@ -1,3 +1,4 @@
+use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{entities::{
@@ -9,17 +10,20 @@ use crate::{entities::{
 }, system::input_handler::InputState};
 
 const TIME_PER_DICE_CHOOSING: f32 = 1.0;
+const TIME_BEFORE_STOPPING_DICE: f32 = 1.0;
+static SNAKE_SPRITE: Sprite = Sprite::new(176.0, 80.0, 32.0, 48.0);
 
 pub struct Snake {
     pub data: EnemyData,
     pub hand: Hand, // 4 D4
     pub snake_eyes_box: SnakeEyes,
     dice_add_timer: f32,
+    dice_start_stopping_dice_timer: f32,
 }
 
 impl Snake {
     pub fn new() -> Self {
-        let pos = Vector2 { x: 300.0, y: 20.0 };
+        let pos = Vector2 { x: 350.0, y: 150.0 };
 
         Snake {
             data: EnemyData {
@@ -35,6 +39,7 @@ impl Snake {
             ]),
             snake_eyes_box: SnakeEyes::new(pos - Vector2 { x: 40.0, y: 0.0 }),
             dice_add_timer: 0.0,
+            dice_start_stopping_dice_timer: 0.0
         }
     }
 
@@ -45,11 +50,22 @@ impl Snake {
         
         match self.data.state {
             EnemyState::StartTurn => {
+                self.dice_add_timer = 0.0;
+                self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
+                self.hand.reset_hand();
                 self.snake_eyes_box.data.state = DiceBoxState::WaitingForDice;
                 self.hand.state = HandState::RollingDice;
                 self.data.state = EnemyState::RollingDice;
             }
             EnemyState::RollingDice => {
+                self.dice_start_stopping_dice_timer += dt;
+                if self.dice_start_stopping_dice_timer >= TIME_BEFORE_STOPPING_DICE {
+                    self.data.state = EnemyState::StoppingDice;
+                    self.dice_start_stopping_dice_timer = 0.0;
+                    self.hand.begin_dice_stop();
+                }
+            }
+            EnemyState::StoppingDice => {
                 if self.hand.state == HandState::StoppedDice {
                     
                     // i chose to put this check in rolling dice instead of
@@ -93,30 +109,25 @@ impl Snake {
             },
             EnemyState::WaitingForPlayer => {
                 if player.state == PlayerState::WaitingForEnemy {
-                    self.data.state = EnemyState::Resetting;
+                    self.data.state = EnemyState::StartTurn;
                 }
-            },
-            EnemyState::Resetting => {
-                self.dice_add_timer = 0.0;
-                self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
-                self.hand.reset_hand();
-                self.data.state = EnemyState::StartTurn;
             },
             EnemyState::Dead => ()
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        // draw hand
-        // draw box
-        // draw self
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) { 
+        self.hand.draw(d, texture);
+        self.snake_eyes_box.draw(d, texture, font);
+        SNAKE_SPRITE.draw(d, self.data.pos, texture);
     }
 
     fn add_one_die(&mut self) {
-        for i in 0..self.hand.dice.len() {
+        for i in (0..self.hand.dice.len()).rev() {
             if self.hand.dice[i].value == 1 {
                 let dice = self.hand.dice.remove(i);
                 self.snake_eyes_box.data.dice_in_box.push(dice);
+                return;
             }
         }
     }

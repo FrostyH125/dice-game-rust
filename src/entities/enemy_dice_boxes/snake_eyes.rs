@@ -37,9 +37,9 @@ impl SnakeEyes {
     }
 
     pub fn update(&mut self, dice_in_hand: &mut Vec<Dice>, dt: f32) {
+        self.snake_eyes_set_dice_positions();
         match self.data.state {
             DiceBoxState::WaitingForDice => {
-                self.snake_eyes_set_dice_positions();
             }
             DiceBoxState::TallyingPoints => {
                 self.data.total_value_for_current_round = self.tally_snake_eyes();
@@ -107,7 +107,7 @@ impl SnakeEyes {
         }
     }
 
-    fn snake_eyes_set_dice_positions(&mut self) {
+    pub fn snake_eyes_set_dice_positions(&mut self) {
         let mut pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET;
 
         //can only be 0, 1 or 2
@@ -124,13 +124,13 @@ impl SnakeEyes {
     }
 
     fn draw_placeholder_dice(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        let mut start_pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET;
+        let mut start_pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET + Vector2 { x: -DICE_WIDTH_HEIGHT, y: 0.0};
 
         // the reverse of drawing the dice
         // if len is 1, this will only draw once, starting from the opposite side
         for _ in 0..2 - self.data.dice_in_box.len() {
             PLACEHOLDER_DICE_SPRITE.draw(d, start_pos, texture);
-            start_pos.x -= DICE_WIDTH_HEIGHT;
+            start_pos.x += DICE_WIDTH_HEIGHT;
         }
     }
 

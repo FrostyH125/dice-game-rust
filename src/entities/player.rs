@@ -100,7 +100,8 @@ impl Player {
                 
                 // extend this to being "if all of the boxes are inactive"
                 if self.attack_box.data.state == DiceBoxState::Inactive {
-                    self.state = PlayerState::Resetting;
+                    self.state = PlayerState::WaitingForEnemy;
+                    self.hand.state = HandState::Inactive;
                     confirm_button.reset();
                 }
             }
@@ -122,10 +123,11 @@ impl Player {
                 // if all boxes acted (if self.attacked && self.healed && self.block_calculated && self.special)
                 if self.attacked {
                     self.state = PlayerState::WaitingForEnemy;
+                    self.hand.state = HandState::Inactive;
                     self.attack_box.data.state = DiceBoxState::Inactive;
                 }
             }
-            PlayerState::WaitingForEnemy => {
+            PlayerState::WaitingForEnemy => {             
                 if enemy.get_data().state == EnemyState::WaitingForPlayer {
                     self.state = PlayerState::Resetting;
                 }

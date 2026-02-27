@@ -7,11 +7,11 @@ pub enum EnemyState {
     //enemy owns hand and boxes
     StartTurn,
     RollingDice,
+    StoppingDice,
     ChoosingDice,
     TallyingTotal,
     Acting,
     WaitingForPlayer,
-    Resetting,
     Dead
 }
 

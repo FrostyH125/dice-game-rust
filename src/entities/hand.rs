@@ -31,7 +31,7 @@ impl Hand {
             current_index_of_dice_stopping: Default::default(),
             dice_stop_time_per_dice: Default::default(),
             dice_stop_timer: Default::default(),
-            state: HandState::RollingDice,
+            state: HandState::Inactive,
             is_any_dice_dragged: false
         }
     }
@@ -52,7 +52,6 @@ impl Hand {
             HandState::RollingDice => {
                 if stop_button.is_pressed(input_state) {
                     self.begin_dice_stop();
-                    self.state = HandState::StoppingDice;
                 }
                 self.set_dice_positions();
             },
@@ -88,7 +87,7 @@ impl Hand {
         }
     }
     
-    fn begin_dice_stop(&mut self) {
+    pub fn begin_dice_stop(&mut self) {
         self.dice_stop_time_per_dice = 2.0 / self.dice.len() as f32;
         self.current_index_of_dice_stopping = 0;
         self.dice_stop_timer = 0.0;
@@ -128,6 +127,11 @@ impl Hand {
     }
     
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+        
+        if self.state == HandState::Inactive {
+            return;
+        }
+        
         for i in 0..self.dice.len() {
             self.dice[i].draw(d, texture);
         }

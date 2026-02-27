@@ -72,7 +72,7 @@ impl DiceBoxData {
             base_multi_for_this_dice_box: 1,
             total_value_for_current_round: 0,
             pos,
-            state: DiceBoxState::WaitingForDice,
+            state: DiceBoxState::Inactive,
             dice_collect_rect,
             timer_for_tallying_dice: 0.0,
             previous_dice_value: i8::MAX,

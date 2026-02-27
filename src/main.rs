@@ -17,7 +17,7 @@ use rand::random_range;
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
 
-// snake draw method
+//make snake wait a couple of seconds after filling dice box before attacking. probably just give attack timer
 
 fn main() {
     let (mut rl, thread) =
