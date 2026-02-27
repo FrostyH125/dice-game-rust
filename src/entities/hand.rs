@@ -1,7 +1,7 @@
 use super::dice::{Dice, DICE_WIDTH_HEIGHT};
 use raylib::prelude::*;
 
-use crate::{entities::{dice::{DiceKind, DiceState}, stop_button::StopButton}, system::input_handler::InputState};
+use crate::{entities::{dice::{DiceKind, DiceState}, stop_button::StopButton}, system::{input_handler::InputState, timer::Timer}};
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;
@@ -18,8 +18,7 @@ pub enum HandState {
 pub struct Hand {
     pub dice: Vec<Dice>,
     current_index_of_dice_stopping: usize,
-    dice_stop_time_per_dice: f32,
-    dice_stop_timer: f32,
+    dice_stop_timer: Timer,
     pub state: HandState,
     is_any_dice_dragged: bool,
 }
@@ -29,8 +28,7 @@ impl Hand {
         Hand {
             dice,
             current_index_of_dice_stopping: Default::default(),
-            dice_stop_time_per_dice: Default::default(),
-            dice_stop_timer: Default::default(),
+            dice_stop_timer: Timer::new(1.0),
             state: HandState::Inactive,
             is_any_dice_dragged: false
         }
@@ -88,34 +86,27 @@ impl Hand {
     }
     
     pub fn begin_dice_stop(&mut self) {
-        self.dice_stop_time_per_dice = 2.0 / self.dice.len() as f32;
+        self.dice_stop_timer.duration = 2.0 / self.dice.len() as f32;
         self.current_index_of_dice_stopping = 0;
-        self.dice_stop_timer = 0.0;
+        self.dice_stop_timer.reset();
         self.state = HandState::StoppingDice;
     }
     
     fn stop_dice(&mut self, dt: f32) -> bool {
-        self.dice_stop_timer += dt;
+        self.dice_stop_timer.track(dt);
         
-        if self.dice_stop_timer >= self.dice_stop_time_per_dice {
-            self.stop_current_dice();
-            self.dice_stop_timer = 0.0;
+        if self.dice_stop_timer.is_done() {
+            self.dice_stop_timer.reset();
             
-            if self.all_dice_stopped() {
+            self.dice[self.current_index_of_dice_stopping].stop();
+            self.current_index_of_dice_stopping += 1;
+            
+            //is done
+            if self.current_index_of_dice_stopping >= self.dice.len() {
                 return true;
             }
         }
-        
-        false
-    }
-
-    fn stop_current_dice(&mut self) {
-        self.dice[self.current_index_of_dice_stopping].stop();
-        self.current_index_of_dice_stopping += 1;
-    }
-    
-    fn all_dice_stopped(&self) -> bool {
-        self.current_index_of_dice_stopping >= self.dice.len()
+        return false;
     }
     
     pub fn reset_hand(&mut self) {
