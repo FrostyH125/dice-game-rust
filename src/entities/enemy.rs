@@ -4,13 +4,41 @@ use crate::{entities::{enemies::snake::Snake, player::Player, stop_button::StopB
 
 #[derive(PartialEq)]
 pub enum EnemyState {
-    //enemy owns hand and boxes
+    
+    // reset hands and boxes
     StartTurn,
-    RollingDice,
+    
+    // exists only to smoothly transition from start turn to
+    // actually letting the dice stop. Should have a timer, and
+    // once the timer goes off, put all the hands to start stopping
+    // their dice
+    StartDiceStopDelayTime,
+    
+    // waits for the dice to be stopped
     StoppingDice,
+    
+    // once the hand is stopped, chooses to either choose dice based on the 
+    // roll (mostly important for special condition boxes), or go straight to
+    // ending the turn
+    EvaluateRoll,
+    
+    // actually chooses which dice to add to their box
     ChoosingDice,
+    
+    // some transition time between choosing the final die, and tallying
+    BeforeTallyDelay,
+    
     TallyingTotal,
     Acting,
+    
+    // exists purely for visual cohesiveness, every enemy will need it
+    // should be used as the primary location (exclusively, which i know is possible)
+    // of turning hands and boxes inactive. These elements should be visible all the
+    // way until the enemy is no longer active, and turn is passed to player
+    TurnEndDelayTime,
+    
+    // should be a simple check to see if player is waiting for enemy, and then
+    // if so, start turn
     WaitingForPlayer,
     Dead
 }

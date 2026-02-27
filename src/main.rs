@@ -17,7 +17,9 @@ use rand::random_range;
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
 
-//make snake wait a couple of seconds after filling dice box before attacking. probably just give attack timer
+// add border around currently being tallied dice, in dice box data and snake eyes, snake eyes should draw the border around both dice simultaneously
+// add snake eyes text
+// clean player states up, much like the enemy ones, add new delay states as needed
 
 fn main() {
     let (mut rl, thread) =

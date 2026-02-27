@@ -5,7 +5,7 @@ use raylib::{
     color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, text::Font, texture::Texture2D
 };
 
-use crate::entities::dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState};
+use crate::{entities::dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}, system::timer::Timer};
 
 #[derive(PartialEq, Debug)]
 pub enum DiceBoxState {
@@ -57,7 +57,7 @@ pub struct DiceBoxData {
     pub pos: Vector2,
     pub state: DiceBoxState,
     pub dice_collect_rect: Rectangle,
-    pub timer_for_tallying_dice: f32,
+    pub timer_for_tallying_dice: Timer,
     pub previous_dice_value: i8,
     pub current_streak: i8,
 }
@@ -74,7 +74,7 @@ impl DiceBoxData {
             pos,
             state: DiceBoxState::Inactive,
             dice_collect_rect,
-            timer_for_tallying_dice: 0.0,
+            timer_for_tallying_dice: Timer::new(1.0),
             previous_dice_value: i8::MAX,
             current_streak: 1,
         }
@@ -98,12 +98,10 @@ impl DiceBoxData {
 
     //dice box being empty handled by call site
     pub fn tally_points(&mut self, dt: f32) -> bool {
-        let time_between_dice = 1.0;
+        self.timer_for_tallying_dice.track(dt);
 
-        self.timer_for_tallying_dice += dt;
-
-        if self.current_index_dice_being_tallied == 0 || self.timer_for_tallying_dice >= time_between_dice {
-            self.timer_for_tallying_dice = 0.0;
+        if self.current_index_dice_being_tallied == 0 || self.timer_for_tallying_dice.is_done() {
+            self.timer_for_tallying_dice.reset();
             let current_dice = &self.dice_in_box[self.current_index_dice_being_tallied];
 
             let is_last_dice = self.current_index_dice_being_tallied == self.dice_in_box.len() - 1;
@@ -142,7 +140,6 @@ impl DiceBoxData {
 
             self.previous_dice_value = current_dice.value;
             self.current_index_dice_being_tallied += 1;
-            self.timer_for_tallying_dice = 0.0;
         }
         return false;
     }
@@ -157,7 +154,7 @@ impl DiceBoxData {
         self.current_index_dice_being_tallied = 0;
         self.current_streak = 1;
         self.previous_dice_value = i8::MAX;
-        self.timer_for_tallying_dice = 0.0;
+        self.timer_for_tallying_dice.reset();
         self.total_multi_for_this_tally = 1;
         self.total_tally = 0;
     }

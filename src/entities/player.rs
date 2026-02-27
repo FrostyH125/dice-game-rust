@@ -137,7 +137,7 @@ impl Player {
                 self.attacked = false;
                 self.attack_box.reset(&mut self.hand.dice);
                 self.hand.reset_hand();
-                self.state = PlayerState::Walking;
+                self.state = PlayerState::StartTurn;
             }
         }
     }

@@ -1,6 +1,6 @@
 pub struct Timer {
     pub duration: f32,
-    current_time: f32,
+    pub current_time: f32,
 }
 
 impl Timer {
@@ -13,6 +13,14 @@ impl Timer {
     
     pub fn track(&mut self, dt: f32) {
         self.current_time += dt;
+    }
+    
+    pub fn is_started(&self) -> bool {
+        if self.current_time > 0.0 {
+            true
+        } else {
+            false
+        }
     }
        
     pub fn is_done(&self) -> bool {
