@@ -1,11 +1,11 @@
 use std::i8;
 
-use basic_raylib_core::graphics::sprite::Sprite;
+use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::{
     color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, text::Font, texture::Texture2D
 };
 
-use crate::{entities::dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}, system::timer::Timer};
+use crate::{entities::dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}};
 
 #[derive(PartialEq, Debug)]
 pub enum DiceBoxState {

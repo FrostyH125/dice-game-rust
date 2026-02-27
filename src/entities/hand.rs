@@ -1,7 +1,8 @@
 use super::dice::{Dice, DICE_WIDTH_HEIGHT};
+use basic_raylib_core::system::timer::Timer;
 use raylib::prelude::*;
 
-use crate::{entities::{dice::{DiceKind, DiceState}, stop_button::StopButton}, system::{input_handler::InputState, timer::Timer}};
+use crate::{entities::{dice::{DiceKind, DiceState}, stop_button::StopButton}, system::{input_handler::InputState}};
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;

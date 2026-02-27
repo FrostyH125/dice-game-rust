@@ -1,4 +1,4 @@
-use basic_raylib_core::graphics::sprite::Sprite;
+use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
         player::{Player, PlayerState},
         stop_button::StopButton,
     },
-    system::{input_handler::InputState, timer::Timer},
+    system::input_handler::InputState,
 };
 
 static SNAKE_SPRITE: Sprite = Sprite::new(176.0, 80.0, 32.0, 48.0);
