@@ -7,10 +7,10 @@ use crate::{
     system::{button::Button, input_handler::InputState},
 };
 
-const STOP_BUTTON_WIDTH: f32 = 64.0;
+const STOP_BUTTON_WIDTH: f32 = 128.0;
 const STOP_BUTTON_HEIGHT: f32 = 32.0;
-static STOP_BUTTON_DEFAULT_SPRITE: Sprite = Sprite::new(16.0, 16.0, 64.0, 32.0);
-static STOP_BUTTON_CLICK_SPRITE: Sprite = Sprite::new(16.0, 48.0, 64.0, 32.0);
+static STOP_BUTTON_DEFAULT_SPRITE: Sprite = Sprite::new(16.0, 144.0, 128.0, 32.0);
+static STOP_BUTTON_CLICK_SPRITE: Sprite = Sprite::new(16.0, 176.0, 128.0, 32.0);
 
 pub struct StopButton {
     pub button: Button,
@@ -22,13 +22,13 @@ impl StopButton {
     pub fn new() -> Self {
         StopButton {
             button: Button::new(Rectangle {
-                x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH - 5.0,
+                x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH / 2.0,
                 y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
                 width: STOP_BUTTON_WIDTH,
                 height: STOP_BUTTON_HEIGHT,
             }),
             pos: Vector2 {
-                x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH - 5.0,
+                x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH / 2.0,
                 y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
             },
             down: false,

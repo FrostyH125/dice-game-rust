@@ -3,7 +3,7 @@ pub mod system;
 pub mod utilities;
 use std::thread::current;
 
-use basic_raylib_core::system::timer::Timer;
+use basic_raylib_core::{graphics::sprite, system::timer::Timer};
 use raylib::{ffi::GetRandomValue, prelude::*};
 
 use crate::{
@@ -20,6 +20,7 @@ use rand::random_range;
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
 
+#[derive(PartialEq)]
 pub enum GameState {
     Travelling,
     Combat,
@@ -28,7 +29,9 @@ pub enum GameState {
 // add border around currently being tallied dice, in dice box data and snake eyes, snake eyes should draw the border around both dice simultaneously
 // add snake eyes text
 // add current tally to attack dice box
-// clean player states up, much like the enemy ones, add new delay states as needed
+// add reroll button that gets added in old place of the stop button once the hand has been rolled once
+// remove confirm button when dice are rolling
+// remove confirm and roll/reroll buttons when player is acting / not choosing dice
 // eventually, should have a game state enum that handles the game's state machine (travelling, in combat)
 
 fn main() {
@@ -100,16 +103,17 @@ fn main() {
         // needing to be zoomed. even if it would technically be zoomed in otherwise, this is cleaner
         let mut cam_handle = handle.begin_mode2D(&camera);
         player.draw(&mut cam_handle, &sprite_sheet, &font);
-        if player.state != PlayerState::Walking {
-            
-            current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);        
-            
-            // if player is not walking AND not waiting for enemy
-            // draw the buttons
-            if player.state != PlayerState::WaitingForEnemy {
-                confirm_button.draw(&mut cam_handle, &sprite_sheet, &font);
-                stop_button.draw(&mut cam_handle, &sprite_sheet);
-            }
+        
+        if state == GameState::Combat {
+            current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);  
+        }
+        
+        if player.state == PlayerState::RollingDice {
+            stop_button.draw(&mut cam_handle, &sprite_sheet);
+        }
+        
+        if player.state == PlayerState::ChoosingDice {
+            confirm_button.draw(&mut cam_handle, &sprite_sheet, &font);
         }
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
     }
