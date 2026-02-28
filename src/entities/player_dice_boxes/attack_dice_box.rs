@@ -112,6 +112,10 @@ impl AttackDiceBox {
             Color { r: 208, g: 184, b: 184, a: 255 },
         );
     }
+    
+    fn draw_current_tally(&self, d: &mut RaylibDrawHandle, font: &Font) {
+        
+    }
 
     fn draw_current_streak(&self, d: &mut RaylibDrawHandle, font: &Font) {
         

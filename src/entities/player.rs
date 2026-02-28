@@ -24,7 +24,6 @@ pub enum PlayerState {
     TallyingTotal,      // wait for box to tally dice
     Acting,             // waiting for each box to finish its action
     WaitingForEnemy, // waiting for enemy turn to finish (enemy should set this for player, enemy will have reference to player)
-    Resetting,       //setting hand and box to inactive
 }
 
 pub struct Player {
@@ -35,8 +34,6 @@ pub struct Player {
     walk_anim: SpriteAnimationInstance,
     pos: raylib::math::Vector2,
     acting_timer: f32,
-    pub walk_timer: f32,
-    pub time_to_walk_this_cycle: f32,
     pub state: PlayerState,
     attacked: bool,
 }
@@ -53,28 +50,19 @@ impl Player {
             acting_timer: 0.0,
             attack_power: 0,
             attacked: false,
-            time_to_walk_this_cycle: 0.0,
-            walk_timer: 0.0,
         }
     }
 
     pub fn update(&mut self, input_state: &InputState, confirm_button: &mut ConfirmButton, stop_button: &mut StopButton,  enemy: &Enemy, dt: f32) {
         self.hand.update(input_state, stop_button, dt);
         self.attack_box.update(&mut self.hand.dice, dt);
-        
-        if enemy.get_data().state == EnemyState::Dead {
-            self.state = PlayerState::Walking;
-        }
 
         match self.state {
             PlayerState::Walking => {
-                PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
-                if self.walk_anim.current_frame_index == 1 && self.walk_anim.current_frame_time > 0.49 {
-                    self.state = PlayerState::StartTurn;
-                    self.walk_anim.reset();
-                }
+                PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);  
             }
             PlayerState::StartTurn => {
+                self.reset();
                 self.hand.state = HandState::RollingDice;
                 self.attack_box.data.state = DiceBoxState::WaitingForDice;
                 self.state = PlayerState::RollingDice;
@@ -129,17 +117,16 @@ impl Player {
             }
             PlayerState::WaitingForEnemy => {             
                 if enemy.get_data().state == EnemyState::WaitingForPlayer {
-                    self.state = PlayerState::Resetting;
+                    self.state = PlayerState::StartTurn;
                 }
             },
-                
-            PlayerState::Resetting => {
-                self.attacked = false;
-                self.attack_box.reset(&mut self.hand.dice);
-                self.hand.reset_hand();
-                self.state = PlayerState::StartTurn;
-            }
         }
+    }
+    
+    pub fn reset(&mut self) {
+        self.attack_box.reset(&mut self.hand.dice);
+        self.hand.reset_hand();
+        self.attacked = false;
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
