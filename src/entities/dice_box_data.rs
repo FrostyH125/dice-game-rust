@@ -115,8 +115,6 @@ impl DiceBoxData {
             if continue_streak {
                 self.current_streak += 1;
             }
-
-            // if you dont skip the first dice, the other statement will always return true
             
             if should_finalize {
                 if self.current_streak > 1 {
@@ -134,7 +132,6 @@ impl DiceBoxData {
             );
 
             if self.current_index_dice_being_tallied == self.dice_in_box.len() - 1 {
-                //self will reset after all things are used in a reset() function
                 return true;
             }
 
@@ -179,8 +176,6 @@ impl DiceBoxData {
         return self.total_tally * self.base_multi_for_this_dice_box * self.total_multi_for_this_tally;
     }
     
-    //UNUSED FUNCTION BEING PREPPED FOR POTENTIAL FUTURE USAGE. THE DRAWING CAN MAYBE BE SIMPLIFIED INTO ONE FUNCTION EASILY
-    // WITH NO COMPLEXITY
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, dice_box_sprite: &Sprite, font: &Font, color: Color) {
         match self.state {
             DiceBoxState::Inactive => return,

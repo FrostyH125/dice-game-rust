@@ -8,3 +8,4 @@ pub mod stop_button;
 pub mod enemy;
 pub mod enemies;
 pub mod enemy_dice_boxes;
+pub mod reroll_button;

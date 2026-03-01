@@ -76,9 +76,9 @@ impl Enemy {
     }
     
 
-    pub fn update(&mut self, input_state: &InputState, stop_button: &mut StopButton, player: &Player, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, player: &Player, dt: f32) {
         match self {
-            Self::Snake { snake } => snake.update(input_state, stop_button, player, dt),
+            Self::Snake { snake } => snake.update(input_state, player, dt),
         }
     }
 

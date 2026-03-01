@@ -51,8 +51,8 @@ impl Snake {
         }
     }
 
-    pub fn update(&mut self, input_state: &InputState, stop_button: &mut StopButton, player: &Player, dt: f32) {
-        self.hand.update(input_state, stop_button, dt);
+    pub fn update(&mut self, input_state: &InputState, player: &Player, dt: f32) {
+        self.hand.update(input_state, dt);
         self.snake_eyes_box.update(&mut self.hand.dice, dt);
 
         match self.data.state {

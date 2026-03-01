@@ -36,7 +36,7 @@ impl Hand {
     }
     
     
-    pub fn update(&mut self, input_state: &InputState, stop_button: &mut StopButton, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, dt: f32) {
         
         self.is_any_dice_dragged = self.dice.iter().any(|dice| dice.state == DiceState::Dragging);
         
@@ -49,15 +49,11 @@ impl Hand {
         
         match self.state {
             HandState::RollingDice => {
-                if stop_button.is_pressed(input_state) {
-                    self.begin_dice_stop();
-                }
                 self.set_dice_positions();
             },
             HandState::StoppingDice => {
                 if self.stop_dice(dt) {
                     self.state = HandState::StoppedDice;
-                    stop_button.reset();
                 }
             }
             HandState::StoppedDice => {

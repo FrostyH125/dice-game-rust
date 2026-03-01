@@ -7,10 +7,7 @@ use raylib::prelude::*;
 
 use crate::{
     entities::{
-        confirm_button::ConfirmButton,
-        enemy::{Enemy, EnemyState},
-        player::{Player, PlayerState},
-        stop_button::StopButton,
+        confirm_button::ConfirmButton, enemy::{Enemy, EnemyState}, player::{Player, PlayerState}, reroll_button::RerollButton, stop_button::StopButton
     },
     system::input_handler::InputState,
 };
@@ -25,6 +22,7 @@ pub enum GameState {
     Combat,
 }
 
+// add update dice to dice box data so dice can be removed. Have them be put back into the hand if dragged out of the box
 // add border around currently being tallied dice, in dice box data and snake eyes, snake eyes should draw the border around both dice simultaneously
 // add snake eyes text
 // add drawing current tally to attack dice box
@@ -59,6 +57,7 @@ fn main() {
     let mut player = Player::new();
     let mut confirm_button = ConfirmButton::new();
     let mut stop_button = StopButton::new();
+    let mut reroll_button = RerollButton::new();
 
     let mut current_enemy = get_random_enemy();
 
@@ -67,7 +66,7 @@ fn main() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
         input_state.update(&mut rl, camera.zoom);
-        player.update(&input_state, &mut confirm_button, &mut stop_button, &current_enemy, dt);
+        player.update(&input_state, &mut confirm_button, &mut stop_button, &mut reroll_button, &current_enemy, dt);
         
         match state {
             GameState::Travelling => {
@@ -83,7 +82,7 @@ fn main() {
                 }
             },
             GameState::Combat => {
-                current_enemy.update(&input_state, &mut stop_button, &player, dt);
+                current_enemy.update(&input_state, &player, dt);
                 
                 if current_enemy.get_data().state == EnemyState::Dead {
                     player.reset();
@@ -105,13 +104,15 @@ fn main() {
             current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);  
         }
         
-        if player.state == PlayerState::RollingDice {
+        if player.state == PlayerState::RollingDice || player.state == PlayerState::StoppingDice {
             stop_button.draw(&mut cam_handle, &sprite_sheet);
         }
         
         if player.state == PlayerState::ChoosingDice {
             confirm_button.draw(&mut cam_handle, &sprite_sheet, &font);
+            reroll_button.draw(&mut cam_handle, &sprite_sheet, &font);
         }
+        
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
     }
 }
