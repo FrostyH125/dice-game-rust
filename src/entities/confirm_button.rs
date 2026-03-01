@@ -14,8 +14,8 @@ use crate::{
 
 const CONFIRM_BUTTON_WIDTH: f32 = 64.0;
 const CONFIRM_BUTTON_HEIGHT: f32 = 32.0;
-static CONFIRM_BUTTON_SPRITE: Sprite = Sprite::new(144.0, 16.0, 64.0, 32.0);
-static CONFIRM_BUTTON_DOWN_SPRITE: Sprite = Sprite::new(144.0, 48.0, 64.0, 32.0);
+static CONFIRM_BUTTON_SPRITE: Sprite = Sprite::new(80.0, 16.0, 64.0, 32.0);
+static CONFIRM_BUTTON_DOWN_SPRITE: Sprite = Sprite::new(80.0, 48.0, 64.0, 32.0);
 
 pub struct ConfirmButton {
     pub button: Button,

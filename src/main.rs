@@ -1,10 +1,9 @@
 pub mod entities;
 pub mod system;
 pub mod utilities;
-use std::thread::current;
 
-use basic_raylib_core::{graphics::sprite, system::timer::Timer};
-use raylib::{ffi::GetRandomValue, prelude::*};
+use basic_raylib_core::system::timer::Timer;
+use raylib::prelude::*;
 
 use crate::{
     entities::{
@@ -28,11 +27,9 @@ pub enum GameState {
 
 // add border around currently being tallied dice, in dice box data and snake eyes, snake eyes should draw the border around both dice simultaneously
 // add snake eyes text
-// add current tally to attack dice box
+// add drawing current tally to attack dice box
+// make player and enemy actually attack eachother for real
 // add reroll button that gets added in old place of the stop button once the hand has been rolled once
-// remove confirm button when dice are rolling
-// remove confirm and roll/reroll buttons when player is acting / not choosing dice
-// eventually, should have a game state enum that handles the game's state machine (travelling, in combat)
 
 fn main() {
     let (mut rl, thread) =

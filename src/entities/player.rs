@@ -37,6 +37,8 @@ pub enum PlayerState {
     EndTurnDelay,
     EndTurn,
     WaitingForEnemy, // waiting for enemy turn to finish (enemy should set this for player, enemy will have reference to player)
+    HitDelayBeforeWaitingAgain,
+    Dead
 }
 
 pub struct Player {
@@ -48,6 +50,7 @@ pub struct Player {
     pos: raylib::math::Vector2,
     acting_timer: Timer,
     end_turn_delay_timer: Timer,
+    hit_delay_timer: Timer,
     pub state: PlayerState,
 }
 
@@ -62,6 +65,7 @@ impl Player {
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
+            hit_delay_timer: Timer::new(1.5),
             attack_power: 0,
         }
     }
@@ -149,6 +153,13 @@ impl Player {
                     self.state = PlayerState::StartTurn;
                 }
             }
+            PlayerState::HitDelayBeforeWaitingAgain => {
+                self.hit_delay_timer.track(dt);
+                if self.hit_delay_timer.is_done() {
+                    self.state = PlayerState::WaitingForEnemy;
+                }
+            }
+            PlayerState::Dead => ()
         }
     }
 

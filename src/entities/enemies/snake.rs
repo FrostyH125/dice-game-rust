@@ -35,6 +35,7 @@ impl Snake {
                 health: 100,
                 pos: pos,
                 state: EnemyState::WaitingForPlayer,
+                hit_timer: Timer::new(1.5),
             },
             hand: Hand::new(vec![
                 Dice::new(DiceKind::D4),
@@ -81,7 +82,7 @@ impl Snake {
                 if self.check_for_two_dice_with_value_one_in_hand() {
                     self.data.state = EnemyState::ChoosingDice;
                 } else {
-                    self.data.state = EnemyState::TurnEndDelayTime;
+                    self.data.state = EnemyState::EndTurnDelay;
                     self.turn_end_timer.reset();
                 }
             }
@@ -115,9 +116,9 @@ impl Snake {
             }
             EnemyState::Acting => {
                 println!("Dealt {} Damage with snake eyes!", self.snake_eyes_box.data.total_value_for_current_round);
-                self.data.state = EnemyState::TurnEndDelayTime;
+                self.data.state = EnemyState::EndTurnDelay;
             }
-            EnemyState::TurnEndDelayTime => {
+            EnemyState::EndTurnDelay => {
                 self.turn_end_timer.track(dt);
                 
                 if self.turn_end_timer.is_done() {
@@ -129,6 +130,16 @@ impl Snake {
             EnemyState::WaitingForPlayer => {
                 if player.state == PlayerState::WaitingForEnemy {
                     self.data.state = EnemyState::StartTurn;
+                }
+            }
+            EnemyState::HitDelayBeforeWaitingAgain => {
+                self.data.hit_timer.track(dt);
+                if self.data.hit_timer.is_done() {
+                    if self.data.health <= 0 {
+                        self.data.state = EnemyState::Dead;
+                    } else {
+                        self.data.state = EnemyState::WaitingForPlayer;    
+                    }
                 }
             }
             EnemyState::Dead => (),
