@@ -2,10 +2,14 @@ use std::i8;
 
 use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::{
-    color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, text::Font, texture::Texture2D
+    color::Color,
+    math::{Rectangle, Vector2},
+    prelude::{RaylibDraw, RaylibDrawHandle},
+    text::Font,
+    texture::Texture2D,
 };
 
-use crate::{entities::dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}};
+use crate::{entities::{dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}, hand::{Hand, HandState}}, system::input_handler::InputState};
 
 #[derive(PartialEq, Debug)]
 pub enum DiceBoxState {
@@ -76,12 +80,14 @@ impl DiceBoxData {
             dice_collect_rect,
             timer_for_tallying_dice: Timer::new(1.0),
             previous_dice_value: i8::MAX,
-            current_streak: 1,
+            current_streak: 0,
         }
     }
 }
 
 impl DiceBoxData {
+    
+    
     pub fn check_for_dice_being_dragged_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) {
         for i in (0..dice_in_hand.len()).rev() {
             if dice_in_hand[i].state == DiceState::Stopped
@@ -109,18 +115,18 @@ impl DiceBoxData {
 
             let is_first = self.current_index_dice_being_tallied == 0;
             let should_finalize = !is_first && (!continue_streak || is_last_dice);
-            
+
             self.total_tally += current_dice.value as i64;
 
             if continue_streak {
                 self.current_streak += 1;
             }
-            
+
             if should_finalize {
                 if self.current_streak > 1 {
                     self.total_multi_for_this_tally += self.current_streak as i64;
                 }
-            
+
                 if !is_last_dice {
                     self.current_streak = 1;
                 }
@@ -149,7 +155,7 @@ impl DiceBoxData {
         self.total_value_for_current_round = 0;
         self.state = DiceBoxState::WaitingForDice;
         self.current_index_dice_being_tallied = 0;
-        self.current_streak = 1;
+        self.current_streak = 0;
         self.previous_dice_value = i8::MAX;
         self.timer_for_tallying_dice.reset();
         self.total_multi_for_this_tally = 1;
@@ -161,7 +167,9 @@ impl DiceBoxData {
         let mut times_increased_x = 0;
 
         for i in (0..self.dice_in_box.len()).rev() {
-            self.dice_in_box[i].pos = draw_pos;
+            if self.dice_in_box[i].state != DiceState::Dragging {
+                self.dice_in_box[i].pos = draw_pos;
+            }
             draw_pos.x -= DICE_WIDTH_HEIGHT;
             times_increased_x += 1;
             if times_increased_x == 3 {
@@ -175,8 +183,15 @@ impl DiceBoxData {
     pub fn get_value(&self) -> i64 {
         return self.total_tally * self.base_multi_for_this_dice_box * self.total_multi_for_this_tally;
     }
-    
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, dice_box_sprite: &Sprite, font: &Font, color: Color) {
+
+    pub fn draw(
+        &mut self,
+        d: &mut RaylibDrawHandle,
+        texture: &Texture2D,
+        dice_box_sprite: &Sprite,
+        font: &Font,
+        color: Color,
+    ) {
         match self.state {
             DiceBoxState::Inactive => return,
             _ => {
@@ -199,23 +214,28 @@ impl DiceBoxData {
             self.dice_in_box[i].draw(d, texture);
         }
     }
-    
+
     pub fn draw_border_around_current_dice(&mut self) {
-        
         let sprite = match self.dice_in_box[self.current_index_dice_being_tallied].kind {
             DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
             DiceKind::D6 => &D6_DICE_BORDER_SPRITE,
         };
-        
+
         todo!("need to draw border around currently being tallied dice")
     }
-    
+
     pub fn draw_arrow_to_current_dice() {
         todo!("need to draw arrow to currently being tallied dice, arrow should bob up and down i think")
     }
-}
 
-//need to update dice in order to check if theyre being picked up or not
-pub fn update_dice() {
-    todo!("need to impl update dice")
+    pub fn update_dice(&mut self, is_player_dragging_any_dice: &mut bool, hand: &mut Hand, input_state: &InputState, dt: f32) {
+        for i in (0..self.dice_in_box.len()).rev() {
+            self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, &hand.state, input_state, dt);
+            if !self.dice_collect_rect.check_collision_point_rec(self.dice_in_box[i].pos) && self.dice_in_box[i].state == DiceState::Stopped {
+                let dice = self.dice_in_box.remove(i);
+                hand.dice.push(dice);
+                hand.set_dice_positions();
+            }
+        }
+    }
 }

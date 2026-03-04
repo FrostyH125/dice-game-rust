@@ -4,7 +4,7 @@ use basic_raylib_core::{
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
-use crate::entities::{player_dice_boxes::attack_dice_box::AttackDiceBox, reroll_button::RerollButton};
+use crate::{entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox, reroll_button::RerollButton}, system::input_handler::MouseState};
 use crate::{
     entities::{
         confirm_button::ConfirmButton,
@@ -54,6 +54,7 @@ pub struct Player {
     end_turn_delay_timer: Timer,
     hit_delay_timer: Timer,
     pub state: PlayerState,
+    pub is_player_dragging_dice: bool,
 }
 
 impl Player {
@@ -69,6 +70,7 @@ impl Player {
             end_turn_delay_timer: Timer::new(2.0),
             hit_delay_timer: Timer::new(1.5),
             attack_power: 0,
+            is_player_dragging_dice: false
         }
     }
 
@@ -81,8 +83,13 @@ impl Player {
         enemy: &Enemy,
         dt: f32,
     ) {
-        self.hand.update(input_state, dt);
-        self.attack_box.update(&mut self.hand.dice, dt);
+        
+        if input_state.mouse_state == MouseState::Inactive {
+            self.is_player_dragging_dice = false;
+        }
+        
+        self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
+        self.attack_box.update(&mut self.is_player_dragging_dice, &mut self.hand, &input_state, dt);
 
         match self.state {
             PlayerState::Walking => {
@@ -197,8 +204,23 @@ impl Player {
             PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, texture, self.pos),
             _ => {
                 PLAYER_IDLE_SPRITE.draw(d, self.pos, texture);
-                self.hand.draw(d, texture);
                 self.attack_box.draw(d, texture, font);
+                self.hand.draw(d, texture);
+            }
+        }
+        
+        if !self.is_player_dragging_dice {
+            return;
+        }
+        
+        for dice in &mut self.hand.dice {
+            if dice.state == DiceState::Dragging {
+                dice.draw(d, texture);
+            }
+        }
+        for dice in &mut self.attack_box.data.dice_in_box {
+            if dice.state == DiceState::Dragging {
+                dice.draw(d, texture);
             }
         }
     }

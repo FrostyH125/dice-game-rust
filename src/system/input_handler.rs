@@ -6,7 +6,7 @@ static MOUSE_SPRITE: Sprite = Sprite::new(0.0, 16.0, 16.0, 16.0);
 
 #[derive(PartialEq, Debug)]
 pub enum MouseState {
-    NotActive,
+    Inactive,
     Clicked,
     Dragging,
 }
@@ -26,7 +26,7 @@ impl InputState {
         let held = rl.is_mouse_button_down(MOUSE_BUTTON_LEFT);
         
         if !held && !clicked {
-            self.mouse_state = NotActive;
+            self.mouse_state = Inactive;
         }
         
         if clicked {

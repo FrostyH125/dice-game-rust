@@ -83,8 +83,16 @@ impl Dice {
             kind,
         }
     }
+    
+    pub fn update_for_enemy(&mut self, dt: f32) {
+        match self.state {
+            DiceState::Rolling => self.update_roll_anim_random(dt),
+            _ => ()
+        }
+    }
+    
 
-    pub fn update(&mut self, other_dice_dragged: &mut bool, hand_state: &HandState, input_state: &InputState, dt: f32) {
+    pub fn update_for_player(&mut self, other_dice_dragged: &mut bool, hand_state: &HandState, input_state: &InputState, dt: f32) {
         match self.state {
             DiceState::Stopped => {
                 if *hand_state != HandState::StoppedDice {

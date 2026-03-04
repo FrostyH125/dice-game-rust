@@ -9,7 +9,6 @@ use crate::{
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::{Hand, HandState},
         player::{Player, PlayerState},
-        stop_button::StopButton,
     },
     system::input_handler::InputState,
 };
@@ -52,7 +51,7 @@ impl Snake {
     }
 
     pub fn update(&mut self, input_state: &InputState, player: &Player, dt: f32) {
-        self.hand.update(input_state, dt);
+        self.hand.update_for_enemy(dt);
         self.snake_eyes_box.update(input_state, dt);
 
         match self.data.state {

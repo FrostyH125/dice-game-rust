@@ -7,10 +7,10 @@ use raylib::{
     texture::Texture2D,
 };
 
-use crate::entities::{
+use crate::{entities::{
     dice::Dice,
-    dice_box_data::{BASE_MULTI_OFFSET, CURRENT_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, DiceBoxState},
-};
+    dice_box_data::{BASE_MULTI_OFFSET, CURRENT_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, DiceBoxState}, hand::Hand,
+}, system::input_handler::InputState};
 
 static ATTACK_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 80.0, 52.0, 16.0);
 
@@ -35,11 +35,12 @@ impl AttackDiceBox {
         }
     }
 
-    pub fn update(&mut self, dice_in_hand: &mut Vec<Dice>, dt: f32) {
+    pub fn update(&mut self, is_player_dragging_any_dice: &mut bool, hand: &mut Hand, input_state: &InputState, dt: f32) {
         match self.data.state {
             //player will set this when start turn
             DiceBoxState::WaitingForDice => {
-                self.data.check_for_dice_being_dragged_into_box(dice_in_hand);
+                self.data.check_for_dice_being_dragged_into_box(&mut hand.dice);
+                self.data.update_dice(is_player_dragging_any_dice, hand, input_state, dt);
                 self.data.set_dice_positions();
             }
 

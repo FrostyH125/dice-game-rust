@@ -2,7 +2,7 @@ use super::dice::{Dice, DICE_WIDTH_HEIGHT};
 use basic_raylib_core::system::timer::Timer;
 use raylib::prelude::*;
 
-use crate::{entities::{dice::{DiceKind, DiceState}, stop_button::StopButton}, system::{input_handler::InputState}};
+use crate::system::input_handler::InputState;
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;
@@ -21,7 +21,6 @@ pub struct Hand {
     current_index_of_dice_stopping: usize,
     dice_stop_timer: Timer,
     pub state: HandState,
-    is_any_dice_dragged: bool,
 }
 
 impl Hand {
@@ -31,20 +30,14 @@ impl Hand {
             current_index_of_dice_stopping: Default::default(),
             dice_stop_timer: Timer::new(1.0),
             state: HandState::Inactive,
-            is_any_dice_dragged: false
         }
     }
     
-    
-    pub fn update(&mut self, input_state: &InputState, dt: f32) {
+    // doesnt require any player input
+    pub fn update_for_enemy(&mut self, dt: f32) {
         
-        self.is_any_dice_dragged = self.dice.iter().any(|dice| dice.state == DiceState::Dragging);
-        
-        // iterating backwards prevents the dice under other dice to be the first one
-        // dragged, which is not the desired behavior
-        // now the topmost dice gets updated (and subsequently dragged) first
         for i in (0..self.dice.len()).rev() {
-            self.dice[i].update(&mut self.is_any_dice_dragged, &self.state, input_state, dt);
+            self.dice[i].update_for_enemy(dt);
         }     
         
         match self.state {
@@ -56,10 +49,28 @@ impl Hand {
                     self.state = HandState::StoppedDice;
                 }
             }
-            HandState::StoppedDice => {
-              // check if stop button is pressed again
-              // if so, handstate == rolling dice again, except the ones that youre saving 
+            _ => (), 
+        }
+    }
+    
+    pub fn update_for_player(&mut self, player_dragging_any_dice: &mut bool, input_state: &InputState, dt: f32) {
+        
+        // iterating backwards prevents the dice under other dice to be the first one
+        // dragged, which is not the desired behavior
+        // now the topmost dice gets updated (and subsequently dragged) first
+        for i in (0..self.dice.len()).rev() {
+            self.dice[i].update_for_player(player_dragging_any_dice, &self.state, input_state, dt);
+        }     
+        
+        match self.state {
+            HandState::RollingDice => {
+                self.set_dice_positions();
             },
+            HandState::StoppingDice => {
+                if self.stop_dice(dt) {
+                    self.state = HandState::StoppedDice;
+                }
+            }
             _ => (), 
         }
     }

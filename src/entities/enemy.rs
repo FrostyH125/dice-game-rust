@@ -1,6 +1,6 @@
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 use basic_raylib_core::system::timer::Timer;
-use crate::{entities::{enemies::snake::Snake, player::Player, stop_button::StopButton}, system::input_handler::InputState};
+use crate::{entities::{enemies::snake::Snake, player::Player}, system::input_handler::InputState};
 
 #[derive(PartialEq)]
 pub enum EnemyState {

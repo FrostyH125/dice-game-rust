@@ -1,9 +1,7 @@
-use std::mem::zeroed;
-
 use basic_raylib_core::{
     graphics::sprite::Sprite,
     system::timer::Timer,
-    utils::string_utils::{self, wrap_string},
+    utils::string_utils::wrap_string,
 };
 use raylib::{
     color::Color,

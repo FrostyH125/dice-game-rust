@@ -26,7 +26,6 @@ pub enum GameState {
     Combat,
 }
 
-// add update dice to dice box data so dice can be removed. Have them be put back into the hand if dragged out of the box
 // add border around currently being tallied dice, in dice box data and snake eyes, snake eyes should draw the border around both dice simultaneously
 // add snake eyes text
 // add drawing current tally to attack dice box
@@ -53,7 +52,7 @@ fn main() {
     let mut input_state = InputState {
         mouse_pos: rl.get_mouse_position() / camera.zoom,
         click_pos: Default::default(),
-        mouse_state: system::input_handler::MouseState::NotActive,
+        mouse_state: system::input_handler::MouseState::Inactive,
     };
 
     let sprite_sheet = rl.load_texture(&thread, "SpriteSheet.png").unwrap();

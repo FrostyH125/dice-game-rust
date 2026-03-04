@@ -18,7 +18,6 @@ use crate::{
 static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(64.0, 128.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT);
 static SNAKE_EYES_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 128.0, 36.0, 16.0);
 const SNAKE_EYES_DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 2.0 + DICE_WIDTH_HEIGHT, y: -15.0 };
-const SNAKE_EYES_PLACEHOLDER_DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 2.0, y: -15.0 };
 
 pub struct SnakeEyes {
     pub data: DiceBoxData,
@@ -131,7 +130,9 @@ impl SnakeEyes {
 
         //can only be 0, 1 or 2
         for i in 0..self.data.dice_in_box.len() {
-            self.data.dice_in_box[i].pos = Vector2 { x: pos.x, y: pos.y };
+            if self.data.dice_in_box[i].state != DiceState::Dragging {
+                self.data.dice_in_box[i].pos = pos;
+            }
             pos.x -= DICE_WIDTH_HEIGHT;
         }
     }
