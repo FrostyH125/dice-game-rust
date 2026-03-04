@@ -27,9 +27,9 @@ impl AttackDiceBox {
                 pos,
                 Rectangle {
                     x: pos.x + 2.0,
-                    y: pos.y - 63.0,
+                    y: pos.y - 31.0,
                     width: 48.0,
-                    height: 64.0,
+                    height: 32.0,
                 },
             ),
         }

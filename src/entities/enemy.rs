@@ -71,8 +71,8 @@ impl Enemy {
         self.get_mut_data().state = EnemyState::HitDelayBeforeWaitingAgain;
     }
 
-    pub fn new_snake() -> Self {
-        Self::Snake { snake: Snake::new() }
+    pub fn new_snake(font: &Font) -> Self {
+        Self::Snake { snake: Snake::new(font) }
     }
     
 

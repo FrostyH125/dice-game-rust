@@ -27,7 +27,7 @@ pub struct Snake {
 }
 
 impl Snake {
-    pub fn new() -> Self {
+    pub fn new(font: &Font) -> Self {
         let pos = Vector2 { x: 350.0, y: 150.0 };
 
         Snake {
@@ -43,7 +43,7 @@ impl Snake {
                 Dice::new(DiceKind::D4),
                 Dice::new(DiceKind::D4),
             ]),
-            snake_eyes_box: SnakeEyes::new(pos - Vector2 { x: 40.0, y: 0.0 }),
+            snake_eyes_box: SnakeEyes::new(pos - Vector2 { x: 40.0, y: 0.0 }, font),
             dice_add_timer: Timer::new(1.0),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
@@ -53,7 +53,7 @@ impl Snake {
 
     pub fn update(&mut self, input_state: &InputState, player: &Player, dt: f32) {
         self.hand.update(input_state, dt);
-        self.snake_eyes_box.update(&mut self.hand.dice, dt);
+        self.snake_eyes_box.update(input_state, dt);
 
         match self.data.state {
             EnemyState::StartTurn => {
@@ -147,9 +147,9 @@ impl Snake {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+        SNAKE_SPRITE.draw(d, self.data.pos, texture);
         self.hand.draw(d, texture);
         self.snake_eyes_box.draw(d, texture, font);
-        SNAKE_SPRITE.draw(d, self.data.pos, texture);
     }
 
     fn add_one_die(&mut self) {

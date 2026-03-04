@@ -18,13 +18,21 @@ use crate::system::input_handler::InputState;
 const CONSTANT_EDGE_SIZE: f32 = 4.0;
 const VARYING_EDGE_DEFAULT_SIZE: f32 = 1.0;
 
-static CORNER_SPRITE: Sprite = Sprite::new(145.0, 33.0, CONSTANT_EDGE_SIZE, CONSTANT_EDGE_SIZE);
+static TOP_LEFT_CORNER_SPRITE: Sprite = Sprite::new(145.0, 33.0, CONSTANT_EDGE_SIZE, CONSTANT_EDGE_SIZE);
+static TOP_RIGHT_CORNER_SPRITE: Sprite = Sprite::new(152.0, 33.0, CONSTANT_EDGE_SIZE, CONSTANT_EDGE_SIZE);
+static BOTTOM_LEFT_CORNER_SPRITE: Sprite = Sprite::new(145.0, 40.0, CONSTANT_EDGE_SIZE, CONSTANT_EDGE_SIZE);
+static BOTTOM_RIGHT_CORNER_SPRITE: Sprite = Sprite::new(152.0, 40.0, CONSTANT_EDGE_SIZE, CONSTANT_EDGE_SIZE);
+
 static INNER_RECT_SPRITE: Sprite = Sprite::new(150.0, 38.0, VARYING_EDGE_DEFAULT_SIZE, VARYING_EDGE_DEFAULT_SIZE);
-static VERTICAL_EDGE_SPRITE: Sprite = Sprite::new(145.0, 38.0, CONSTANT_EDGE_SIZE, VARYING_EDGE_DEFAULT_SIZE);
-static HORIZONTAL_EDGE_SPRITE: Sprite = Sprite::new(150.0, 33.0, VARYING_EDGE_DEFAULT_SIZE, CONSTANT_EDGE_SIZE);
+static LEFT_EDGE_SPRITE: Sprite = Sprite::new(145.0, 38.0, CONSTANT_EDGE_SIZE, VARYING_EDGE_DEFAULT_SIZE);
+static TOP_EDGE_SPRITE: Sprite = Sprite::new(150.0, 33.0, VARYING_EDGE_DEFAULT_SIZE, CONSTANT_EDGE_SIZE);
+static RIGHT_EDGE_SPRITE: Sprite = Sprite::new(152.0, 38.0, CONSTANT_EDGE_SIZE, VARYING_EDGE_DEFAULT_SIZE);
+static BOTTOM_EDGE_SPRITE: Sprite = Sprite::new(150.0, 40.0, VARYING_EDGE_DEFAULT_SIZE, CONSTANT_EDGE_SIZE);
 
 pub struct InfoHover {
     text: String,
+    font_size: f32,
+    spacing: f32,
     text_width: f32,
     text_height: f32,
     activation_rect: Rectangle,
@@ -33,12 +41,14 @@ pub struct InfoHover {
 }
 
 impl InfoHover {
-    pub fn new(text: String, activation_rect: Rectangle, font: &Font, font_size: f32, spacing: f32) -> Self {
-        let wrapped_text = wrap_string(&text, 400.0, font, font_size, spacing);
+    pub fn new(text: &str, activation_rect: Rectangle, font: &Font, font_size: f32, spacing: f32) -> Self {
+        let wrapped_text = wrap_string(text, 120.0, font, font_size, spacing);
         let text_size = font.measure_text(&wrapped_text, font_size, spacing);
 
         InfoHover {
             text: wrapped_text,
+            font_size,
+            spacing,
             text_width: text_size.x,
             text_height: text_size.y,
             activation_rect,
@@ -67,17 +77,21 @@ impl InfoHover {
         let start_pos_x = input.mouse_pos.x - self.text_width / 2.0;
         let start_pos_y = input.mouse_pos.y - self.text_height;
 
-        self.inner_rect.x = start_pos_x;
-        self.inner_rect.y = start_pos_y;
+        self.inner_rect.x = start_pos_x.round();
+        self.inner_rect.y = start_pos_y.round();
     }
 
-    pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+    pub fn draw(&self, d: &mut RaylibDrawHandle, font: &Font, texture: &Texture2D) {
+        if !self.activation_timer.is_done() {
+            return;
+        }
+
         let zero_v = Vector2 { x: 0.0, y: 0.0 };
 
         INNER_RECT_SPRITE.draw_pro(d, self.inner_rect, zero_v, 0.0, texture);
-        
+
         // draw the sides
-        VERTICAL_EDGE_SPRITE.draw_pro(
+        LEFT_EDGE_SPRITE.draw_pro(
             d,
             Rectangle {
                 x: self.inner_rect.x - CONSTANT_EDGE_SIZE,
@@ -90,27 +104,94 @@ impl InfoHover {
             texture,
         );
 
-        let right_edge_rect = Rectangle {
-            x: self.inner_rect.x + self.inner_rect.width,
-            y: self.inner_rect.y,
-            width: CONSTANT_EDGE_SIZE,
-            height: self.text_height,
-        };
-
-        VERTICAL_EDGE_SPRITE.draw_pro(
+        RIGHT_EDGE_SPRITE.draw_pro(
             d,
-            right_edge_rect,
-            Vector2 {
-                x: right_edge_rect.width / 2.0,
-                y: right_edge_rect.height / 2.0,
+            Rectangle {
+                x: self.inner_rect.x + self.inner_rect.width,
+                y: self.inner_rect.y,
+                width: CONSTANT_EDGE_SIZE,
+                height: self.text_height,
             },
-            180.0,
+            zero_v,
+            0.0,
             texture,
         );
-        
+
         // draw the top and bottom
-        
-        // draw the corners
-        
+        TOP_EDGE_SPRITE.draw_pro(
+            d,
+            Rectangle {
+                x: self.inner_rect.x,
+                y: self.inner_rect.y - CONSTANT_EDGE_SIZE,
+                width: self.text_width,
+                height: CONSTANT_EDGE_SIZE,
+            },
+            zero_v,
+            0.0,
+            texture,
+        );
+
+        BOTTOM_EDGE_SPRITE.draw_pro(
+            d,
+            Rectangle {
+                x: self.inner_rect.x,
+                y: self.inner_rect.y + self.inner_rect.height,
+                width: self.text_width,
+                height: CONSTANT_EDGE_SIZE,
+            },
+            zero_v,
+            0.0,
+            texture,
+        );
+
+        //top left corner
+        TOP_LEFT_CORNER_SPRITE.draw(
+            d,
+            Vector2 {
+                x: self.inner_rect.x - CONSTANT_EDGE_SIZE,
+                y: self.inner_rect.y - CONSTANT_EDGE_SIZE,
+            },
+            texture,
+        );
+
+        //top right corner
+        TOP_RIGHT_CORNER_SPRITE.draw(
+            d,
+            Vector2 {
+                x: self.inner_rect.x + self.inner_rect.width,
+                y: self.inner_rect.y - CONSTANT_EDGE_SIZE,
+            },
+            texture,
+        );
+        //bottom left corner
+        BOTTOM_LEFT_CORNER_SPRITE.draw(
+            d,
+            Vector2 {
+                x: self.inner_rect.x - CONSTANT_EDGE_SIZE,
+                y: self.inner_rect.y + self.inner_rect.height,
+            },
+            texture,
+        );
+        //bottom right corner
+        BOTTOM_RIGHT_CORNER_SPRITE.draw(
+            d,
+            Vector2 {
+                x: self.inner_rect.x + self.inner_rect.width,
+                y: self.inner_rect.y + self.inner_rect.height,
+            },
+            texture,
+        );
+
+        d.draw_text_ex(
+            font,
+            &self.text,
+            Vector2 {
+                x: self.inner_rect.x,
+                y: self.inner_rect.y,
+            },
+            self.font_size,
+            self.spacing,
+            Color::WHITE,
+        );
     }
 }
