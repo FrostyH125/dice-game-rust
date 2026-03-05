@@ -31,6 +31,7 @@ pub enum GameState {
 // add drawing current tally to attack dice box
 // make player and enemy actually attack eachother for real
 // add reroll button that gets added in old place of the stop button once the hand has been rolled once
+// particle system, sprite particle should have a 'sprite: &'static Sprite' field
 
 fn main() {
     let (mut rl, thread) =
