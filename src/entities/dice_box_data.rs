@@ -106,7 +106,7 @@ impl DiceBoxData {
     pub fn tally_points(&mut self, dt: f32) -> bool {
         self.timer_for_tallying_dice.track(dt);
 
-        if self.current_index_dice_being_tallied == 0 || self.timer_for_tallying_dice.is_done() {
+        if self.timer_for_tallying_dice.is_done() {
             self.timer_for_tallying_dice.reset();
             let current_dice = &self.dice_in_box[self.current_index_dice_being_tallied];
 
@@ -215,13 +215,20 @@ impl DiceBoxData {
         }
     }
 
-    pub fn draw_border_around_current_dice(&mut self) {
+    pub fn draw_border_around_current_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+        
+        if self.state != DiceBoxState::TallyingPoints {
+            return;
+        }
+        
         let sprite = match self.dice_in_box[self.current_index_dice_being_tallied].kind {
             DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
             DiceKind::D6 => &D6_DICE_BORDER_SPRITE,
         };
-
-        todo!("need to draw border around currently being tallied dice")
+        
+        let pos = self.dice_in_box[self.current_index_dice_being_tallied].pos + CURRENT_DICE_BORDER_OFFSET;
+        
+        sprite.draw(d, pos, texture);
     }
 
     pub fn draw_arrow_to_current_dice() {
@@ -231,7 +238,7 @@ impl DiceBoxData {
     pub fn update_dice(&mut self, is_player_dragging_any_dice: &mut bool, hand: &mut Hand, input_state: &InputState, dt: f32) {
         for i in (0..self.dice_in_box.len()).rev() {
             self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, &hand.state, input_state, dt);
-            if !self.dice_collect_rect.check_collision_point_rec(self.dice_in_box[i].pos) && self.dice_in_box[i].state == DiceState::Stopped {
+            if !self.dice_collect_rect.check_collision_point_rec(self.dice_in_box[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX) && self.dice_in_box[i].state == DiceState::Stopped {
                 let dice = self.dice_in_box.remove(i);
                 hand.dice.push(dice);
                 hand.set_dice_positions();

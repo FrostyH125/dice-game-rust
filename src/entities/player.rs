@@ -2,7 +2,7 @@ use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
 };
-use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
+use raylib::{math::{Rectangle, Vector2}, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox, reroll_button::RerollButton}, system::input_handler::MouseState};
 use crate::{

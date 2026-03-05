@@ -26,12 +26,14 @@ pub enum GameState {
     Combat,
 }
 
-// add border around currently being tallied dice, in dice box data and snake eyes, snake eyes should draw the border around both dice simultaneously
 // add snake eyes text
 // add drawing current tally to attack dice box
 // make player and enemy actually attack eachother for real
 // add reroll button that gets added in old place of the stop button once the hand has been rolled once
 // particle system, sprite particle should have a 'sprite: &'static Sprite' field
+// if hand has no dice, disable reroll button
+// add dice border around snake eyes dice, after both dice are in, but before they disappear, right as its being tallied {DURING BEFORE ATTACK DELAY}
+// snake animation + snake attack animation during tally delay
 
 fn main() {
     let (mut rl, thread) =

@@ -30,6 +30,8 @@ pub enum EnemyState {
     
     TallyingTotal,
     
+    BeforeActingDelay, // used for special visuals depending on the action
+    
     Acting,
     
     HitDelayBeforeWaitingAgain,

@@ -81,6 +81,7 @@ impl AttackDiceBox {
                 self.draw_multi(d, font);
                 self.draw_base_multi(d, font);
                 self.draw_current_streak(d, font);
+                self.data.draw_border_around_current_dice(d, texture);
                 //draw multi, base multi, current streak, border around dice, arrow pointing to dice
             }
         }

@@ -22,6 +22,7 @@ pub struct Snake {
     dice_add_timer: Timer,
     before_stopping_dice_timer: Timer,
     before_tally_timer: Timer,
+    before_act_timer: Timer,
     turn_end_timer: Timer,
 }
 
@@ -46,6 +47,7 @@ impl Snake {
             dice_add_timer: Timer::new(1.0),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
+            before_act_timer: Timer::new(1.0),
             turn_end_timer: Timer::new(1.0),
         }
     }
@@ -111,7 +113,18 @@ impl Snake {
             
             EnemyState::TallyingTotal => {
                 self.snake_eyes_box.data.total_value_for_current_round = self.snake_eyes_box.tally_snake_eyes();
-                self.data.state = EnemyState::Acting;
+                self.data.state = EnemyState::BeforeActingDelay;
+            }
+            EnemyState::BeforeActingDelay => {
+                
+                // right here, `self.snake_eyes_box.draw_snake_eyes_dice_border()` in draw obv though
+                
+                self.before_act_timer.track(dt);
+                
+                if self.before_act_timer.is_done() {
+                    self.before_act_timer.reset();
+                    self.data.state = EnemyState::Acting
+                }
             }
             EnemyState::Acting => {
                 println!("Dealt {} Damage with snake eyes!", self.snake_eyes_box.data.total_value_for_current_round);
