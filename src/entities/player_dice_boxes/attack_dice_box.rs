@@ -37,15 +37,11 @@ impl AttackDiceBox {
 
     pub fn update(&mut self, is_player_dragging_any_dice: &mut bool, hand: &mut Hand, input_state: &InputState, dt: f32) {
         match self.data.state {
-            //player will set this when start turn
             DiceBoxState::WaitingForDice => {
                 self.data.check_for_dice_being_dragged_into_box(&mut hand.dice);
                 self.data.update_dice(is_player_dragging_any_dice, hand, input_state, dt);
                 self.data.set_dice_positions();
             }
-
-            // will be set to this when the confirm button is pressed and
-            // the player decides when to tally the points of each box
             DiceBoxState::TallyingPoints => {
                 if self.data.dice_in_box.is_empty() {
                     self.data.state = DiceBoxState::Inactive;
@@ -54,13 +50,7 @@ impl AttackDiceBox {
                     self.data.state = DiceBoxState::WaitingForAction;
                 }
             }
-
-            // player will act using the data inside of this box
-            // may in the future add a function in this class for "Attack()"
-            // Need to figure out how to connect player and enemy first
             DiceBoxState::WaitingForAction => (),
-
-            // box is not drawn or updating
             DiceBoxState::Inactive => (),
         }
     }
@@ -82,7 +72,6 @@ impl AttackDiceBox {
                 self.draw_base_multi(d, font);
                 self.draw_current_streak(d, font);
                 self.data.draw_border_around_current_dice(d, texture);
-                //draw multi, base multi, current streak, border around dice, arrow pointing to dice
             }
         }
     }

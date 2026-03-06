@@ -17,7 +17,7 @@ static SNAKE_SPRITE: Sprite = Sprite::new(176.0, 80.0, 32.0, 48.0);
 
 pub struct Snake {
     pub data: EnemyData,
-    pub hand: Hand, // 4 D4
+    pub hand: Hand,
     pub snake_eyes_box: SnakeEyes,
     dice_add_timer: Timer,
     before_stopping_dice_timer: Timer,
@@ -117,7 +117,7 @@ impl Snake {
             }
             EnemyState::BeforeActingDelay => {
                 
-                // right here, `self.snake_eyes_box.draw_snake_eyes_dice_border()` in draw obv though
+                // right here, `self.snake_eyes_box.draw_snake_eyes_dice_borders()` in draw obv though
                 
                 self.before_act_timer.track(dt);
                 

@@ -2,14 +2,12 @@ use std::i8;
 
 use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::{
-    color::Color,
     math::{Rectangle, Vector2},
-    prelude::{RaylibDraw, RaylibDrawHandle},
-    text::Font,
+    prelude::RaylibDrawHandle,
     texture::Texture2D,
 };
 
-use crate::{entities::{dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}, hand::{Hand, HandState}}, system::input_handler::InputState};
+use crate::{entities::{dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}, hand::Hand}, system::input_handler::InputState};
 
 #[derive(PartialEq, Debug)]
 pub enum DiceBoxState {
@@ -184,31 +182,6 @@ impl DiceBoxData {
         return self.total_tally * self.base_multi_for_this_dice_box * self.total_multi_for_this_tally;
     }
 
-    pub fn draw(
-        &mut self,
-        d: &mut RaylibDrawHandle,
-        texture: &Texture2D,
-        dice_box_sprite: &Sprite,
-        font: &Font,
-        color: Color,
-    ) {
-        match self.state {
-            DiceBoxState::Inactive => return,
-            _ => {
-                dice_box_sprite.draw(d, self.pos, texture);
-                d.draw_rectangle_lines(
-                    self.dice_collect_rect.x as i32,
-                    self.dice_collect_rect.y as i32,
-                    self.dice_collect_rect.width as i32,
-                    self.dice_collect_rect.height as i32,
-                    Color::WHITE,
-                );
-                //draw_multi(font, color);
-                //draw_base_multi(font, color);
-                //draw_border_around_currently_being_tallied_dice();
-            }
-        }
-    }
     pub fn draw_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         for i in 0..self.dice_in_box.len() {
             self.dice_in_box[i].draw(d, texture);
@@ -229,10 +202,6 @@ impl DiceBoxData {
         let pos = self.dice_in_box[self.current_index_dice_being_tallied].pos + CURRENT_DICE_BORDER_OFFSET;
         
         sprite.draw(d, pos, texture);
-    }
-
-    pub fn draw_arrow_to_current_dice() {
-        todo!("need to draw arrow to currently being tallied dice, arrow should bob up and down i think")
     }
 
     pub fn update_dice(&mut self, is_player_dragging_any_dice: &mut bool, hand: &mut Hand, input_state: &InputState, dt: f32) {

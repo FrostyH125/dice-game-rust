@@ -9,8 +9,8 @@ use raylib::{
 
 use crate::{
     entities::{
-        dice::{DICE_WIDTH_HEIGHT, Dice, DiceState},
-        dice_box_data::{DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX, DiceBoxData, DiceBoxState},
+        dice::{DICE_WIDTH_HEIGHT, DiceState},
+        dice_box_data::{DiceBoxData, DiceBoxState},
     },
     system::{info_hover::InfoHover, input_handler::InputState},
 };
@@ -103,25 +103,6 @@ impl SnakeEyes {
             return 11;
         } else {
             return 0;
-        }
-    }
-
-    //this will only be for player usage
-    fn snake_eyes_check_dice_dragging_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) {
-        for i in (0..dice_in_hand.len()).rev() {
-            if dice_in_hand[i].state == DiceState::Stopped
-                && self
-                    .data
-                    .dice_collect_rect
-                    .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
-            {
-                if dice_in_hand[i].value != 1 {
-                    return;
-                }
-                let dice_to_add = dice_in_hand.remove(i);
-                self.data.dice_in_box.push(dice_to_add);
-                self.data.dice_in_box.sort_by(|a, b| a.value.cmp(&b.value));
-            }
         }
     }
 
