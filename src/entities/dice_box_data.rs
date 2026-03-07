@@ -1,13 +1,20 @@
-use std::i8;
+use std::{i8, usize};
 
 use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::{
+    ffi::IsFileDropped,
     math::{Rectangle, Vector2},
     prelude::RaylibDrawHandle,
     texture::Texture2D,
 };
 
-use crate::{entities::{dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState}, hand::Hand}, system::input_handler::InputState};
+use crate::{
+    entities::{
+        dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
+        hand::Hand,
+    },
+    system::input_handler::InputState,
+};
 
 #[derive(PartialEq, Debug)]
 pub enum DiceBoxState {
@@ -51,7 +58,7 @@ pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
 
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
-    pub current_index_dice_being_tallied: usize,
+    pub current_index_of_dice_just_tallied: Option<usize>,
     pub total_tally: i64,
     pub total_multi_for_this_tally: i64,
     pub base_multi_for_this_dice_box: i64,
@@ -68,7 +75,7 @@ impl DiceBoxData {
     pub fn new(pos: Vector2, dice_collect_rect: Rectangle) -> Self {
         DiceBoxData {
             dice_in_box: Vec::new(),
-            current_index_dice_being_tallied: 0,
+            current_index_of_dice_just_tallied: None,
             total_tally: 0,
             total_multi_for_this_tally: 1,
             base_multi_for_this_dice_box: 1,
@@ -84,8 +91,6 @@ impl DiceBoxData {
 }
 
 impl DiceBoxData {
-    
-    
     pub fn check_for_dice_being_dragged_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) {
         for i in (0..dice_in_hand.len()).rev() {
             if dice_in_hand[i].state == DiceState::Stopped
@@ -102,46 +107,46 @@ impl DiceBoxData {
 
     //dice box being empty handled by call site
     pub fn tally_points(&mut self, dt: f32) -> bool {
+        let is_first = self.current_index_of_dice_just_tallied == None;
         self.timer_for_tallying_dice.track(dt);
+        
+        if self.timer_for_tallying_dice.is_done() || is_first {
+            match &mut self.current_index_of_dice_just_tallied {
+                None => self.current_index_of_dice_just_tallied = Some(0),
+                Some(index) => *index += 1
+            };
 
-        if self.timer_for_tallying_dice.is_done() {
             self.timer_for_tallying_dice.reset();
-            let current_dice = &self.dice_in_box[self.current_index_dice_being_tallied];
+            let current_dice = &self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()];
 
-            let is_last_dice = self.current_index_dice_being_tallied == self.dice_in_box.len() - 1;
             let continue_streak = self.previous_dice_value == current_dice.value;
 
-            let is_first = self.current_index_dice_being_tallied == 0;
-            let should_finalize = !is_first && (!continue_streak || is_last_dice);
+            let should_reset_streak = !is_first && !continue_streak;
 
             self.total_tally += current_dice.value as i64;
 
             if continue_streak {
                 self.current_streak += 1;
+                self.total_multi_for_this_tally += 1;
             }
 
-            if should_finalize {
-                if self.current_streak > 1 {
-                    self.total_multi_for_this_tally += self.current_streak as i64;
-                }
-
-                if !is_last_dice {
-                    self.current_streak = 1;
-                }
+            if should_reset_streak {
+                self.current_streak = 1;
             }
 
             println!(
-                "Current tally: {}, Current Multi: {}, value of the dice just tallied: {}",
-                self.total_tally, self.total_multi_for_this_tally, current_dice.value
+                "Current tally: {}, Current Multi: {}, Current Streak: {}, value of the dice just tallied: {}",
+                self.total_tally, self.total_multi_for_this_tally, self.current_streak, current_dice.value
             );
 
-            if self.current_index_dice_being_tallied == self.dice_in_box.len() - 1 {
+            if self.current_index_of_dice_just_tallied.unwrap() == self.dice_in_box.len() - 1 {
                 return true;
             }
 
             self.previous_dice_value = current_dice.value;
-            self.current_index_dice_being_tallied += 1;
+            
         }
+
         return false;
     }
 
@@ -152,7 +157,7 @@ impl DiceBoxData {
 
         self.total_value_for_current_round = 0;
         self.state = DiceBoxState::WaitingForDice;
-        self.current_index_dice_being_tallied = 0;
+        self.current_index_of_dice_just_tallied = None;
         self.current_streak = 0;
         self.previous_dice_value = i8::MAX;
         self.timer_for_tallying_dice.reset();
@@ -190,24 +195,38 @@ impl DiceBoxData {
 
     pub fn draw_border_around_current_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         
-        if self.state != DiceBoxState::TallyingPoints {
+        if self.state != DiceBoxState::TallyingPoints && self.state != DiceBoxState::WaitingForAction {
             return;
         }
         
-        let sprite = match self.dice_in_box[self.current_index_dice_being_tallied].kind {
+        if self.current_index_of_dice_just_tallied == None {
+            return;
+        }
+        
+        let sprite = match self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()].kind {
             DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
             DiceKind::D6 => &D6_DICE_BORDER_SPRITE,
         };
-        
-        let pos = self.dice_in_box[self.current_index_dice_being_tallied].pos + CURRENT_DICE_BORDER_OFFSET;
-        
+
+        let pos = self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()].pos + CURRENT_DICE_BORDER_OFFSET;
+
         sprite.draw(d, pos, texture);
     }
 
-    pub fn update_dice(&mut self, is_player_dragging_any_dice: &mut bool, hand: &mut Hand, input_state: &InputState, dt: f32) {
+    pub fn update_dice(
+        &mut self,
+        is_player_dragging_any_dice: &mut bool,
+        hand: &mut Hand,
+        input_state: &InputState,
+        dt: f32,
+    ) {
         for i in (0..self.dice_in_box.len()).rev() {
             self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, &hand.state, input_state, dt);
-            if !self.dice_collect_rect.check_collision_point_rec(self.dice_in_box[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX) && self.dice_in_box[i].state == DiceState::Stopped {
+            if !self
+                .dice_collect_rect
+                .check_collision_point_rec(self.dice_in_box[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
+                && self.dice_in_box[i].state == DiceState::Stopped
+            {
                 let dice = self.dice_in_box.remove(i);
                 hand.dice.push(dice);
                 hand.set_dice_positions();

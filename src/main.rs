@@ -29,6 +29,7 @@ pub enum GameState {
 // add snake eyes text
 // add drawing current tally to attack dice box
 // make player and enemy actually attack eachother for real
+// player attack animation
 // add reroll button that gets added in old place of the stop button once the hand has been rolled once
 // particle system, sprite particle should have a 'sprite: &'static Sprite' field
 // if hand has no dice, disable reroll button

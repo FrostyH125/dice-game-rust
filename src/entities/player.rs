@@ -135,7 +135,7 @@ impl Player {
                 
                 match self.attack_box.data.state {
                     DiceBoxState::WaitingForAction => {
-                        self.state = PlayerState::Attacking;
+                        self.state = PlayerState::BeforeAttackDelay;
                         confirm_button.reset();
                     },
                     DiceBoxState::Inactive => {

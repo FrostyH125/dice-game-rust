@@ -37,7 +37,8 @@ impl SnakeEyes {
                 },
             ),
             info_hover: InfoHover::new(
-                "Deals 11 damage when loaded with two dice of value 1",
+                "Snake Eyes:
+                Deals 11 damage when loaded with two dice of value 1",
                 Rectangle {
                     x: pos.x,
                     y: pos.y,
