@@ -114,7 +114,7 @@ impl Player {
                 }
             }
             PlayerState::ChoosingDice => {
-                if reroll_button.is_pressed(input_state) {
+                if self.hand.dice.len() > 0 && reroll_button.is_pressed(input_state) {
                     self.hand.reset_hand();
                     self.hand.begin_dice_stop();
                     self.state = PlayerState::RerollingDice;

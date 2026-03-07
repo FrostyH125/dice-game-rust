@@ -26,15 +26,15 @@ pub enum GameState {
     Combat,
 }
 
-// add snake eyes text
-// add drawing current tally to attack dice box
-// make player and enemy actually attack eachother for real
 // player attack animation
-// add reroll button that gets added in old place of the stop button once the hand has been rolled once
-// particle system, sprite particle should have a 'sprite: &'static Sprite' field
-// if hand has no dice, disable reroll button
-// add dice border around snake eyes dice, after both dice are in, but before they disappear, right as its being tallied {DURING BEFORE ATTACK DELAY}
 // snake animation + snake attack animation during tally delay
+
+// particle system, sprite particle should have a 'sprite: &'static Sprite' field
+// make dice emit smoke particles when they disappear back to the hand 
+
+// add dice border around snake eyes dice, after both dice are in, but before they disappear, right as its being tallied {DURING BEFORE ATTACK DELAY}
+
+// make player and enemy actually attack eachother for real
 
 fn main() {
     let (mut rl, thread) =
@@ -117,7 +117,10 @@ fn main() {
 
         if player.state == PlayerState::ChoosingDice {
             confirm_button.draw(&mut cam_handle, &sprite_sheet, &font);
-            reroll_button.draw(&mut cam_handle, &sprite_sheet, &font);
+            
+            if player.hand.dice.len() > 0 {
+                reroll_button.draw(&mut cam_handle, &sprite_sheet, &font);
+            }
         }
 
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);

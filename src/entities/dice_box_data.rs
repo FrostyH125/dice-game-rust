@@ -16,7 +16,7 @@ use crate::{
     system::input_handler::InputState,
 };
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum DiceBoxState {
     WaitingForDice,
     TallyingPoints,
@@ -24,23 +24,11 @@ pub enum DiceBoxState {
     Inactive,
 }
 
-// big multi number that gets bigger as the number gets bigger, "x2, x3, x4," etc
-pub const CURRENT_MULTI_OFFSET: Vector2 = Vector2 { x: 60.0, y: -40.0 };
 
-// smaller number set inside of the box itself, denotes the current base multiplier
-// most likely will be determined by weapon
-// will also likely have a symbol next to it denoting the type of damage it is
-// "slash, blunt, pierce, fire, lightning, etc"
-// will also be symbols for healing and blocking as well
+pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
+pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2 { x: 60.0, y: -30.0 };
 pub const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 20.0, y: 7.0 };
 
-// planning for this to be under the scoring box
-// will continuously count a streak if its over 1
-// "2 streak!, 3 streak!, 4 streak!"
-// will likely get bigger as the streak gets larger as well
-pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 18.0 };
-
-// where the border needs to be drawn relative to the dice
 pub const CURRENT_DICE_BORDER_OFFSET: Vector2 = Vector2 { x: -1.0, y: -1.0 };
 pub const DICE_BORDER_SIZE: Vector2 = Vector2 {
     x: DICE_WIDTH_HEIGHT + 2.0,
@@ -83,7 +71,7 @@ impl DiceBoxData {
             pos,
             state: DiceBoxState::Inactive,
             dice_collect_rect,
-            timer_for_tallying_dice: Timer::new(1.0),
+            timer_for_tallying_dice: Timer::new(1.5),
             previous_dice_value: i8::MAX,
             current_streak: 0,
         }
@@ -109,11 +97,11 @@ impl DiceBoxData {
     pub fn tally_points(&mut self, dt: f32) -> bool {
         let is_first = self.current_index_of_dice_just_tallied == None;
         self.timer_for_tallying_dice.track(dt);
-        
+
         if self.timer_for_tallying_dice.is_done() || is_first {
             match &mut self.current_index_of_dice_just_tallied {
                 None => self.current_index_of_dice_just_tallied = Some(0),
-                Some(index) => *index += 1
+                Some(index) => *index += 1,
             };
 
             self.timer_for_tallying_dice.reset();
@@ -144,7 +132,6 @@ impl DiceBoxData {
             }
 
             self.previous_dice_value = current_dice.value;
-            
         }
 
         return false;
@@ -194,15 +181,14 @@ impl DiceBoxData {
     }
 
     pub fn draw_border_around_current_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        
         if self.state != DiceBoxState::TallyingPoints && self.state != DiceBoxState::WaitingForAction {
             return;
         }
-        
+
         if self.current_index_of_dice_just_tallied == None {
             return;
         }
-        
+
         let sprite = match self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()].kind {
             DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
             DiceKind::D6 => &D6_DICE_BORDER_SPRITE,

@@ -67,9 +67,11 @@ impl SnakeEyes {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+        SNAKE_EYES_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
+        self.draw_placeholder_dice(d, texture);
+        
         match self.data.state {
             DiceBoxState::Inactive => {
-                SNAKE_EYES_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
                 self.draw_placeholder_dice(d, texture);
             }
             _ => {
@@ -82,7 +84,6 @@ impl SnakeEyes {
                     Color::WHITE,
                 );
                 self.snake_eyes_draw_dice(d, texture);
-                self.draw_placeholder_dice(d, texture);
             }
         }
 

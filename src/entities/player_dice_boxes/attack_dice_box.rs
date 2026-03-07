@@ -7,10 +7,17 @@ use raylib::{
     texture::Texture2D,
 };
 
-use crate::{entities::{
-    dice::Dice,
-    dice_box_data::{BASE_MULTI_OFFSET, CURRENT_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, DiceBoxState}, hand::Hand,
-}, system::input_handler::InputState};
+use crate::{
+    entities::{
+        dice::Dice,
+        dice_box_data::{
+            BASE_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData,
+            DiceBoxState, TOTAL_VALUE_OFFSET,
+        },
+        hand::Hand,
+    },
+    system::input_handler::InputState,
+};
 
 static ATTACK_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 80.0, 52.0, 16.0);
 
@@ -20,7 +27,7 @@ pub struct AttackDiceBox {
 
 impl AttackDiceBox {
     pub fn new() -> Self {
-        let pos = Vector2 { x: 5.0, y: 100.0 };
+        let pos = Vector2 { x: 5.0, y: 50.0 };
 
         AttackDiceBox {
             data: DiceBoxData::new(
@@ -35,7 +42,13 @@ impl AttackDiceBox {
         }
     }
 
-    pub fn update(&mut self, is_player_dragging_any_dice: &mut bool, hand: &mut Hand, input_state: &InputState, dt: f32) {
+    pub fn update(
+        &mut self,
+        is_player_dragging_any_dice: &mut bool,
+        hand: &mut Hand,
+        input_state: &InputState,
+        dt: f32,
+    ) {
         match self.data.state {
             DiceBoxState::WaitingForDice => {
                 self.data.check_for_dice_being_dragged_into_box(&mut hand.dice);
@@ -68,30 +81,14 @@ impl AttackDiceBox {
                     Color::WHITE,
                 );
                 self.data.draw_dice(d, texture);
-                self.draw_multi(d, font);
                 self.draw_base_multi(d, font);
                 self.draw_current_streak(d, font);
                 self.data.draw_border_around_current_dice(d, texture);
+                self.draw_total_amounts(d, font);
             }
         }
     }
 
-    fn draw_multi(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        let multi = self.data.total_multi_for_this_tally;
-
-        if multi <= 1 {
-            return;
-        }
-
-        d.draw_text_ex(
-            font,
-            &format!("x {}", multi),
-            self.data.pos + CURRENT_MULTI_OFFSET, //pos + offset
-            10.0 + 2.0 * multi as f32,            // 15 base size + (2 X MULTI) size
-            0.5,
-            Color::RED,
-        );
-    }
 
     fn draw_base_multi(&self, d: &mut RaylibDrawHandle, font: &Font) {
         d.draw_text_ex(
@@ -103,19 +100,36 @@ impl AttackDiceBox {
             Color { r: 208, g: 184, b: 184, a: 255 },
         );
     }
-    
-    fn draw_current_tally(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        
+
+    fn draw_total_amounts(&self, d: &mut RaylibDrawHandle, font: &Font) {
+        let in_wrong_state =
+            self.data.state != DiceBoxState::TallyingPoints && self.data.state != DiceBoxState::WaitingForAction;
+        let no_dice_counted_yet = self.data.current_index_of_dice_just_tallied == None;
+        if in_wrong_state || no_dice_counted_yet {
+            return;
+        }
+
+        let base = self.data.base_multi_for_this_dice_box;
+        let tally = self.data.total_tally;
+        let multi = self.data.total_multi_for_this_tally;
+
+        d.draw_text_ex(
+            font,
+            &format!("total:\n{} tally\n* {} multi \n* {} base\n= {} damage!", tally, multi, base, tally * multi * base),
+            self.data.pos + TOTAL_VALUE_OFFSET,
+            5.0,
+            0.0,
+            Color::RED,
+        );
     }
 
     fn draw_current_streak(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        
         let streak = self.data.current_streak;
-        
+
         if streak <= 1 {
             return;
         }
-        
+
         d.draw_text_ex(
             font,
             &format!("Streak {} !", streak),

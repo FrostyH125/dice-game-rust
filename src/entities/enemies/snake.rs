@@ -44,11 +44,11 @@ impl Snake {
                 Dice::new(DiceKind::D4),
             ]),
             snake_eyes_box: SnakeEyes::new(pos - Vector2 { x: 40.0, y: 0.0 }, font),
-            dice_add_timer: Timer::new(1.0),
+            dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
-            before_act_timer: Timer::new(1.0),
-            turn_end_timer: Timer::new(1.0),
+            before_act_timer: Timer::new(2.0),
+            turn_end_timer: Timer::new(2.0),
         }
     }
 
@@ -84,7 +84,6 @@ impl Snake {
                     self.data.state = EnemyState::ChoosingDice;
                 } else {
                     self.data.state = EnemyState::EndTurnDelay;
-                    self.turn_end_timer.reset();
                 }
             }
 
@@ -134,6 +133,7 @@ impl Snake {
                 self.turn_end_timer.track(dt);
                 
                 if self.turn_end_timer.is_done() {
+                    self.turn_end_timer.reset();
                     self.hand.state = HandState::Inactive;
                     self.snake_eyes_box.data.state = DiceBoxState::Inactive;
                     self.data.state = EnemyState::WaitingForPlayer;
