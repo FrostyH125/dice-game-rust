@@ -26,6 +26,11 @@ pub enum GameState {
     Combat,
 }
 
+// add dicestate::movingtobox, dicestate::movingwithinbox, dicestate::movingtohand, and dicestate::movingwithinhand 
+// to smoothstep between positions when adding to box or adding back to hand
+// or when rearranging inside the hand, inside the box after dice being added to box or removed from box, 
+// or a dice being removed from the hand
+
 // player attack animation
 // snake animation + snake attack animation during tally delay
 
