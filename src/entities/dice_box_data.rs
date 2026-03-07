@@ -26,10 +26,10 @@ pub enum DiceBoxState {
 
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
-pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2 { x: 60.0, y: -30.0 };
+pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2 { x: 52.0, y: -31.0 };
 pub const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 20.0, y: 7.0 };
 
-pub const CURRENT_DICE_BORDER_OFFSET: Vector2 = Vector2 { x: -1.0, y: -1.0 };
+pub const DICE_BORDER_OFFSET: Vector2 = Vector2 { x: -1.0, y: -1.0 };
 pub const DICE_BORDER_SIZE: Vector2 = Vector2 {
     x: DICE_WIDTH_HEIGHT + 2.0,
     y: DICE_WIDTH_HEIGHT + 2.0,
@@ -194,7 +194,7 @@ impl DiceBoxData {
             DiceKind::D6 => &D6_DICE_BORDER_SPRITE,
         };
 
-        let pos = self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()].pos + CURRENT_DICE_BORDER_OFFSET;
+        let pos = self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()].pos + DICE_BORDER_OFFSET;
 
         sprite.draw(d, pos, texture);
     }

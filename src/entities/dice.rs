@@ -1,5 +1,5 @@
 use crate::{
-    entities::hand::HandState,
+    entities::{dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRITE}, hand::HandState},
     system::input_handler::{InputState, MouseState},
 };
 
@@ -57,10 +57,17 @@ impl DiceKind {
         }
     }
     
-    pub fn anim(&self) -> &AnimationData {
+    pub fn roll_anim(&self) -> &AnimationData {
         match self {
             DiceKind::D4 => &D4_ROLL_ANIM,
             DiceKind::D6 => &D6_ROLL_ANIM,
+        }
+    }
+    
+    pub fn outline_sprite(&self) -> &Sprite {
+        match self {
+            DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
+            DiceKind::D6 => &D6_DICE_BORDER_SPRITE,
         }
     }
 }
@@ -132,7 +139,7 @@ impl Dice {
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         
-        let anim = self.kind.anim();
+        let anim = self.kind.roll_anim();
         
         match self.state {
             Stopped => {

@@ -32,8 +32,6 @@ pub enum GameState {
 // particle system, sprite particle should have a 'sprite: &'static Sprite' field
 // make dice emit smoke particles when they disappear back to the hand 
 
-// add dice border around snake eyes dice, after both dice are in, but before they disappear, right as its being tallied {DURING BEFORE ATTACK DELAY}
-
 // make player and enemy actually attack eachother for real
 
 fn main() {
