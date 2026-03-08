@@ -71,6 +71,8 @@ fn main() {
     let mut reroll_button = RerollButton::new();
 
     let mut current_enemy = get_random_enemy(&font);
+    
+    player.hand.arrange_hand();
 
     while !rl.window_should_close() {
         rl.hide_cursor();

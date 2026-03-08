@@ -2,7 +2,7 @@ use super::dice::{Dice, DICE_WIDTH_HEIGHT};
 use basic_raylib_core::system::timer::Timer;
 use raylib::prelude::*;
 
-use crate::system::input_handler::InputState;
+use crate::{entities::dice::DiceState, system::input_handler::InputState};
 use super::super::{VIRTUAL_WIDTH, VIRTUAL_HEIGHT};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;
@@ -25,12 +25,13 @@ pub struct Hand {
 
 impl Hand {
     pub fn new(dice: Vec<Dice>) -> Self {
-        Hand {
-            dice,
-            current_index_of_dice_stopping: Default::default(),
-            dice_stop_timer: Timer::new(1.0),
-            state: HandState::Inactive,
-        }
+        
+            Hand {
+                dice,
+                current_index_of_dice_stopping: Default::default(),
+                dice_stop_timer: Timer::new(1.0),
+                state: HandState::Inactive,
+            }
     }
     
     // doesnt require any player input
@@ -41,9 +42,6 @@ impl Hand {
         }     
         
         match self.state {
-            HandState::RollingDice => {
-                self.set_dice_positions();
-            },
             HandState::StoppingDice => {
                 if self.stop_dice(dt) {
                     self.state = HandState::StoppedDice;
@@ -60,12 +58,9 @@ impl Hand {
         // now the topmost dice gets updated (and subsequently dragged) first
         for i in (0..self.dice.len()).rev() {
             self.dice[i].update_for_player(player_dragging_any_dice, &self.state, input_state, dt);
-        }     
+        }   
         
         match self.state {
-            HandState::RollingDice => {
-                self.set_dice_positions();
-            },
             HandState::StoppingDice => {
                 if self.stop_dice(dt) {
                     self.state = HandState::StoppedDice;
@@ -74,8 +69,9 @@ impl Hand {
             _ => (), 
         }
     }
-
-    pub fn set_dice_positions(&mut self) {
+    
+    //rolling variable says whether the dice should go to rolling after moving to its new location or not
+    pub fn arrange_hand(&mut self) {
         let num_of_dice = self.dice.len() as f32;
         let number_of_margins = num_of_dice - 1.0;
         
@@ -86,8 +82,11 @@ impl Hand {
         let mut pos_x = start_pos_x;
         
         for i in 0..num_of_dice as usize {
-            self.dice[i].pos.x = pos_x;
-            self.dice[i].pos.y = pos_y;
+            let old_pos = self.dice[i].pos;
+            let target_pos = Vector2 { x: pos_x, y: pos_y };
+            
+            self.dice[i].old_state = self.dice[i].state;
+            self.dice[i].state = DiceState::Rearranging { old_pos, target_pos };
             
             pos_x += DICE_WIDTH_HEIGHT + HAND_MARGIN_BETWEEN_DICE;
         }

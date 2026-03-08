@@ -215,7 +215,7 @@ impl DiceBoxData {
             {
                 let dice = self.dice_in_box.remove(i);
                 hand.dice.push(dice);
-                hand.set_dice_positions();
+                hand.arrange_hand();
             }
         }
     }

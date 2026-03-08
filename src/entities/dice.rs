@@ -4,9 +4,9 @@ use crate::{
 };
 
 use self::DiceState::*;
-use basic_raylib_core::graphics::{
+use basic_raylib_core::{graphics::{
     animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance,
-};
+}, system::timer::Timer, utils::math_utils::smooth_lerp};
 use rand::random_range;
 use raylib::prelude::*;
 
@@ -37,9 +37,10 @@ pub static D4_ROLL_ANIM: AnimationData = AnimationData {
     should_loop: true
 };
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum DiceState {
     Stopped,
+    Rearranging { old_pos: Vector2, target_pos: Vector2 },
     Rolling,
     Dragging,
 }
@@ -73,11 +74,14 @@ impl DiceKind {
 }
 
 pub struct Dice {
+    stopped_frame_to_draw: usize,
     pub pos: Vector2,
     pub roll_anim: SpriteAnimationInstance,
     pub value: i8,
     pub state: DiceState,
+    pub old_state: DiceState,
     pub kind: DiceKind,
+    rearranging_timer: Timer,
 }
 
 impl Dice {
@@ -87,7 +91,10 @@ impl Dice {
             roll_anim: SpriteAnimationInstance::default(),
             value: Default::default(),
             state: Rolling,
+            old_state: Rolling,
             kind,
+            rearranging_timer: Timer::new(0.25),
+            stopped_frame_to_draw: Default::default()
         }
     }
     
@@ -122,6 +129,24 @@ impl Dice {
                     self.state = DiceState::Dragging;
                 }
             }
+            Rearranging { old_pos, target_pos } => {
+                self.rearranging_timer.track(dt);
+                
+                if self.rearranging_timer.is_done() {
+                    self.state = self.old_state;
+                    self.pos = target_pos;
+                    self.rearranging_timer.reset();
+                    
+                    //if you dont return here, the value of the timer will be 0.0, and the pos will get set to old pos
+                    return;
+                }
+                
+                let current_time = self.rearranging_timer.current_time;
+                let total_duration = self.rearranging_timer.duration;
+                
+                self.pos.x = smooth_lerp(old_pos.x, target_pos.x, current_time, total_duration);
+                self.pos.y = smooth_lerp(old_pos.y, target_pos.y, current_time, total_duration)
+            }
             DiceState::Dragging => {
                 if input_state.mouse_state == MouseState::Dragging {
                     self.pos = input_state.mouse_pos
@@ -142,14 +167,9 @@ impl Dice {
         let anim = self.kind.roll_anim();
         
         match self.state {
-            Stopped => {
-                let frame_to_draw = self.value as usize - 1;
-                anim.frames[frame_to_draw].draw(d, self.pos, texture)
-            }
             Rolling => anim.draw(&self.roll_anim, d, texture, self.pos),
-            Dragging => {
-                let frame_to_draw = self.value as usize - 1;
-                anim.frames[frame_to_draw].draw(d, self.pos, texture)
+            _  => {
+                anim.frames[self.stopped_frame_to_draw].draw(d, self.pos, texture)
             }
         }
     }
@@ -157,6 +177,7 @@ impl Dice {
     pub fn stop(&mut self) {
         let new_value = random_range(1..=self.kind.num_of_sides());
         self.value = new_value;
+        self.stopped_frame_to_draw = self.value as usize - 1;
         self.state = Stopped;
     }
 
