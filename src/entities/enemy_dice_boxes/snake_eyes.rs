@@ -57,6 +57,9 @@ impl SnakeEyes {
     pub fn update(&mut self, input: &InputState, dt: f32) {
         self.info_hover.update(input, dt);
         self.snake_eyes_set_dice_positions();
+        for dice in &mut self.data.dice_in_box {
+            dice.update_for_enemy(dt);
+        }
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
@@ -89,13 +92,11 @@ impl SnakeEyes {
     }
 
     pub fn snake_eyes_set_dice_positions(&mut self) {
-        let mut new_pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET;
-
-        //can only be 0, 1 or 2
+        let mut target_pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET; //can only be 0, 1 or 2
         for i in 0..self.data.dice_in_box.len() {
-            self.data.dice_in_box[i].pos = new_pos;
-
-            new_pos.x -= DICE_WIDTH_HEIGHT;
+            let old_pos = self.data.dice_in_box[i].pos;
+            self.data.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos };
+            target_pos.x -= DICE_WIDTH_HEIGHT;
         }
     }
 
@@ -118,20 +119,18 @@ impl SnakeEyes {
     }
 
     fn draw_snake_eyes_text(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        
         if self.data.total_value_for_current_round == 0 {
             return;
         }
-        
+
         d.draw_text_ex(font, "Snake Eyes!", self.data.pos + SNAKE_EYES_TEXT_OFFSET, 5.0, 0.0, Color::FORESTGREEN);
     }
 
     fn draw_damage(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        
         if self.data.total_value_for_current_round == 0 {
             return;
         }
-        
+
         d.draw_text_ex(
             font,
             &format!("{} damage!", self.data.total_value_for_current_round),
