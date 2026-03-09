@@ -56,11 +56,7 @@ fn main() {
         zoom: 3.0,
     };
 
-    let mut input_state = InputState {
-        mouse_pos: rl.get_mouse_position() / camera.zoom,
-        click_pos: Default::default(),
-        mouse_state: system::input_handler::MouseState::Inactive,
-    };
+    let mut input_state = InputState::new();
 
     let sprite_sheet = rl.load_texture(&thread, "SpriteSheet.png").unwrap();
     sprite_sheet.set_texture_filter(&thread, TextureFilter::TEXTURE_FILTER_POINT);
@@ -129,6 +125,7 @@ fn main() {
         }
 
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
+        cam_handle.draw_text(&format!("{:?}", input_state.mouse_state), 0, 0, 10, Color::WHITE);
     }
 }
 

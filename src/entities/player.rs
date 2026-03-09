@@ -88,9 +88,9 @@ impl Player {
             self.is_player_dragging_dice = false;
         }
         
-        self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
         self.attack_box.update(&mut self.is_player_dragging_dice, &mut self.hand, &input_state, dt);
-
+        self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
+        
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);

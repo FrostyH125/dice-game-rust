@@ -2,7 +2,6 @@ use std::{i8, usize};
 
 use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::{
-    ffi::IsFileDropped,
     math::{Rectangle, Vector2},
     prelude::RaylibDrawHandle,
     texture::Texture2D,
@@ -23,7 +22,6 @@ pub enum DiceBoxState {
     WaitingForAction,
     Inactive,
 }
-
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
 pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2 { x: 52.0, y: -31.0 };
@@ -79,18 +77,25 @@ impl DiceBoxData {
 }
 
 impl DiceBoxData {
-    pub fn check_for_dice_being_dragged_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) {
+    pub fn check_for_dice_being_dragged_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) -> bool {
         for i in (0..dice_in_hand.len()).rev() {
-            if dice_in_hand[i].state == DiceState::Stopped
-                && self
-                    .dice_collect_rect
-                    .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
-            {
-                let dice_to_add = dice_in_hand.remove(i);
-                self.dice_in_box.push(dice_to_add);
-                self.dice_in_box.sort_by(|a, b| a.value.cmp(&b.value));
+            match dice_in_hand[i].state {
+                DiceState::Stopped | DiceState::Rearranging { .. } => {
+                    if self
+                        .dice_collect_rect
+                        .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
+                    {
+                        let dice_to_add = dice_in_hand.remove(i);
+                        self.dice_in_box.push(dice_to_add);
+                        self.dice_in_box.sort_by(|a, b| a.value.cmp(&b.value));
+                        return true;
+                    }  
+                }
+                _ => ()
             }
         }
+        
+        return false;
     }
 
     //dice box being empty handled by call site
@@ -153,18 +158,20 @@ impl DiceBoxData {
     }
 
     pub fn set_dice_positions(&mut self) {
-        let mut draw_pos = self.pos + DICE_DRAW_START_OFFSET;
+        let mut target_pos = self.pos + DICE_DRAW_START_OFFSET;
         let mut times_increased_x = 0;
 
         for i in (0..self.dice_in_box.len()).rev() {
             if self.dice_in_box[i].state != DiceState::Dragging {
-                self.dice_in_box[i].pos = draw_pos;
+                self.dice_in_box[i].old_state = self.dice_in_box[i].state;
+                let old_pos = self.dice_in_box[i].pos;
+                self.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos };
             }
-            draw_pos.x -= DICE_WIDTH_HEIGHT;
+            target_pos.x -= DICE_WIDTH_HEIGHT;
             times_increased_x += 1;
             if times_increased_x == 3 {
-                draw_pos.x += DICE_WIDTH_HEIGHT * 3.0;
-                draw_pos.y -= DICE_WIDTH_HEIGHT;
+                target_pos.x += DICE_WIDTH_HEIGHT * 3.0;
+                target_pos.y -= DICE_WIDTH_HEIGHT;
                 times_increased_x = 0;
             }
         }

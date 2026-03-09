@@ -51,9 +51,11 @@ impl AttackDiceBox {
     ) {
         match self.data.state {
             DiceBoxState::WaitingForDice => {
-                self.data.check_for_dice_being_dragged_into_box(&mut hand.dice);
+                if self.data.check_for_dice_being_dragged_into_box(&mut hand.dice) {
+                    hand.arrange_hand();
+                    self.data.set_dice_positions();
+                }
                 self.data.update_dice(is_player_dragging_any_dice, hand, input_state, dt);
-                self.data.set_dice_positions();
             }
             DiceBoxState::TallyingPoints => {
                 if self.data.dice_in_box.is_empty() {

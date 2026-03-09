@@ -25,7 +25,6 @@ pub struct Hand {
 
 impl Hand {
     pub fn new(dice: Vec<Dice>) -> Self {
-        
             Hand {
                 dice,
                 current_index_of_dice_stopping: Default::default(),
@@ -66,7 +65,7 @@ impl Hand {
                     self.state = HandState::StoppedDice;
                 }
             }
-            _ => (), 
+            _ => ()
         }
     }
     
