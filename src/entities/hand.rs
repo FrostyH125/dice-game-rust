@@ -87,15 +87,10 @@ impl Hand {
 
         for i in 0..num_of_dice as usize {
             
-            if self.dice[i].state == DiceState::WaitingToBeAssigned {
-                pos_x += DICE_WIDTH_HEIGHT + HAND_MARGIN_BETWEEN_DICE;                                  
-                continue;
-            }
-            
             let old_pos = self.dice[i].pos;
             let target_pos = Vector2 { x: pos_x, y: pos_y };
 
-            self.dice[i].old_state = self.dice[i].state;
+            self.dice[i].state_before_moving = self.dice[i].state;
             self.dice[i].state = DiceState::Rearranging { old_pos, target_pos };
             pos_x += DICE_WIDTH_HEIGHT + HAND_MARGIN_BETWEEN_DICE;
         }
@@ -129,6 +124,8 @@ impl Hand {
         for i in 0..self.dice.len() {
             self.dice[i].reset();
         }
+        
+        self.arrange_hand();
 
         self.state = HandState::Inactive;
     }

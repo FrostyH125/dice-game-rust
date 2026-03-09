@@ -11,9 +11,8 @@ use crate::{
     entities::{
         dice::Dice,
         dice_box_data::{BASE_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, TOTAL_VALUE_OFFSET},
-        hand::Hand,
     },
-    system::input_handler::InputState,
+
 };
 
 static ATTACK_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 80.0, 52.0, 16.0);

@@ -70,7 +70,7 @@ impl DiceBoxData {
     pub fn check_for_dice_being_dragged_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) -> bool {
         for i in (0..dice_in_hand.len()).rev() {
             match dice_in_hand[i].state {
-                DiceState::WaitingToBeAssigned => {                 
+                DiceState::Stopped => {                 
                     if self
                         .dice_collect_rect
                         .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
@@ -152,7 +152,7 @@ impl DiceBoxData {
 
         for i in (0..self.dice_in_box.len()).rev() {
             if self.dice_in_box[i].state != DiceState::Dragging {
-                self.dice_in_box[i].old_state = self.dice_in_box[i].state;
+                self.dice_in_box[i].state_before_moving = self.dice_in_box[i].state;
                 let old_pos = self.dice_in_box[i].pos;
                 self.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos };
             }

@@ -87,6 +87,7 @@ impl Player {
         enemy: &Enemy,
         dt: f32,
     ) {
+        self.hand.update_for_player(&mut self.is_player_dragging_dice, &mut self.was_player_dragging_dice, input_state, dt);
         if input_state.mouse_state == MouseState::Inactive {
             self.is_player_dragging_dice = false;
         }
@@ -95,9 +96,8 @@ impl Player {
             self.hand.arrange_hand();
             self.attack_box.data.set_dice_positions();
         }
-        
         self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
-        self.hand.update_for_player(&mut self.is_player_dragging_dice, &mut self.was_player_dragging_dice, input_state, dt);
+        
 
         match self.state {
             PlayerState::Walking => {
@@ -155,7 +155,7 @@ impl Player {
                 }
             }
             PlayerState::Attacking => {
-                self.attack_power = self.attack_box.data.total_value_for_current_round;
+                self.attack_power = self.attack_box.data.get_value();
 
                 println!("dealt {} damage!", self.attack_power);
 
@@ -203,6 +203,9 @@ impl Player {
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self.state {
             PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, texture, self.pos),
+            PlayerState::WaitingForEnemy => {
+                PLAYER_IDLE_SPRITE.draw(d, self.pos, texture);
+            }
             _ => {
                 PLAYER_IDLE_SPRITE.draw(d, self.pos, texture);
                 self.attack_box.draw(d, texture, font);

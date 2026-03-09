@@ -41,7 +41,6 @@ pub static D4_ROLL_ANIM: AnimationData = AnimationData {
 pub enum DiceState {
     Stopped,
     Rearranging { old_pos: Vector2, target_pos: Vector2 },
-    WaitingToBeAssigned,
     Rolling,
     Dragging,
 }
@@ -80,7 +79,7 @@ pub struct Dice {
     pub roll_anim: SpriteAnimationInstance,
     pub value: i8,
     pub state: DiceState,
-    pub old_state: DiceState,
+    pub state_before_moving: DiceState,
     pub kind: DiceKind,
     rearranging_timer: Timer,
 }
@@ -92,7 +91,7 @@ impl Dice {
             roll_anim: SpriteAnimationInstance::default(),
             value: Default::default(),
             state: Rolling,
-            old_state: Rolling,
+            state_before_moving: Rolling,
             kind,
             rearranging_timer: Timer::new(0.25),
             stopped_frame_to_draw: Default::default()
@@ -102,6 +101,25 @@ impl Dice {
     pub fn update_for_enemy(&mut self, dt: f32) {
         match self.state {
             DiceState::Rolling => self.update_roll_anim_random(dt),
+            Rearranging { old_pos, target_pos } => {
+                self.rearranging_timer.track(dt);
+                
+                if self.rearranging_timer.is_done() {
+
+                    self.state = self.state_before_moving;
+                    self.pos = target_pos;
+                    self.rearranging_timer.reset();
+                    
+                    //if you dont return here, the value of the timer will be 0.0, and the pos will get set to old pos
+                    return;
+                }
+                
+                let current_time = self.rearranging_timer.current_time;
+                let total_duration = self.rearranging_timer.duration;
+                
+                self.pos.x = smooth_lerp(old_pos.x, target_pos.x, current_time, total_duration);
+                self.pos.y = smooth_lerp(old_pos.y, target_pos.y, current_time, total_duration)
+            }
             _ => ()
         }
     }
@@ -134,7 +152,8 @@ impl Dice {
                 self.rearranging_timer.track(dt);
                 
                 if self.rearranging_timer.is_done() {
-                    self.state = self.old_state;
+
+                    self.state = self.state_before_moving;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();
                     
@@ -156,11 +175,10 @@ impl Dice {
                             y: DICE_WIDTH_HEIGHT / 2.0,
                         };
                 } else {
-                    self.state = DiceState::WaitingToBeAssigned;
+                    self.state = DiceState::Stopped;
                 }
             }
             DiceState::Rolling => self.update_roll_anim_random(dt),
-            WaitingToBeAssigned => ()
         }
     }
 

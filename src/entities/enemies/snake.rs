@@ -134,6 +134,7 @@ impl Snake {
                     self.turn_end_timer.reset();
                     self.hand.state = HandState::Inactive;
                     self.data.state = EnemyState::WaitingForPlayer;
+                    self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
                 }
             }
             EnemyState::WaitingForPlayer => {

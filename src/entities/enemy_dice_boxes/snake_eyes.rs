@@ -89,14 +89,13 @@ impl SnakeEyes {
     }
 
     pub fn snake_eyes_set_dice_positions(&mut self) {
-        let mut pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET;
+        let mut new_pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET;
 
         //can only be 0, 1 or 2
         for i in 0..self.data.dice_in_box.len() {
-            if self.data.dice_in_box[i].state != DiceState::Dragging {
-                self.data.dice_in_box[i].pos = pos;
-            }
-            pos.x -= DICE_WIDTH_HEIGHT;
+            self.data.dice_in_box[i].pos = new_pos;
+
+            new_pos.x -= DICE_WIDTH_HEIGHT;
         }
     }
 
@@ -128,6 +127,11 @@ impl SnakeEyes {
     }
 
     fn draw_damage(&self, d: &mut RaylibDrawHandle, font: &Font) {
+        
+        if self.data.total_value_for_current_round == 0 {
+            return;
+        }
+        
         d.draw_text_ex(
             font,
             &format!("{} damage!", self.data.total_value_for_current_round),
