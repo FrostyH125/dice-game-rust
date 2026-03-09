@@ -4,7 +4,6 @@ use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Text
 use crate::{
     entities::{
         dice::{Dice, DiceKind},
-        dice_box_data::DiceBoxState,
         enemy::{EnemyData, EnemyState},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::{Hand, HandState},
@@ -61,7 +60,6 @@ impl Snake {
                 self.dice_add_timer.reset();
                 self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
                 self.hand.reset_hand();
-                self.snake_eyes_box.data.state = DiceBoxState::WaitingForDice;
                 self.hand.state = HandState::RollingDice;
                 self.data.state = EnemyState::StartDiceStopDelayTime;
             }
@@ -135,7 +133,6 @@ impl Snake {
                 if self.turn_end_timer.is_done() {
                     self.turn_end_timer.reset();
                     self.hand.state = HandState::Inactive;
-                    self.snake_eyes_box.data.state = DiceBoxState::Inactive;
                     self.data.state = EnemyState::WaitingForPlayer;
                 }
             }

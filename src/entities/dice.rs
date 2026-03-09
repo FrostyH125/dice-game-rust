@@ -41,6 +41,7 @@ pub static D4_ROLL_ANIM: AnimationData = AnimationData {
 pub enum DiceState {
     Stopped,
     Rearranging { old_pos: Vector2, target_pos: Vector2 },
+    WaitingToBeAssigned,
     Rolling,
     Dragging,
 }
@@ -155,10 +156,11 @@ impl Dice {
                             y: DICE_WIDTH_HEIGHT / 2.0,
                         };
                 } else {
-                    self.state = DiceState::Stopped;
+                    self.state = DiceState::WaitingToBeAssigned;
                 }
             }
             DiceState::Rolling => self.update_roll_anim_random(dt),
+            WaitingToBeAssigned => ()
         }
     }
 

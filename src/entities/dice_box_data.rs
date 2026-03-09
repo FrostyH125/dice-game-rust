@@ -15,14 +15,6 @@ use crate::{
     system::input_handler::InputState,
 };
 
-#[derive(PartialEq, Debug, Copy, Clone)]
-pub enum DiceBoxState {
-    WaitingForDice,
-    TallyingPoints,
-    WaitingForAction,
-    Inactive,
-}
-
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
 pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2 { x: 52.0, y: -31.0 };
 pub const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 20.0, y: 7.0 };
@@ -50,7 +42,6 @@ pub struct DiceBoxData {
     pub base_multi_for_this_dice_box: i64,
     pub total_value_for_current_round: i64,
     pub pos: Vector2,
-    pub state: DiceBoxState,
     pub dice_collect_rect: Rectangle,
     pub timer_for_tallying_dice: Timer,
     pub previous_dice_value: i8,
@@ -67,7 +58,6 @@ impl DiceBoxData {
             base_multi_for_this_dice_box: 1,
             total_value_for_current_round: 0,
             pos,
-            state: DiceBoxState::Inactive,
             dice_collect_rect,
             timer_for_tallying_dice: Timer::new(1.5),
             previous_dice_value: i8::MAX,
@@ -80,7 +70,7 @@ impl DiceBoxData {
     pub fn check_for_dice_being_dragged_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) -> bool {
         for i in (0..dice_in_hand.len()).rev() {
             match dice_in_hand[i].state {
-                DiceState::Stopped | DiceState::Rearranging { .. } => {
+                DiceState::WaitingToBeAssigned => {                 
                     if self
                         .dice_collect_rect
                         .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
@@ -148,7 +138,6 @@ impl DiceBoxData {
         }
 
         self.total_value_for_current_round = 0;
-        self.state = DiceBoxState::WaitingForDice;
         self.current_index_of_dice_just_tallied = None;
         self.current_streak = 0;
         self.previous_dice_value = i8::MAX;
@@ -188,10 +177,6 @@ impl DiceBoxData {
     }
 
     pub fn draw_border_around_current_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        if self.state != DiceBoxState::TallyingPoints && self.state != DiceBoxState::WaitingForAction {
-            return;
-        }
-
         if self.current_index_of_dice_just_tallied == None {
             return;
         }

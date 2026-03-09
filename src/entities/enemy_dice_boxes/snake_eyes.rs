@@ -10,7 +10,7 @@ use raylib::{
 use crate::{
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
-        dice_box_data::{DICE_BORDER_OFFSET, DiceBoxData, DiceBoxState},
+        dice_box_data::{DICE_BORDER_OFFSET, DiceBoxData},
     },
     system::{info_hover::InfoHover, input_handler::InputState},
 };
@@ -57,33 +57,17 @@ impl SnakeEyes {
     pub fn update(&mut self, input: &InputState, dt: f32) {
         self.info_hover.update(input, dt);
         self.snake_eyes_set_dice_positions();
-        match self.data.state {
-            DiceBoxState::WaitingForDice => {}
-            DiceBoxState::TallyingPoints => {
-                self.data.total_value_for_current_round = self.tally_snake_eyes();
-                self.data.state = DiceBoxState::WaitingForAction;
-            }
-            DiceBoxState::WaitingForAction => (),
-            DiceBoxState::Inactive => (),
-        }
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         SNAKE_EYES_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
         self.draw_placeholder_dice(d, texture);
 
-        match self.data.state {
-            DiceBoxState::Inactive => (),
-            DiceBoxState::WaitingForAction => {
-                self.draw_snake_eyes_text(d, font);
-                self.draw_damage(d, font);
-                self.draw_dice_outlines(d, texture);
-                self.snake_eyes_draw_dice(d, texture);
-            }
-            _ => {
-                self.snake_eyes_draw_dice(d, texture);
-            }
-        }
+        self.draw_snake_eyes_text(d, font);
+        self.draw_damage(d, font);
+        self.draw_dice_outlines(d, texture);
+        self.snake_eyes_draw_dice(d, texture);
+        self.snake_eyes_draw_dice(d, texture);
 
         self.info_hover.draw(d, font, texture);
     }
@@ -98,10 +82,8 @@ impl SnakeEyes {
         }
 
         if num_of_ones >= 2 {
-            self.data.state = DiceBoxState::WaitingForAction;
             return 11;
         } else {
-            self.data.state = DiceBoxState::Inactive;
             return 0;
         }
     }
@@ -137,18 +119,30 @@ impl SnakeEyes {
     }
 
     fn draw_snake_eyes_text(&self, d: &mut RaylibDrawHandle, font: &Font) {
+        
+        if self.data.total_value_for_current_round == 0 {
+            return;
+        }
+        
         d.draw_text_ex(font, "Snake Eyes!", self.data.pos + SNAKE_EYES_TEXT_OFFSET, 5.0, 0.0, Color::FORESTGREEN);
     }
 
     fn draw_damage(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        d.draw_text_ex(font, &format!("{} damage!", self.data.total_value_for_current_round), self.data.pos + SNAKE_EYES_DAMAGE_DRAW_OFFSET, 5.0, 0.0, Color::FORESTGREEN);
+        d.draw_text_ex(
+            font,
+            &format!("{} damage!", self.data.total_value_for_current_round),
+            self.data.pos + SNAKE_EYES_DAMAGE_DRAW_OFFSET,
+            5.0,
+            0.0,
+            Color::FORESTGREEN,
+        );
     }
-    
+
     fn draw_dice_outlines(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         for i in 0..self.data.dice_in_box.len() {
             let dice = &self.data.dice_in_box[i];
             let sprite = dice.kind.outline_sprite();
-            
+
             sprite.draw(d, dice.pos + DICE_BORDER_OFFSET, texture);
         }
     }

@@ -10,10 +10,7 @@ use raylib::{
 use crate::{
     entities::{
         dice::Dice,
-        dice_box_data::{
-            BASE_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData,
-            DiceBoxState, TOTAL_VALUE_OFFSET,
-        },
+        dice_box_data::{BASE_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, TOTAL_VALUE_OFFSET},
         hand::Hand,
     },
     system::input_handler::InputState,
@@ -42,55 +39,21 @@ impl AttackDiceBox {
         }
     }
 
-    pub fn update(
-        &mut self,
-        is_player_dragging_any_dice: &mut bool,
-        hand: &mut Hand,
-        input_state: &InputState,
-        dt: f32,
-    ) {
-        match self.data.state {
-            DiceBoxState::WaitingForDice => {
-                if self.data.check_for_dice_being_dragged_into_box(&mut hand.dice) {
-                    hand.arrange_hand();
-                    self.data.set_dice_positions();
-                }
-                self.data.update_dice(is_player_dragging_any_dice, hand, input_state, dt);
-            }
-            DiceBoxState::TallyingPoints => {
-                if self.data.dice_in_box.is_empty() {
-                    self.data.state = DiceBoxState::Inactive;
-                } else if self.data.tally_points(dt) {
-                    self.data.total_value_for_current_round = self.data.get_value();
-                    self.data.state = DiceBoxState::WaitingForAction;
-                }
-            }
-            DiceBoxState::WaitingForAction => (),
-            DiceBoxState::Inactive => (),
-        }
-    }
-
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        match self.data.state {
-            DiceBoxState::Inactive => return,
-            _ => {
-                ATTACK_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
-                d.draw_rectangle_lines(
-                    self.data.dice_collect_rect.x as i32,
-                    self.data.dice_collect_rect.y as i32,
-                    self.data.dice_collect_rect.width as i32,
-                    self.data.dice_collect_rect.height as i32,
-                    Color::WHITE,
-                );
-                self.data.draw_dice(d, texture);
-                self.draw_base_multi(d, font);
-                self.draw_current_streak(d, font);
-                self.data.draw_border_around_current_dice(d, texture);
-                self.draw_total_amounts(d, font);
-            }
-        }
+        ATTACK_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
+        d.draw_rectangle_lines(
+            self.data.dice_collect_rect.x as i32,
+            self.data.dice_collect_rect.y as i32,
+            self.data.dice_collect_rect.width as i32,
+            self.data.dice_collect_rect.height as i32,
+            Color::WHITE,
+        );
+        self.data.draw_dice(d, texture);
+        self.draw_base_multi(d, font);
+        self.draw_current_streak(d, font);
+        self.data.draw_border_around_current_dice(d, texture);
+        self.draw_total_amounts(d, font);
     }
-
 
     fn draw_base_multi(&self, d: &mut RaylibDrawHandle, font: &Font) {
         d.draw_text_ex(
@@ -104,10 +67,8 @@ impl AttackDiceBox {
     }
 
     fn draw_total_amounts(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        let in_wrong_state =
-            self.data.state != DiceBoxState::TallyingPoints && self.data.state != DiceBoxState::WaitingForAction;
         let no_dice_counted_yet = self.data.current_index_of_dice_just_tallied == None;
-        if in_wrong_state || no_dice_counted_yet {
+        if no_dice_counted_yet {
             return;
         }
 
@@ -117,7 +78,13 @@ impl AttackDiceBox {
 
         d.draw_text_ex(
             font,
-            &format!("total:\n{} tally\n* {} multi \n* {} base\n= {} damage!", tally, multi, base, tally * multi * base),
+            &format!(
+                "total:\n{} tally\n* {} multi \n* {} base\n= {} damage!",
+                tally,
+                multi,
+                base,
+                tally * multi * base
+            ),
             self.data.pos + TOTAL_VALUE_OFFSET,
             5.0,
             0.0,

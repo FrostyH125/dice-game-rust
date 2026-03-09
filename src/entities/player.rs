@@ -4,17 +4,19 @@ use basic_raylib_core::{
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
-use crate::{entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox, reroll_button::RerollButton}, system::input_handler::MouseState};
 use crate::{
     entities::{
         confirm_button::ConfirmButton,
         dice::{Dice, DiceKind},
-        dice_box_data::DiceBoxState,
         enemy::{Enemy, EnemyState},
         hand::{Hand, HandState},
         stop_button::StopButton,
     },
     system::input_handler::InputState,
+};
+use crate::{
+    entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox, reroll_button::RerollButton},
+    system::input_handler::MouseState,
 };
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
@@ -27,20 +29,20 @@ static PLAYER_IDLE_SPRITE: Sprite = Sprite::new(144.0, 80.0, 32.0, 48.0);
 
 #[derive(PartialEq)]
 pub enum PlayerState {
-    Walking,       // waiting for enemy
-    StartTurn,     // setting hand and boxes to proper state
+    Walking,   // waiting for enemy
+    StartTurn, // setting hand and boxes to proper state
     RollingDice,
-    StoppingDice,   // can't pick up dice until this finishes
+    StoppingDice, // can't pick up dice until this finishes
     RerollingDice,
-    ChoosingDice,  // selecting which dice go in which box
-    TallyingTotal, // wait for box to tally dice
+    ChoosingDice,        // selecting which dice go in which box
+    TallyingAttackTotal, // wait for box to tally dice
     BeforeAttackDelay,
-    Attacking,    // waiting for each box to finish its action
+    Attacking, // waiting for each box to finish its action
     EndTurnDelay,
     EndTurn,
     WaitingForEnemy, // waiting for enemy turn to finish (enemy should set this for player, enemy will have reference to player)
     HitDelay,
-    Dead
+    Dead,
 }
 
 pub struct Player {
@@ -55,6 +57,7 @@ pub struct Player {
     hit_delay_timer: Timer,
     pub state: PlayerState,
     pub is_player_dragging_dice: bool,
+    pub was_player_dragging_dice: bool,
 }
 
 impl Player {
@@ -70,7 +73,8 @@ impl Player {
             end_turn_delay_timer: Timer::new(2.0),
             hit_delay_timer: Timer::new(1.5),
             attack_power: 0,
-            is_player_dragging_dice: false
+            is_player_dragging_dice: false,
+            was_player_dragging_dice: false,
         }
     }
 
@@ -83,21 +87,24 @@ impl Player {
         enemy: &Enemy,
         dt: f32,
     ) {
-        
         if input_state.mouse_state == MouseState::Inactive {
             self.is_player_dragging_dice = false;
         }
+
+        if self.attack_box.data.check_for_dice_being_dragged_into_box(&mut self.hand.dice) {
+            self.hand.arrange_hand();
+            self.attack_box.data.set_dice_positions();
+        }
         
-        self.attack_box.update(&mut self.is_player_dragging_dice, &mut self.hand, &input_state, dt);
-        self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
-        
+        self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
+        self.hand.update_for_player(&mut self.is_player_dragging_dice, &mut self.was_player_dragging_dice, input_state, dt);
+
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
             }
             PlayerState::StartTurn => {
                 self.reset();
-                self.attack_box.data.state = DiceBoxState::WaitingForDice;
                 self.state = PlayerState::RollingDice;
                 self.hand.state = HandState::RollingDice;
             }
@@ -119,10 +126,9 @@ impl Player {
                     self.hand.begin_dice_stop();
                     self.state = PlayerState::RerollingDice;
                 }
-                
+
                 if confirm_button.is_pressed(input_state) {
-                    self.state = PlayerState::TallyingTotal;
-                    self.attack_box.data.state = DiceBoxState::TallyingPoints;
+                    self.state = PlayerState::TallyingAttackTotal;
                 }
             }
             PlayerState::RerollingDice => {
@@ -131,18 +137,13 @@ impl Player {
                     self.state = PlayerState::ChoosingDice;
                 }
             }
-            PlayerState::TallyingTotal => {
-                
-                match self.attack_box.data.state {
-                    DiceBoxState::WaitingForAction => {
-                        self.state = PlayerState::BeforeAttackDelay;
-                        confirm_button.reset();
-                    },
-                    DiceBoxState::Inactive => {
-                        self.state = PlayerState::EndTurn;
-                        confirm_button.reset();
-                    },
-                    _ => () // wait if tallying (shouldnt be waiting for dice)
+            PlayerState::TallyingAttackTotal => {
+                if self.attack_box.data.dice_in_box.is_empty() {
+                    self.state = PlayerState::EndTurn;
+                    confirm_button.reset();
+                } else if self.attack_box.data.tally_points(dt) {
+                    self.state = PlayerState::BeforeAttackDelay;
+                    confirm_button.reset();
                 }
             }
             PlayerState::BeforeAttackDelay => {
@@ -159,11 +160,10 @@ impl Player {
                 println!("dealt {} damage!", self.attack_power);
 
                 self.state = PlayerState::EndTurnDelay;
-                
             }
             PlayerState::EndTurnDelay => {
                 self.end_turn_delay_timer.track(dt);
-                
+
                 if self.end_turn_delay_timer.is_done() {
                     self.state = PlayerState::EndTurn;
                 }
@@ -172,7 +172,6 @@ impl Player {
                 // keep data, reset it at start turn
                 // block and other special values will be nice to keep
                 self.hand.state = HandState::Inactive;
-                self.attack_box.data.state = DiceBoxState::Inactive;
                 self.state = PlayerState::WaitingForEnemy;
             }
             PlayerState::WaitingForEnemy => {
@@ -186,12 +185,14 @@ impl Player {
                     if self.health <= 0 {
                         self.state = PlayerState::Dead
                     } else {
-                        self.state = PlayerState::WaitingForEnemy;   
+                        self.state = PlayerState::WaitingForEnemy;
                     }
                 }
             }
-            PlayerState::Dead => ()
+            PlayerState::Dead => (),
         }
+
+        self.was_player_dragging_dice = self.is_player_dragging_dice;
     }
 
     pub fn reset(&mut self) {
@@ -208,11 +209,11 @@ impl Player {
                 self.hand.draw(d, texture);
             }
         }
-        
+
         if !self.is_player_dragging_dice {
             return;
         }
-        
+
         for dice in &mut self.hand.dice {
             if dice.state == DiceState::Dragging {
                 dice.draw(d, texture);
@@ -224,9 +225,9 @@ impl Player {
             }
         }
     }
-    
+
     pub fn hit(&mut self, damage: i64) {
         self.health -= damage;
-        self.state = PlayerState::HitDelay;     
+        self.state = PlayerState::HitDelay;
     }
 }
