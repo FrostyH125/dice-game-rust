@@ -57,9 +57,9 @@ impl Snake {
 
         match self.data.state {
             EnemyState::StartTurn => {
+                self.hand.reset_hand();
                 self.dice_add_timer.reset();
                 self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
-                self.hand.reset_hand();
                 self.hand.state = HandState::RollingDice;
                 self.data.state = EnemyState::StartDiceStopDelayTime;
             }
@@ -165,8 +165,10 @@ impl Snake {
     fn add_one_die(&mut self) {
         for i in (0..self.hand.dice.len()).rev() {
             if self.hand.dice[i].value == 1 {
+                self.hand.dice[i].state_before_moving = self.hand.dice[i].state;
                 let dice = self.hand.dice.remove(i);
                 self.snake_eyes_box.data.dice_in_box.push(dice);
+                self.snake_eyes_box.snake_eyes_set_dice_positions();
                 return;
             }
         }

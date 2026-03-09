@@ -109,7 +109,6 @@ impl Dice {
                     self.state = self.state_before_moving;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();
-                    
                     //if you dont return here, the value of the timer will be 0.0, and the pos will get set to old pos
                     return;
                 }
@@ -202,6 +201,7 @@ impl Dice {
     }
 
     pub fn reset(&mut self) {
+        self.state_before_moving = Rolling;
         self.state = Rolling;
     }
 

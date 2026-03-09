@@ -56,7 +56,6 @@ impl SnakeEyes {
 
     pub fn update(&mut self, input: &InputState, dt: f32) {
         self.info_hover.update(input, dt);
-        self.snake_eyes_set_dice_positions();
         for dice in &mut self.data.dice_in_box {
             dice.update_for_enemy(dt);
         }
