@@ -1,12 +1,17 @@
 use crate::{
-    entities::{dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRITE}, hand::HandState},
+    entities::{
+        dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRITE},
+        hand::HandState,
+    },
     system::input_handler::{InputState, MouseState},
 };
 
 use self::DiceState::*;
-use basic_raylib_core::{graphics::{
-    animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance,
-}, system::timer::Timer, utils::math_utils::smooth_lerp};
+use basic_raylib_core::{
+    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
+    system::timer::Timer,
+    utils::math_utils::smooth_lerp,
+};
 use rand::random_range;
 use raylib::prelude::*;
 
@@ -34,7 +39,7 @@ pub static D4_ROLL_ANIM: AnimationData = AnimationData {
         Sprite::new(144.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
     ],
     frame_duration: DICE_ROLL_FRAME_DURATION,
-    should_loop: true
+    should_loop: true,
 };
 
 #[derive(PartialEq, Copy, Clone)]
@@ -57,14 +62,14 @@ impl DiceKind {
             DiceKind::D6 => 6,
         }
     }
-    
+
     pub fn roll_anim(&self) -> &AnimationData {
         match self {
             DiceKind::D4 => &D4_ROLL_ANIM,
             DiceKind::D6 => &D6_ROLL_ANIM,
         }
     }
-    
+
     pub fn outline_sprite(&self) -> &Sprite {
         match self {
             DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
@@ -77,11 +82,11 @@ pub struct Dice {
     stopped_frame_to_draw: usize,
     pub pos: Vector2,
     pub roll_anim: SpriteAnimationInstance,
-    pub value: i8,
+    rearranging_timer: Timer,
     pub state: DiceState,
     pub state_before_moving: DiceState,
     pub kind: DiceKind,
-    rearranging_timer: Timer,
+    pub value: i8,
 }
 
 impl Dice {
@@ -94,37 +99,42 @@ impl Dice {
             state_before_moving: Rolling,
             kind,
             rearranging_timer: Timer::new(0.25),
-            stopped_frame_to_draw: Default::default()
+            stopped_frame_to_draw: Default::default(),
         }
     }
-    
+
     pub fn update_for_enemy(&mut self, dt: f32) {
         match self.state {
             DiceState::Rolling => self.update_roll_anim_random(dt),
             Rearranging { old_pos, target_pos } => {
                 self.rearranging_timer.track(dt);
-                
-                if self.rearranging_timer.is_done() {
 
+                if self.rearranging_timer.is_done() {
                     self.state = self.state_before_moving;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();
+
                     //if you dont return here, the value of the timer will be 0.0, and the pos will get set to old pos
                     return;
                 }
-                
+
                 let current_time = self.rearranging_timer.current_time;
                 let total_duration = self.rearranging_timer.duration;
-                
+
                 self.pos.x = smooth_lerp(old_pos.x, target_pos.x, current_time, total_duration);
                 self.pos.y = smooth_lerp(old_pos.y, target_pos.y, current_time, total_duration)
             }
-            _ => ()
+            _ => (),
         }
     }
-    
 
-    pub fn update_for_player(&mut self, other_dice_dragged: &mut bool, hand_state: &HandState, input_state: &InputState, dt: f32) {
+    pub fn update_for_player(
+        &mut self,
+        other_dice_dragged: &mut bool,
+        hand_state: &HandState,
+        input_state: &InputState,
+        dt: f32,
+    ) {
         match self.state {
             DiceState::Stopped => {
                 if *hand_state != HandState::StoppedDice {
@@ -149,20 +159,19 @@ impl Dice {
             }
             Rearranging { old_pos, target_pos } => {
                 self.rearranging_timer.track(dt);
-                
-                if self.rearranging_timer.is_done() {
 
+                if self.rearranging_timer.is_done() {
                     self.state = self.state_before_moving;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();
-                    
+
                     //if you dont return here, the value of the timer will be 0.0, and the pos will get set to old pos
                     return;
                 }
-                
+
                 let current_time = self.rearranging_timer.current_time;
                 let total_duration = self.rearranging_timer.duration;
-                
+
                 self.pos.x = smooth_lerp(old_pos.x, target_pos.x, current_time, total_duration);
                 self.pos.y = smooth_lerp(old_pos.y, target_pos.y, current_time, total_duration)
             }
@@ -182,14 +191,11 @@ impl Dice {
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        
         let anim = self.kind.roll_anim();
-        
+
         match self.state {
             Rolling => anim.draw(&self.roll_anim, d, texture, self.pos),
-            _  => {
-                anim.frames[self.stopped_frame_to_draw].draw(d, self.pos, texture)
-            }
+            _ => anim.frames[self.stopped_frame_to_draw].draw(d, self.pos, texture),
         }
     }
 
@@ -207,7 +213,7 @@ impl Dice {
 
     pub fn update_roll_anim_random(&mut self, dt: f32) {
         self.roll_anim.current_frame_time += dt;
-        
+
         while self.roll_anim.current_frame_time >= DICE_ROLL_FRAME_DURATION {
             let new_frame_index = random_range(0..=self.kind.num_of_sides() as u8 - 1);
             self.roll_anim.current_frame_index = new_frame_index;
