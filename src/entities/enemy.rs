@@ -8,6 +8,7 @@ pub enum EnemyState {
     // reset hands and boxes
     StartTurn,
     
+    // waits for hand to recieve all dice physically before continuing
     WaitingForDiceToReturnToHand,
     
     // exists only to smoothly transition from start turn to
@@ -36,8 +37,10 @@ pub enum EnemyState {
     
     Acting,
     
+    // handles being hit, animation for being hit, other effects for being hit, before turning back to waiting for player
     HitDelayBeforeWaitingAgain,
     
+    //the delay before fully ending turn for seamless, sensible transitions 
     EndTurnDelay,
     
     // should be a simple check to see if player is waiting for enemy, and then

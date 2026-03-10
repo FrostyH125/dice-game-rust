@@ -27,19 +27,19 @@ static PLAYER_IDLE_SPRITE: Sprite = Sprite::new(144.0, 80.0, 32.0, 48.0);
 
 #[derive(PartialEq)]
 pub enum PlayerState {
-    Walking,   // waiting for enemy
-    StartTurn, // setting hand and boxes to proper state
+    Walking,
+    StartTurn,
     WaitingForDiceToMoveToHand,
     RollingDice,
-    StoppingDice, // can't pick up dice until this finishes
+    StoppingDice,
     RerollingDice,
-    ChoosingDice,        // selecting which dice go in which box
-    TallyingAttackTotal, // wait for box to tally dice
+    ChoosingDice,
+    TallyingAttackTotal, 
     BeforeAttackDelay,
-    Attacking, // waiting for each box to finish its action
+    Attacking, 
     EndTurnDelay,
     EndTurn,
-    WaitingForEnemy, // waiting for enemy turn to finish (enemy should set this for player, enemy will have reference to player)
+    WaitingForEnemy, 
     HitDelay,
     Dead,
 }
