@@ -8,6 +8,8 @@ pub enum EnemyState {
     // reset hands and boxes
     StartTurn,
     
+    WaitingForDiceToReturnToHand,
+    
     // exists only to smoothly transition from start turn to
     // actually letting the dice stop. Should have a timer, and
     // once the timer goes off, put all the hands to start stopping

@@ -29,6 +29,7 @@ static PLAYER_IDLE_SPRITE: Sprite = Sprite::new(144.0, 80.0, 32.0, 48.0);
 pub enum PlayerState {
     Walking,   // waiting for enemy
     StartTurn, // setting hand and boxes to proper state
+    WaitingForDiceToMoveToHand,
     RollingDice,
     StoppingDice, // can't pick up dice until this finishes
     RerollingDice,
@@ -91,7 +92,7 @@ impl Player {
         }
 
         if self.attack_box.data.check_for_dice_being_dragged_into_box(&mut self.hand.dice) {
-            self.hand.arrange_hand();
+            self.hand.arrange_hand(false);
             self.attack_box.data.set_dice_positions();
         }
         self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
@@ -103,8 +104,24 @@ impl Player {
             }
             PlayerState::StartTurn => {
                 self.reset();
-                self.state = PlayerState::RollingDice;
+                self.state = PlayerState::WaitingForDiceToMoveToHand;
                 self.hand.state = HandState::RollingDice;
+            }
+            PlayerState::WaitingForDiceToMoveToHand => {
+                
+                let mut should_move_on = false;
+                
+                for dice in &self.hand.dice {
+                    if dice.state != DiceState::Rolling {
+                        continue;
+                    }
+                    
+                    should_move_on = true;
+                }
+                
+                if should_move_on {
+                    self.state = PlayerState::RollingDice;
+                }
             }
             PlayerState::RollingDice => {
                 if stop_button.is_pressed(input_state) {

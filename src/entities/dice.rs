@@ -45,7 +45,7 @@ pub static D4_ROLL_ANIM: AnimationData = AnimationData {
 #[derive(PartialEq, Copy, Clone)]
 pub enum DiceState {
     Stopped,
-    Rearranging { old_pos: Vector2, target_pos: Vector2 },
+    Rearranging { old_pos: Vector2, target_pos: Vector2, should_roll_after: bool },
     Rolling,
     Dragging,
 }
@@ -84,7 +84,6 @@ pub struct Dice {
     pub roll_anim: SpriteAnimationInstance,
     rearranging_timer: Timer,
     pub state: DiceState,
-    pub state_before_moving: DiceState,
     pub kind: DiceKind,
     pub value: i8,
 }
@@ -96,7 +95,6 @@ impl Dice {
             roll_anim: SpriteAnimationInstance::default(),
             value: Default::default(),
             state: Rolling,
-            state_before_moving: Rolling,
             kind,
             rearranging_timer: Timer::new(0.25),
             stopped_frame_to_draw: Default::default(),
@@ -106,11 +104,17 @@ impl Dice {
     pub fn update_for_enemy(&mut self, dt: f32) {
         match self.state {
             DiceState::Rolling => self.update_roll_anim_random(dt),
-            Rearranging { old_pos, target_pos } => {
+            Rearranging { old_pos, target_pos , should_roll_after } => {
                 self.rearranging_timer.track(dt);
 
                 if self.rearranging_timer.is_done() {
-                    self.state = self.state_before_moving;
+                    
+                    let next_state = match should_roll_after {
+                        true => DiceState::Rolling,
+                        false => DiceState::Stopped,
+                    };
+                    
+                    self.state = next_state;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();
 
@@ -157,11 +161,17 @@ impl Dice {
                     self.state = DiceState::Dragging;
                 }
             }
-            Rearranging { old_pos, target_pos } => {
+            Rearranging { old_pos, target_pos , should_roll_after } => {
                 self.rearranging_timer.track(dt);
 
                 if self.rearranging_timer.is_done() {
-                    self.state = self.state_before_moving;
+                    
+                    let next_state = match should_roll_after {
+                        true => DiceState::Rolling,
+                        false => DiceState::Stopped,
+                    };
+                    
+                    self.state = next_state;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();
 
@@ -207,7 +217,6 @@ impl Dice {
     }
 
     pub fn reset(&mut self) {
-        self.state_before_moving = Rolling;
         self.state = Rolling;
     }
 

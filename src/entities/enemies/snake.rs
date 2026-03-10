@@ -3,7 +3,7 @@ use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Text
 
 use crate::{
     entities::{
-        dice::{Dice, DiceKind},
+        dice::{Dice, DiceKind, DiceState},
         enemy::{EnemyData, EnemyState},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::{Hand, HandState},
@@ -61,7 +61,23 @@ impl Snake {
                 self.dice_add_timer.reset();
                 self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
                 self.hand.state = HandState::RollingDice;
-                self.data.state = EnemyState::StartDiceStopDelayTime;
+                self.data.state = EnemyState::WaitingForDiceToReturnToHand;
+            }
+            EnemyState::WaitingForDiceToReturnToHand => {
+                
+                let mut should_move_on = false;
+                
+                for dice in &self.hand.dice {
+                    if dice.state != DiceState::Rolling {
+                        continue;
+                    }
+                    
+                    should_move_on = true;
+                }
+                
+                if should_move_on {
+                    self.data.state = EnemyState::StartDiceStopDelayTime;
+                }
             }
             EnemyState::StartDiceStopDelayTime => {
                 self.before_stopping_dice_timer.track(dt);
@@ -165,7 +181,6 @@ impl Snake {
     fn add_one_die(&mut self) {
         for i in (0..self.hand.dice.len()).rev() {
             if self.hand.dice[i].value == 1 {
-                self.hand.dice[i].state_before_moving = self.hand.dice[i].state;
                 let dice = self.hand.dice.remove(i);
                 self.snake_eyes_box.data.dice_in_box.push(dice);
                 self.snake_eyes_box.snake_eyes_set_dice_positions();

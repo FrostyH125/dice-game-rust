@@ -57,7 +57,7 @@ impl Hand {
         dt: f32,
     ) {
         if !*player_dragging_any_dice && *was_player_dragging_dice {
-            self.arrange_hand();
+            self.arrange_hand(false);
         }
 
         for i in (0..self.dice.len()).rev() {
@@ -75,7 +75,7 @@ impl Hand {
     }
 
     //rolling variable says whether the dice should go to rolling after moving to its new location or not
-    pub fn arrange_hand(&mut self) {
+    pub fn arrange_hand(&mut self, should_roll_after: bool) {
         
         if self.dice.is_empty() {
             return;
@@ -95,8 +95,7 @@ impl Hand {
             let old_pos = self.dice[i].pos;
             let target_pos = Vector2 { x: pos_x, y: pos_y };
 
-            self.dice[i].state_before_moving = self.dice[i].state;
-            self.dice[i].state = DiceState::Rearranging { old_pos, target_pos };
+            self.dice[i].state = DiceState::Rearranging { old_pos, target_pos, should_roll_after };
             pos_x += DICE_WIDTH_HEIGHT + HAND_MARGIN_BETWEEN_DICE;
         }
     }
@@ -130,7 +129,7 @@ impl Hand {
             self.dice[i].reset();
         }
         
-        self.arrange_hand();
+        self.arrange_hand(true);
 
         self.state = HandState::Inactive;
     }

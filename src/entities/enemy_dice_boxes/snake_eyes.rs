@@ -95,7 +95,7 @@ impl SnakeEyes {
         let mut target_pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET; //can only be 0, 1 or 2
         for i in 0..self.data.dice_in_box.len() {
             let old_pos = self.data.dice_in_box[i].pos;
-            self.data.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos };
+            self.data.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos, should_roll_after: false };
             target_pos.x -= DICE_WIDTH_HEIGHT;
         }
     }

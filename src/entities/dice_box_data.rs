@@ -152,9 +152,8 @@ impl DiceBoxData {
 
         for i in (0..self.dice_in_box.len()).rev() {
             if self.dice_in_box[i].state != DiceState::Dragging {
-                self.dice_in_box[i].state_before_moving = self.dice_in_box[i].state;
                 let old_pos = self.dice_in_box[i].pos;
-                self.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos };
+                self.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos, should_roll_after: false };
             }
             target_pos.x -= DICE_WIDTH_HEIGHT;
             times_increased_x += 1;
@@ -207,7 +206,7 @@ impl DiceBoxData {
             {
                 let dice = self.dice_in_box.remove(i);
                 hand.dice.push(dice);
-                hand.arrange_hand();
+                hand.arrange_hand(false);
             }
         }
     }
