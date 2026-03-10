@@ -67,7 +67,7 @@ impl DiceBoxData {
 }
 
 impl DiceBoxData {
-    pub fn check_for_dice_being_dragged_into_box(&mut self, dice_in_hand: &mut Vec<Dice>) -> bool {
+    pub fn pull_in_dragged_dice(&mut self, dice_in_hand: &mut Vec<Dice>) {
         for i in (0..dice_in_hand.len()).rev() {
             match dice_in_hand[i].state {
                 DiceState::Stopped => {                 
@@ -78,14 +78,11 @@ impl DiceBoxData {
                         let dice_to_add = dice_in_hand.remove(i);
                         self.dice_in_box.push(dice_to_add);
                         self.dice_in_box.sort_by(|a, b| a.value.cmp(&b.value));
-                        return true;
                     }  
                 }
                 _ => ()
             }
         }
-        
-        return false;
     }
 
     //dice box being empty handled by call site

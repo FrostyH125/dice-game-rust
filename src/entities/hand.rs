@@ -52,13 +52,9 @@ impl Hand {
     pub fn update_for_player(
         &mut self,
         player_dragging_any_dice: &mut bool,
-        was_player_dragging_dice: &bool,
         input_state: &InputState,
         dt: f32,
     ) {
-        if !*player_dragging_any_dice && *was_player_dragging_dice {
-            self.arrange_hand(false);
-        }
 
         for i in (0..self.dice.len()).rev() {
             self.dice[i].update_for_player(player_dragging_any_dice, &self.state, input_state, dt);

@@ -5,16 +5,16 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
+    entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox},
+    system::input_handler::MouseState,
+};
+use crate::{
     entities::{
         dice::{Dice, DiceKind},
         enemy::{Enemy, EnemyState},
         hand::{Hand, HandState},
     },
     system::{button::Button, input_handler::InputState},
-};
-use crate::{
-    entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox},
-    system::input_handler::MouseState,
 };
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
@@ -43,6 +43,7 @@ pub enum PlayerState {
     HitDelay,
     Dead,
 }
+
 
 pub struct Player {
     pub attack_box: AttackDiceBox,
@@ -86,17 +87,27 @@ impl Player {
         enemy: &Enemy,
         dt: f32,
     ) {
-        self.hand.update_for_player(&mut self.is_player_dragging_dice, &mut self.was_player_dragging_dice, input_state, dt);
         if input_state.mouse_state == MouseState::Inactive {
             self.is_player_dragging_dice = false;
         }
-
-        if self.attack_box.data.check_for_dice_being_dragged_into_box(&mut self.hand.dice) {
+    
+        //hand updates dice, so dice could potentially be dicestate::stopped
+        self.hand.update_for_player(
+            &mut self.is_player_dragging_dice,
+            input_state,
+            dt,
+        );
+        
+        //now, dice can be pulled in
+        self.attack_box.data.pull_in_dragged_dice(&mut self.hand.dice);
+        
+        //finally, updates dice after checking
+        self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
+        
+        if !self.is_player_dragging_dice && self.was_player_dragging_dice {
             self.hand.arrange_hand(false);
             self.attack_box.data.set_dice_positions();
         }
-        self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
-        
 
         match self.state {
             PlayerState::Walking => {
@@ -108,17 +119,16 @@ impl Player {
                 self.hand.state = HandState::RollingDice;
             }
             PlayerState::WaitingForDiceToMoveToHand => {
-                
                 let mut should_move_on = false;
-                
+
                 for dice in &self.hand.dice {
                     if dice.state != DiceState::Rolling {
                         continue;
                     }
-                    
+
                     should_move_on = true;
                 }
-                
+
                 if should_move_on {
                     self.state = PlayerState::RollingDice;
                 }
