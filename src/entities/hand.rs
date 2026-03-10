@@ -76,16 +76,21 @@ impl Hand {
 
     //rolling variable says whether the dice should go to rolling after moving to its new location or not
     pub fn arrange_hand(&mut self) {
-        let num_of_dice = self.dice.len() as f32;
-        let number_of_margins = num_of_dice - 1.0;
+        
+        if self.dice.is_empty() {
+            return;
+        }
+        
+        let num_of_dice = self.dice.len();
+        let number_of_margins = num_of_dice - 1;
 
-        let total_width = DICE_WIDTH_HEIGHT * num_of_dice + number_of_margins * HAND_MARGIN_BETWEEN_DICE;
+        let total_width = DICE_WIDTH_HEIGHT * num_of_dice as f32 + number_of_margins as f32 * HAND_MARGIN_BETWEEN_DICE;
 
         let start_pos_x = VIRTUAL_WIDTH / 2.0 - total_width / 2.0;
         let pos_y = VIRTUAL_HEIGHT - DICE_Y_OFFSET;
         let mut pos_x = start_pos_x;
 
-        for i in 0..num_of_dice as usize {
+        for i in 0..num_of_dice {
             
             let old_pos = self.dice[i].pos;
             let target_pos = Vector2 { x: pos_x, y: pos_y };

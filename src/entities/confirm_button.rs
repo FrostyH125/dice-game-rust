@@ -19,7 +19,6 @@ static CONFIRM_BUTTON_DOWN_SPRITE: Sprite = Sprite::new(80.0, 48.0, 64.0, 32.0);
 
 pub struct ConfirmButton {
     pub button: Button,
-    pos: Vector2,
     down: bool,
 }
 
@@ -32,10 +31,6 @@ impl ConfirmButton {
                 width: CONFIRM_BUTTON_WIDTH,
                 height: CONFIRM_BUTTON_HEIGHT,
             }),
-            pos: Vector2 {
-                x: VIRTUAL_WIDTH / 2.0 + 2.0,
-                y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
-            },
             down: false,
         }
     }
@@ -47,12 +42,15 @@ impl ConfirmButton {
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+        
+        let pos = Vector2::new(self.button.rect.x, self.button.rect.y);
+        
         match self.down {
-            true => CONFIRM_BUTTON_DOWN_SPRITE.draw(d, self.pos, texture),
-            false => CONFIRM_BUTTON_SPRITE.draw(d, self.pos, texture)
+            true => CONFIRM_BUTTON_DOWN_SPRITE.draw(d, pos, texture),
+            false => CONFIRM_BUTTON_SPRITE.draw(d, pos, texture)
         }
         
-        d.draw_text_ex(font, "TALLY", self.pos + Vector2 { x: 5.0, y: 10.0 }, 10.0, 0.5, Color::WHITE);
+        d.draw_text_ex(font, "TALLY", Vector2::new(self.button.rect.x + 5.0, self.button.rect.y + 10.0), 10.0, 0.5, Color::WHITE);
     }
     
     pub fn reset(&mut self) {

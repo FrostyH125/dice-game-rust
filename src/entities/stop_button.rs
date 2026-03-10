@@ -14,7 +14,6 @@ static STOP_BUTTON_CLICK_SPRITE: Sprite = Sprite::new(16.0, 176.0, 128.0, 32.0);
 
 pub struct StopButton {
     pub button: Button,
-    pos: Vector2,
     down: bool,
 }
 
@@ -27,10 +26,6 @@ impl StopButton {
                 width: STOP_BUTTON_WIDTH,
                 height: STOP_BUTTON_HEIGHT,
             }),
-            pos: Vector2 {
-                x: VIRTUAL_WIDTH / 2.0 - STOP_BUTTON_WIDTH / 2.0,
-                y: VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
-            },
             down: false,
         }
     }
@@ -42,9 +37,12 @@ impl StopButton {
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+        
+        let pos = Vector2::new(self.button.rect.x, self.button.rect.y);
+        
         match self.down {
-            true => STOP_BUTTON_CLICK_SPRITE.draw(d, self.pos, texture),
-            false => STOP_BUTTON_DEFAULT_SPRITE.draw(d, self.pos, texture)
+            true => STOP_BUTTON_CLICK_SPRITE.draw(d, pos, texture),
+            false => STOP_BUTTON_DEFAULT_SPRITE.draw(d, pos, texture)
         }
     }
     
