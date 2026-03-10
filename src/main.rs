@@ -2,18 +2,17 @@ pub mod entities;
 pub mod system;
 pub mod utilities;
 
-use basic_raylib_core::system::timer::Timer;
+use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::prelude::*;
 
 use crate::{
     entities::{
-        confirm_button::ConfirmButton,
+        dice::DICE_WIDTH_HEIGHT,
         enemy::{Enemy, EnemyState},
+        hand::DICE_Y_OFFSET,
         player::{Player, PlayerState},
-        reroll_button::RerollButton,
-        stop_button::StopButton,
     },
-    system::input_handler::InputState,
+    system::{button::Button, input_handler::InputState},
 };
 use rand::random_range;
 
@@ -26,16 +25,16 @@ pub enum GameState {
     Combat,
 }
 
-// add dicestate::movingtobox, dicestate::movingwithinbox, dicestate::movingtohand, and dicestate::movingwithinhand 
+// add dicestate::movingtobox, dicestate::movingwithinbox, dicestate::movingtohand, and dicestate::movingwithinhand
 // to smoothstep between positions when adding to box or adding back to hand
-// or when rearranging inside the hand, inside the box after dice being added to box or removed from box, 
+// or when rearranging inside the hand, inside the box after dice being added to box or removed from box,
 // or a dice being removed from the hand
 
 // player attack animation
 // snake animation + snake attack animation during tally delay
 
 // particle system, sprite particle should have a 'sprite: &'static Sprite' field
-// make dice emit smoke particles when they disappear back to the hand 
+// make dice emit smoke particles when they disappear back to the hand
 
 // make player and enemy actually attack eachother for real
 
@@ -62,12 +61,40 @@ fn main() {
     sprite_sheet.set_texture_filter(&thread, TextureFilter::TEXTURE_FILTER_POINT);
 
     let mut player = Player::new();
-    let mut confirm_button = ConfirmButton::new();
-    let mut stop_button = StopButton::new();
-    let mut reroll_button = RerollButton::new();
+    let mut confirm_button = Button::new(
+        Rectangle::new(VIRTUAL_WIDTH / 2.0 + 2.0, VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
+        Sprite::new(80.0, 16.0, 64.0, 32.0),
+        Sprite::new(80.0, 48.0, 64.0, 32.0),
+        Some("Tally"),
+        Some(Vector2::new(5.0, 10.0)),
+    );
+    let mut stop_button = Button::new(
+        Rectangle::new(
+            VIRTUAL_WIDTH / 2.0 - 128.0 / 2.0,
+            VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
+            128.0,
+            32.0,
+        ),
+        Sprite::new(16.0, 144.0, 128.0, 32.0),
+        Sprite::new(16.0, 176.0, 128.0, 32.0),
+        None,
+        None,
+    );
+    let mut reroll_button = Button::new(
+        Rectangle::new(
+            VIRTUAL_WIDTH / 2.0 - 64.0 - 2.0,
+            VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
+            64.0,
+            32.0,
+        ),
+        Sprite::new(16.0, 16.0, 64.0, 32.0),
+        Sprite::new(16.0, 48.0, 64.0, 32.0),
+        Some("Reroll"),
+        Some(Vector2::new(2.0, 10.0)),
+    );
 
     let mut current_enemy = get_random_enemy(&font);
-    
+
     player.hand.arrange_hand();
 
     while !rl.window_should_close() {
@@ -117,10 +144,10 @@ fn main() {
         }
 
         if player.state == PlayerState::ChoosingDice {
-            confirm_button.draw(&mut cam_handle, &sprite_sheet, &font);
-            
+            confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font);
+
             if player.hand.dice.len() > 0 {
-                reroll_button.draw(&mut cam_handle, &sprite_sheet, &font);
+                reroll_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font);
             }
         }
 

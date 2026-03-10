@@ -6,16 +6,14 @@ use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Text
 
 use crate::{
     entities::{
-        confirm_button::ConfirmButton,
         dice::{Dice, DiceKind},
         enemy::{Enemy, EnemyState},
         hand::{Hand, HandState},
-        stop_button::StopButton,
     },
-    system::input_handler::InputState,
+    system::{button::Button, input_handler::InputState},
 };
 use crate::{
-    entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox, reroll_button::RerollButton},
+    entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox},
     system::input_handler::MouseState,
 };
 
@@ -81,9 +79,9 @@ impl Player {
     pub fn update(
         &mut self,
         input_state: &InputState,
-        confirm_button: &mut ConfirmButton,
-        stop_button: &mut StopButton,
-        reroll_button: &mut RerollButton,
+        confirm_button: &mut Button,
+        stop_button: &mut Button,
+        reroll_button: &mut Button,
         enemy: &Enemy,
         dt: f32,
     ) {
