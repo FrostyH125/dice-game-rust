@@ -10,7 +10,6 @@ const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
 
 #[derive(PartialEq)]
 pub enum HandState {
-    Inactive,
     RollingDice,
     StoppingDice,
     StoppedDice,
@@ -29,7 +28,7 @@ impl Hand {
             dice,
             current_index_of_dice_stopping: Default::default(),
             dice_stop_timer: Timer::new(1.0),
-            state: HandState::Inactive,
+            state: HandState::RollingDice,
         }
     }
 
@@ -126,17 +125,26 @@ impl Hand {
         }
         
         self.arrange_hand(true);
-
-        self.state = HandState::Inactive;
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        if self.state == HandState::Inactive {
-            return;
-        }
+        
+        let mut dice_being_dragged: Option<&mut Dice> = None;
 
-        for i in 0..self.dice.len() {
-            self.dice[i].draw(d, texture);
+        for dice in &mut self.dice {
+            
+            dice.draw(d, texture);
+            
+            match dice.state {
+                DiceState::Dragging => {
+                    dice_being_dragged = Some(dice);
+                }
+                _ => ()
+            }
+        }
+        
+        if let Some(dragged_dice) = dice_being_dragged {
+            dragged_dice.draw(d, texture);
         }
     }
 }

@@ -204,7 +204,7 @@ impl Dice {
         let anim = self.kind.roll_anim();
 
         match self.state {
-            Rolling => anim.draw(&self.roll_anim, d, texture, self.pos),
+            Rolling => anim.draw(&self.roll_anim, d, self.pos, texture),
             _ => anim.frames[self.stopped_frame_to_draw].draw(d, self.pos, texture),
         }
     }

@@ -167,8 +167,21 @@ impl DiceBoxData {
     }
 
     pub fn draw_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        for i in 0..self.dice_in_box.len() {
-            self.dice_in_box[i].draw(d, texture);
+        
+        let mut dice_being_dragged: Option<&mut Dice> = None;
+        
+        for dice in &mut self.dice_in_box {
+            dice.draw(d, texture);
+            match dice.state {
+                DiceState::Dragging => {
+                    dice_being_dragged = Some(dice);
+                }
+                _ => ()
+            }
+        }
+        
+        if let Some(dragged_dice) = dice_being_dragged {
+            dragged_dice.draw(d, texture);
         }
     }
 

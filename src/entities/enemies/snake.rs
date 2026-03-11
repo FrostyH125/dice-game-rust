@@ -12,7 +12,7 @@ use crate::{
     system::input_handler::InputState,
 };
 
-static SNAKE_SPRITE: Sprite = Sprite::new(176.0, 80.0, 32.0, 48.0);
+static SNAKE_SPRITE: Sprite = Sprite::new(0.0, 208.0, 32.0, 48.0);
 
 pub struct Snake {
     pub data: EnemyData,
@@ -64,17 +64,16 @@ impl Snake {
                 self.data.state = EnemyState::WaitingForDiceToReturnToHand;
             }
             EnemyState::WaitingForDiceToReturnToHand => {
-                
                 let mut should_move_on = false;
-                
+
                 for dice in &self.hand.dice {
                     if dice.state != DiceState::Rolling {
                         continue;
                     }
-                    
+
                     should_move_on = true;
                 }
-                
+
                 if should_move_on {
                     self.data.state = EnemyState::StartDiceStopDelayTime;
                 }
@@ -88,11 +87,11 @@ impl Snake {
                 }
             }
             EnemyState::StoppingDice => {
-                if self.hand.state == HandState::StoppedDice { 
+                if self.hand.state == HandState::StoppedDice {
                     self.data.state = EnemyState::EvaluateRoll;
                 }
             }
-            
+
             EnemyState::EvaluateRoll => {
                 if self.check_for_two_dice_with_value_one_in_hand() {
                     self.data.state = EnemyState::ChoosingDice;
@@ -107,33 +106,32 @@ impl Snake {
 
                 if self.dice_add_timer.is_done() {
                     self.dice_add_timer.reset();
-                    
+
                     self.add_one_die();
-                    
+
                     if self.snake_eyes_box.data.dice_in_box.len() == 2 {
                         self.data.state = EnemyState::BeforeTallyDelay;
-                    } 
+                    }
                 }
             }
             EnemyState::BeforeTallyDelay => {
                 self.before_tally_timer.track(dt);
-                
+
                 if self.before_tally_timer.is_done() {
                     self.data.state = EnemyState::TallyingTotal;
                     self.before_tally_timer.reset();
                 }
             }
-            
+
             EnemyState::TallyingTotal => {
                 self.snake_eyes_box.data.total_value_for_current_round = self.snake_eyes_box.tally_snake_eyes();
                 self.data.state = EnemyState::BeforeActingDelay;
             }
             EnemyState::BeforeActingDelay => {
-                
                 // right here, `self.snake_eyes_box.draw_snake_eyes_dice_borders()` in draw obv though
-                
+
                 self.before_act_timer.track(dt);
-                
+
                 if self.before_act_timer.is_done() {
                     self.before_act_timer.reset();
                     self.data.state = EnemyState::Acting
@@ -145,10 +143,9 @@ impl Snake {
             }
             EnemyState::EndTurnDelay => {
                 self.turn_end_timer.track(dt);
-                
+
                 if self.turn_end_timer.is_done() {
                     self.turn_end_timer.reset();
-                    self.hand.state = HandState::Inactive;
                     self.data.state = EnemyState::WaitingForPlayer;
                     self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
                 }
@@ -164,7 +161,7 @@ impl Snake {
                     if self.data.health <= 0 {
                         self.data.state = EnemyState::Dead;
                     } else {
-                        self.data.state = EnemyState::WaitingForPlayer;    
+                        self.data.state = EnemyState::WaitingForPlayer;
                     }
                 }
             }
@@ -173,9 +170,16 @@ impl Snake {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        SNAKE_SPRITE.draw(d, self.data.pos, texture);
-        self.hand.draw(d, texture);
-        self.snake_eyes_box.draw(d, texture, font);
+        match self.data.state {
+            EnemyState::WaitingForPlayer => {
+                SNAKE_SPRITE.draw(d, self.data.pos, texture);
+            }
+            _ => {
+                SNAKE_SPRITE.draw(d, self.data.pos, texture);
+                self.hand.draw(d, texture);
+                self.snake_eyes_box.draw(d, texture, font);
+            }
+        }
     }
 
     fn add_one_die(&mut self) {

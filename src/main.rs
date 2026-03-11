@@ -25,7 +25,10 @@ pub enum GameState {
     Combat,
 }
 
-// player attack animation
+
+// what if we just got rid of handstate? its basically being driven like a zombie anyway
+
+// player attack animation and getting hit animation
 // snake animation + snake attack animation during tally delay
 
 // particle system, sprite particle should have a 'sprite: &'static Sprite' field
