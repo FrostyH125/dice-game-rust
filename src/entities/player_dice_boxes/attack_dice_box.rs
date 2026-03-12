@@ -15,7 +15,7 @@ use crate::{
 
 };
 
-static ATTACK_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 80.0, 52.0, 16.0);
+static ATTACK_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
 
 pub struct AttackDiceBox {
     pub data: DiceBoxData,

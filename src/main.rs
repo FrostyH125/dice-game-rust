@@ -63,6 +63,7 @@ fn main() {
         Rectangle::new(VIRTUAL_WIDTH / 2.0 + 2.0, VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
         Sprite::new(80.0, 16.0, 64.0, 32.0),
         Sprite::new(80.0, 48.0, 64.0, 32.0),
+        Sprite::new(80.0, 80.0, 64.0, 32.0),
         Some("Tally"),
         Some(Vector2::new(5.0, 10.0)),
     );
@@ -73,8 +74,9 @@ fn main() {
             128.0,
             32.0,
         ),
-        Sprite::new(16.0, 144.0, 128.0, 32.0),
         Sprite::new(16.0, 176.0, 128.0, 32.0),
+        Sprite::new(16.0, 208.0, 128.0, 32.0),
+        Sprite::new(16.0, 240.0, 128.0, 32.0),
         None,
         None,
     );
@@ -87,6 +89,7 @@ fn main() {
         ),
         Sprite::new(16.0, 16.0, 64.0, 32.0),
         Sprite::new(16.0, 48.0, 64.0, 32.0),
+        Sprite::new(16.0, 80.0, 64.0, 32.0),
         Some("Reroll"),
         Some(Vector2::new(2.0, 10.0)),
     );
@@ -136,14 +139,14 @@ fn main() {
         }
 
         if player.state == PlayerState::RollingDice || player.state == PlayerState::StoppingDice {
-            stop_button.draw(&mut cam_handle, &sprite_sheet);
+            stop_button.draw(&mut cam_handle, &sprite_sheet, &input_state);
         }
 
-        if player.state == PlayerState::ChoosingDice {
-            confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font);
+        if player.state == PlayerState::ChoosingDice || player.state == PlayerState::RerollingDice {
+            confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
 
             if player.hand.dice.len() > 0 {
-                reroll_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font);
+                reroll_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
             }
         }
 

@@ -12,7 +12,7 @@ use crate::{
     system::input_handler::InputState,
 };
 
-static SNAKE_SPRITE: Sprite = Sprite::new(0.0, 208.0, 32.0, 48.0);
+static SNAKE_SPRITE: Sprite = Sprite::new(144.0, 176.0, 32.0, 48.0);
 
 pub struct Snake {
     pub data: EnemyData,

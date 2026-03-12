@@ -2,7 +2,7 @@ use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
 };
-use raylib::{ffi::rlGetActiveFramebuffer, math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
+use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
     entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox},
@@ -18,7 +18,7 @@ use crate::{
 };
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
-    frames: &[Sprite::new(80.0, 80.0, 32.0, 48.0), Sprite::new(112.0, 80.0, 32.0, 48.0)],
+    frames: &[Sprite::new(80.0, 112.0, 32.0, 48.0), Sprite::new(112.0, 112.0, 32.0, 48.0)],
     frame_duration: 0.5,
     should_loop: true,
 };
@@ -150,6 +150,7 @@ impl Player {
                 if stop_button.is_pressed(input_state) {
                     self.hand.begin_dice_stop();
                     self.state = PlayerState::StoppingDice;
+                    stop_button.deactivate();
                 }
             }
             PlayerState::StoppingDice => {
@@ -166,6 +167,10 @@ impl Player {
                 if self.hand.dice.len() > 0 && reroll_button.is_pressed(input_state) {
                     self.hand.reset_hand();
                     self.hand.begin_dice_stop();
+                    
+                    confirm_button.deactivate();
+                    reroll_button.deactivate();
+                    
                     self.state = PlayerState::RerollingDice;
                 }
 
@@ -180,6 +185,8 @@ impl Player {
                     reroll_button.reset();
                     self.state = PlayerState::ChoosingDice;
                     self.waiting_anim.reset();
+                    reroll_button.reset();
+                    confirm_button.reset();
                 }
             }
             PlayerState::TallyingAttackTotal => {

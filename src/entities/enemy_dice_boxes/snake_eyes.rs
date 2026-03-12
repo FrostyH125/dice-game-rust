@@ -15,8 +15,8 @@ use crate::{
     system::{info_hover::InfoHover, input_handler::InputState},
 };
 
-static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80.0, 128.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT);
-static SNAKE_EYES_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 128.0, 36.0, 16.0);
+static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80.0, 160.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT);
+static SNAKE_EYES_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 160.0, 36.0, 16.0);
 const SNAKE_EYES_DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 2.0 + DICE_WIDTH_HEIGHT, y: -15.0 };
 const SNAKE_EYES_TEXT_OFFSET: Vector2 = Vector2 { x: 40.0, y: -15.0 };
 const SNAKE_EYES_DAMAGE_DRAW_OFFSET: Vector2 = Vector2 { x: 40.0, y: -5.0 };
