@@ -12,7 +12,7 @@ use crate::{
     entities::{
         dice::{Dice, DiceKind},
         enemy::{Enemy, EnemyState},
-        hand::{Hand, HandState},
+        hand::Hand,
     },
     system::{button::Button, input_handler::InputState},
 };
@@ -32,7 +32,7 @@ static PLAYER_THINKING_ANIM: AnimationData = AnimationData {
 static PLAYER_WAITING_ANIM: AnimationData = AnimationData {
     frames: &[Sprite::new(144.0, 128.0, 32.0, 48.0), Sprite::new(176.0, 128.0, 32.0, 48.0)],
     frame_duration: 0.5,
-    should_loop: true
+    should_loop: true,
 };
 
 #[derive(PartialEq)]
@@ -104,20 +104,28 @@ impl Player {
             self.is_player_dragging_dice = false;
         }
 
-        //hand updates dice, so dice could potentially be dicestate::stopped
-        self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
+        let should_update_hand_and_box_dice = self.state == PlayerState::ChoosingDice
+            || self.state == PlayerState::RollingDice
+            || self.state == PlayerState::RerollingDice 
+            || self.state == PlayerState::StoppingDice
+            || self.state == PlayerState::WaitingForDiceToMoveToHand;
 
-        //now, dice can be pulled in
-        self.attack_box.data.pull_in_dragged_dice(&mut self.hand.dice);
+        if should_update_hand_and_box_dice {
+            //hand updates dice, so dice could potentially be dicestate::stopped
+            self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
 
-        //finally, updates dice after checking
-        self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
+            //now, dice can be pulled in
+            self.attack_box.data.pull_in_dragged_dice(&mut self.hand.dice);
 
-        if !self.is_player_dragging_dice && self.was_player_dragging_dice {
-            self.hand.arrange_hand(false);
-            self.attack_box.data.set_dice_positions();
+            //finally, updates dice after checking
+            self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
+
+            if !self.is_player_dragging_dice && self.was_player_dragging_dice {
+                self.hand.arrange_hand(false);
+                self.attack_box.data.set_dice_positions();
+            }
         }
-        
+
         //logic pass
         match self.state {
             PlayerState::Walking => {
@@ -126,7 +134,6 @@ impl Player {
             PlayerState::StartTurn => {
                 self.reset();
                 self.state = PlayerState::WaitingForDiceToMoveToHand;
-                self.hand.state = HandState::RollingDice;
                 self.walk_anim.reset();
             }
             PlayerState::WaitingForDiceToMoveToHand => {
@@ -134,7 +141,7 @@ impl Player {
                 let mut should_move_on = false;
 
                 for dice in &self.hand.dice {
-                    if dice.state != DiceState::Rolling {
+                    if let DiceState::Rearranging { .. } = dice.state {
                         continue;
                     }
 
@@ -143,6 +150,7 @@ impl Player {
 
                 if should_move_on {
                     self.state = PlayerState::RollingDice;
+                    self.hand.roll_dice();
                 }
             }
             PlayerState::RollingDice => {
@@ -155,7 +163,7 @@ impl Player {
             }
             PlayerState::StoppingDice => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                if self.hand.state == HandState::StoppedDice {
+                if self.hand.stop_dice(dt) {
                     self.state = PlayerState::ChoosingDice;
                     stop_button.reset();
                     self.waiting_anim.reset();
@@ -163,14 +171,14 @@ impl Player {
             }
             PlayerState::ChoosingDice => {
                 PLAYER_THINKING_ANIM.update(&mut self.thinking_anim, dt);
-                
+
                 if self.hand.dice.len() > 0 && reroll_button.is_pressed(input_state) {
                     self.hand.reset_hand();
                     self.hand.begin_dice_stop();
-                    
+
                     confirm_button.deactivate();
                     reroll_button.deactivate();
-                    
+
                     self.state = PlayerState::RerollingDice;
                 }
 
@@ -181,7 +189,7 @@ impl Player {
             }
             PlayerState::RerollingDice => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                if self.hand.state == HandState::StoppedDice {
+                if self.hand.stop_dice(dt) {
                     reroll_button.reset();
                     self.state = PlayerState::ChoosingDice;
                     self.waiting_anim.reset();
@@ -191,7 +199,7 @@ impl Player {
             }
             PlayerState::TallyingAttackTotal => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                
+
                 if self.attack_box.data.dice_in_box.is_empty() {
                     self.state = PlayerState::EndTurn;
                     confirm_button.reset();
@@ -202,7 +210,7 @@ impl Player {
             }
             PlayerState::BeforeAttackDelay => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                
+
                 self.acting_timer.track(dt);
 
                 if self.acting_timer.is_done() {
@@ -212,7 +220,7 @@ impl Player {
             }
             PlayerState::Attacking => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                
+
                 self.attack_power = self.attack_box.data.get_value();
 
                 println!("dealt {} damage!", self.attack_power);
@@ -221,7 +229,7 @@ impl Player {
             }
             PlayerState::EndTurnDelay => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                
+
                 self.end_turn_delay_timer.track(dt);
 
                 if self.end_turn_delay_timer.is_done() {
@@ -230,12 +238,12 @@ impl Player {
             }
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-    
+
                 self.state = PlayerState::WaitingForEnemy;
             }
             PlayerState::WaitingForEnemy => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                
+
                 if enemy.get_data().state == EnemyState::WaitingForPlayer {
                     self.state = PlayerState::StartTurn;
                     self.waiting_anim.reset();
@@ -277,7 +285,6 @@ impl Player {
                 self.hand.draw(d, texture);
             }
         }
-        
 
         if !self.is_player_dragging_dice {
             return;

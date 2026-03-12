@@ -8,18 +8,10 @@ use crate::{entities::dice::DiceState, system::input_handler::InputState};
 pub const DICE_Y_OFFSET: f32 = 72.0;
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
 
-#[derive(PartialEq)]
-pub enum HandState {
-    RollingDice,
-    StoppingDice,
-    StoppedDice,
-}
-
 pub struct Hand {
     pub dice: Vec<Dice>,
     current_index_of_dice_stopping: usize,
     dice_stop_timer: Timer,
-    pub state: HandState,
 }
 
 impl Hand {
@@ -28,7 +20,6 @@ impl Hand {
             dice,
             current_index_of_dice_stopping: Default::default(),
             dice_stop_timer: Timer::new(1.0),
-            state: HandState::RollingDice,
         }
     }
 
@@ -36,15 +27,6 @@ impl Hand {
     pub fn update_for_enemy(&mut self, dt: f32) {
         for i in (0..self.dice.len()).rev() {
             self.dice[i].update_for_enemy(dt);
-        }
-
-        match self.state {
-            HandState::StoppingDice => {
-                if self.stop_dice(dt) {
-                    self.state = HandState::StoppedDice;
-                }
-            }
-            _ => (),
         }
     }
 
@@ -54,18 +36,10 @@ impl Hand {
         input_state: &InputState,
         dt: f32,
     ) {
+        let hand_stopped = self.all_dice_stopped_passive_check();
 
         for i in (0..self.dice.len()).rev() {
-            self.dice[i].update_for_player(player_dragging_any_dice, &self.state, input_state, dt);
-        }
-
-        match self.state {
-            HandState::StoppingDice => {
-                if self.stop_dice(dt) {
-                    self.state = HandState::StoppedDice;
-                }
-            }
-            _ => (),
+            self.dice[i].update_for_player(player_dragging_any_dice, hand_stopped, input_state, dt);
         }
     }
 
@@ -99,10 +73,9 @@ impl Hand {
         self.dice_stop_timer.duration = 2.0 / self.dice.len() as f32;
         self.current_index_of_dice_stopping = 0;
         self.dice_stop_timer.reset();
-        self.state = HandState::StoppingDice;
     }
 
-    fn stop_dice(&mut self, dt: f32) -> bool {
+    pub fn stop_dice(&mut self, dt: f32) -> bool {
         self.dice_stop_timer.track(dt);
 
         if self.dice_stop_timer.is_done() {
@@ -118,6 +91,12 @@ impl Hand {
         }
         return false;
     }
+    
+    pub fn roll_dice(&mut self) {
+        for dice in &mut self.dice {
+            dice.state = DiceState::Rolling;
+        }
+    }
 
     pub fn reset_hand(&mut self) {
         for i in 0..self.dice.len() {
@@ -125,6 +104,16 @@ impl Hand {
         }
         
         self.arrange_hand(true);
+    }
+    
+    pub fn all_dice_stopped_passive_check(&self) -> bool {
+        for dice in &self.dice {
+            if dice.state == DiceState::Rolling {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {

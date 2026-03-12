@@ -207,8 +207,11 @@ impl DiceBoxData {
         input_state: &InputState,
         dt: f32,
     ) {
+        
+        let hand_stopped = hand.all_dice_stopped_passive_check();
+        
         for i in (0..self.dice_in_box.len()).rev() {
-            self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, &hand.state, input_state, dt);
+            self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, hand_stopped, input_state, dt);
             if !self
                 .dice_collect_rect
                 .check_collision_point_rec(self.dice_in_box[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)

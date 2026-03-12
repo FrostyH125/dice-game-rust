@@ -1,7 +1,6 @@
 use crate::{
     entities::{
         dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRITE},
-        hand::HandState,
     },
     system::input_handler::{InputState, MouseState},
 };
@@ -135,13 +134,13 @@ impl Dice {
     pub fn update_for_player(
         &mut self,
         other_dice_dragged: &mut bool,
-        hand_state: &HandState,
+        hand_stopped: bool,
         input_state: &InputState,
         dt: f32,
     ) {
         match self.state {
             DiceState::Stopped => {
-                if *hand_state != HandState::StoppedDice {
+                if !hand_stopped {
                     return;
                 }
 

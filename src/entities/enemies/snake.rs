@@ -6,7 +6,7 @@ use crate::{
         dice::{Dice, DiceKind, DiceState},
         enemy::{EnemyData, EnemyState},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
-        hand::{Hand, HandState},
+        hand::Hand,
         player::{Player, PlayerState},
     },
     system::input_handler::InputState,
@@ -60,7 +60,6 @@ impl Snake {
                 self.hand.reset_hand();
                 self.dice_add_timer.reset();
                 self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
-                self.hand.state = HandState::RollingDice;
                 self.data.state = EnemyState::WaitingForDiceToReturnToHand;
             }
             EnemyState::WaitingForDiceToReturnToHand => {
@@ -76,6 +75,7 @@ impl Snake {
 
                 if should_move_on {
                     self.data.state = EnemyState::StartDiceStopDelayTime;
+                    self.hand.roll_dice();
                 }
             }
             EnemyState::StartDiceStopDelayTime => {
@@ -87,7 +87,7 @@ impl Snake {
                 }
             }
             EnemyState::StoppingDice => {
-                if self.hand.state == HandState::StoppedDice {
+                if self.hand.stop_dice(dt) {
                     self.data.state = EnemyState::EvaluateRoll;
                 }
             }
