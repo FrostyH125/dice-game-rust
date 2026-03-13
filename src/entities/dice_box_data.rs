@@ -248,10 +248,10 @@ impl DiceBoxData {
                 let velocity = Vector2::new(0.0, velocity_y);
 
                 let acceleration_x = rand::random_range(-5.0..=5.0);
-                let acceleration_y = rand::random_range(-30.0..=-10.0);
+                let acceleration_y = rand::random_range(-60.0..=-40.0);
                 let acceleration = Vector2::new(acceleration_x, acceleration_y);
                 
-                let lifetime = rand::random_range(2.0..=5.0);
+                let lifetime = rand::random_range(1.0..=2.0);
 
                 particle_system.emit(sprite, position, velocity, acceleration, lifetime);
             }

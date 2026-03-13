@@ -166,8 +166,10 @@ impl Player {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
                 if self.hand.stop_dice(dt) {
                     self.state = PlayerState::ChoosingDice;
-                    stop_button.reset();
                     self.waiting_anim.reset();
+                    stop_button.reset();
+                    confirm_button.reset();
+                    reroll_button.reset();
                 }
             }
             PlayerState::ChoosingDice => {
@@ -191,7 +193,6 @@ impl Player {
             PlayerState::RerollingDice => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
                 if self.hand.stop_dice(dt) {
-                    reroll_button.reset();
                     self.state = PlayerState::ChoosingDice;
                     self.waiting_anim.reset();
                     reroll_button.reset();
@@ -203,10 +204,12 @@ impl Player {
 
                 if self.attack_box.data.dice_in_box.is_empty() {
                     self.state = PlayerState::EndTurn;
-                    confirm_button.reset();
+                    confirm_button.deactivate();
+                    reroll_button.deactivate();
                 } else if self.attack_box.data.tally_points(dt) {
                     self.state = PlayerState::BeforeAttackDelay;
-                    confirm_button.reset();
+                    confirm_button.deactivate();
+                    reroll_button.deactivate();
                 }
             }
             PlayerState::BeforeAttackDelay => {
@@ -234,6 +237,7 @@ impl Player {
                 self.end_turn_delay_timer.track(dt);
 
                 if self.end_turn_delay_timer.is_done() {
+                    self.end_turn_delay_timer.reset();
                     self.state = PlayerState::EndTurn;
                 }
             }

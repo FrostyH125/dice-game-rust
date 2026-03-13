@@ -94,14 +94,22 @@ fn main() {
     );
 
     let mut current_enemy = get_random_enemy(&font);
-    
+
     let mut particle_system = ParticleSystem::new();
 
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
         input_state.update(&mut rl, camera.zoom);
-        player.update(&input_state, &mut confirm_button, &mut stop_button, &mut reroll_button, &mut particle_system, &current_enemy, dt);
+        player.update(
+            &input_state,
+            &mut confirm_button,
+            &mut stop_button,
+            &mut reroll_button,
+            &mut particle_system,
+            &current_enemy,
+            dt,
+        );
         particle_system.update(dt);
 
         match state {
@@ -138,18 +146,23 @@ fn main() {
             current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);
         }
 
-        if player.state == PlayerState::RollingDice || player.state == PlayerState::StoppingDice {
-            stop_button.draw(&mut cam_handle, &sprite_sheet, &input_state);
-        }
+        match player.state {
+            PlayerState::RollingDice | PlayerState::StoppingDice => {
+                stop_button.draw(&mut cam_handle, &sprite_sheet, &input_state);
+            }
+            PlayerState::WaitingForEnemy
+            | PlayerState::StartTurn
+            | PlayerState::WaitingForDiceToMoveToHand
+            | PlayerState::Walking => (),
+            _ => {
+                confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
 
-        if player.state == PlayerState::ChoosingDice || player.state == PlayerState::RerollingDice {
-            confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
-
-            if player.hand.dice.len() > 0 {
-                reroll_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
+                if player.hand.dice.len() > 0 {
+                    reroll_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
+                }
             }
         }
-        
+
         particle_system.draw(&mut cam_handle, &sprite_sheet);
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
     }
