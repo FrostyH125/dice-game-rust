@@ -12,7 +12,7 @@ use crate::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         hand::Hand,
     },
-    system::input_handler::InputState,
+    system::{input_handler::InputState, particle_system::ParticleSystem},
 };
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
@@ -33,6 +33,9 @@ pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
     x: DICE_WIDTH_HEIGHT / 2.0,
     y: DICE_WIDTH_HEIGHT / 2.0,
 };
+
+pub static SMALL_DUST_SPRITE: Sprite = Sprite::new(0.0, 32.0, 1.0, 1.0);
+pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1.0, 32.0, 3.0, 3.0);
 
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
@@ -70,7 +73,7 @@ impl DiceBoxData {
     pub fn pull_in_dragged_dice(&mut self, dice_in_hand: &mut Vec<Dice>) {
         for i in (0..dice_in_hand.len()).rev() {
             match dice_in_hand[i].state {
-                DiceState::Stopped => {                 
+                DiceState::Stopped => {
                     if self
                         .dice_collect_rect
                         .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
@@ -78,9 +81,9 @@ impl DiceBoxData {
                         let dice_to_add = dice_in_hand.remove(i);
                         self.dice_in_box.push(dice_to_add);
                         self.dice_in_box.sort_by(|a, b| a.value.cmp(&b.value));
-                    }  
+                    }
                 }
-                _ => ()
+                _ => (),
             }
         }
     }
@@ -150,7 +153,11 @@ impl DiceBoxData {
         for i in (0..self.dice_in_box.len()).rev() {
             if self.dice_in_box[i].state != DiceState::Dragging {
                 let old_pos = self.dice_in_box[i].pos;
-                self.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos, should_roll_after: false };
+                self.dice_in_box[i].state = DiceState::Rearranging {
+                    old_pos,
+                    target_pos,
+                    should_roll_after: false,
+                };
             }
             target_pos.x -= DICE_WIDTH_HEIGHT;
             times_increased_x += 1;
@@ -167,19 +174,18 @@ impl DiceBoxData {
     }
 
     pub fn draw_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        
         let mut dice_being_dragged: Option<&mut Dice> = None;
-        
+
         for dice in &mut self.dice_in_box {
             dice.draw(d, texture);
             match dice.state {
                 DiceState::Dragging => {
                     dice_being_dragged = Some(dice);
                 }
-                _ => ()
+                _ => (),
             }
         }
-        
+
         if let Some(dragged_dice) = dice_being_dragged {
             dragged_dice.draw(d, texture);
         }
@@ -207,9 +213,8 @@ impl DiceBoxData {
         input_state: &InputState,
         dt: f32,
     ) {
-        
         let hand_stopped = hand.all_dice_stopped_passive_check();
-        
+
         for i in (0..self.dice_in_box.len()).rev() {
             self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, hand_stopped, input_state, dt);
             if !self
@@ -220,6 +225,35 @@ impl DiceBoxData {
                 let dice = self.dice_in_box.remove(i);
                 hand.dice.push(dice);
                 hand.arrange_hand(false);
+            }
+        }
+    }
+
+    pub fn emit_smoke_at_each_dice(&mut self, particle_system: &mut ParticleSystem) {
+        for dice in &mut self.dice_in_box {
+            let cycles_for_this_dice = rand::random_range(15..=25);
+
+            for _ in 0..=cycles_for_this_dice {
+                
+                let sprite = match rand::random_bool(0.5) {
+                    true => &SMALL_DUST_SPRITE,
+                    false => &LARGE_DUST_SPRITE,
+                };
+
+                let particle_pos_x = rand::random_range(dice.pos.x..=dice.pos.x + DICE_WIDTH_HEIGHT);
+                let particle_pos_y = rand::random_range(dice.pos.y + DICE_WIDTH_HEIGHT - 4.0..=dice.pos.y + DICE_WIDTH_HEIGHT);
+                let position = Vector2::new(particle_pos_x, particle_pos_y);
+
+                let velocity_y = rand::random_range(1.0..=15.0);
+                let velocity = Vector2::new(0.0, velocity_y);
+
+                let acceleration_x = rand::random_range(-5.0..=5.0);
+                let acceleration_y = rand::random_range(-30.0..=-10.0);
+                let acceleration = Vector2::new(acceleration_x, acceleration_y);
+                
+                let lifetime = rand::random_range(2.0..=5.0);
+
+                particle_system.emit(sprite, position, velocity, acceleration, lifetime);
             }
         }
     }

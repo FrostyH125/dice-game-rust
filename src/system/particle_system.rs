@@ -19,15 +19,46 @@ impl ParticleSystem {
                 continue;
             }
             
-            *particle = Particle { sprite, position, velocity, acceleration, lifetime, is_active: true }
+            let sprite_half_width = sprite.src_rect.width / 2.0;
+            let sprite_half_height = sprite.src_rect.height / 2.0;
+            
+            // this is to make it spawn the particle with the center of the particle being the passed position
+            // i did this so it would be easier to make things look more uniform, for example, now if particles
+            // are emitted randomly along a straight edge, it'll not require any width or height math to account
+            // for the width or height of the particle so that one side's particles doesn't extend further than the
+            // other side
+            let real_emit_pos = Vector2::new(position.x - sprite_half_width, position.y - sprite_half_height); 
+            
+            *particle = Particle { sprite, position: real_emit_pos, velocity, acceleration, lifetime, is_active: true };
+            
+            return;
         }
     }
     
-    pub fn update(&mut self) {
-        
+    pub fn update(&mut self, dt: f32) {
+        for particle in &mut self.particles {
+            if !particle.is_active {
+                continue;
+            }
+            
+            particle.position += particle.velocity * dt;
+            particle.velocity += particle.acceleration * dt;
+            particle.lifetime -= dt;
+            
+            if particle.lifetime <= 0.0 {
+                particle.is_active = false;
+            }
+        }
     }
     
-    pub fn draw(&self, d: &mut RaylibDrawHandle, texture: Texture2D) {
-        
+    pub fn draw(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+        for particle in &self.particles {
+            
+            if !particle.is_active {
+                continue;
+            }
+            
+            particle.sprite.draw(d, particle.position, texture);
+        }
     }
 }

@@ -6,7 +6,7 @@ use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Text
 
 use crate::{
     entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox},
-    system::input_handler::MouseState,
+    system::{input_handler::MouseState, particle_system::ParticleSystem},
 };
 use crate::{
     entities::{
@@ -97,6 +97,7 @@ impl Player {
         confirm_button: &mut Button,
         stop_button: &mut Button,
         reroll_button: &mut Button,
+        particle_system: &mut ParticleSystem,
         enemy: &Enemy,
         dt: f32,
     ) {
@@ -238,7 +239,7 @@ impl Player {
             }
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-
+                self.attack_box.data.emit_smoke_at_each_dice(particle_system);
                 self.state = PlayerState::WaitingForEnemy;
             }
             PlayerState::WaitingForEnemy => {

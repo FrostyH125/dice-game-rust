@@ -23,7 +23,10 @@ pub struct AttackDiceBox {
 
 impl AttackDiceBox {
     pub fn new() -> Self {
-        let pos = Vector2 { x: 5.0, y: 50.0 };
+        
+        //5.0, 50.0
+        
+        let pos = Vector2 { x: 50.0, y: 200.0 };
 
         AttackDiceBox {
             data: DiceBoxData::new(

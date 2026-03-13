@@ -12,7 +12,7 @@ use crate::{
         hand::DICE_Y_OFFSET,
         player::{Player, PlayerState},
     },
-    system::{button::Button, input_handler::InputState},
+    system::{button::Button, input_handler::InputState, particle_system::ParticleSystem},
 };
 use rand::random_range;
 
@@ -94,12 +94,15 @@ fn main() {
     );
 
     let mut current_enemy = get_random_enemy(&font);
+    
+    let mut particle_system = ParticleSystem::new();
 
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
         input_state.update(&mut rl, camera.zoom);
-        player.update(&input_state, &mut confirm_button, &mut stop_button, &mut reroll_button, &current_enemy, dt);
+        player.update(&input_state, &mut confirm_button, &mut stop_button, &mut reroll_button, &mut particle_system, &current_enemy, dt);
+        particle_system.update(dt);
 
         match state {
             GameState::Travelling => {
@@ -128,8 +131,6 @@ fn main() {
         let mut handle = rl.begin_drawing(&thread);
         handle.clear_background(Color { r: 40, g: 40, b: 40, a: 255 });
 
-        // use cam handle for basically all drawing because everything will be drawn
-        // needing to be zoomed. even if it would technically be zoomed in otherwise, this is cleaner
         let mut cam_handle = handle.begin_mode2D(&camera);
         player.draw(&mut cam_handle, &sprite_sheet, &font);
 
@@ -148,9 +149,9 @@ fn main() {
                 reroll_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
             }
         }
-
+        
+        particle_system.draw(&mut cam_handle, &sprite_sheet);
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
-        cam_handle.draw_text(&format!("{:?}", input_state.mouse_state), 0, 0, 10, Color::WHITE);
     }
 }
 
