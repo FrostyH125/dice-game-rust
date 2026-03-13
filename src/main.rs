@@ -25,14 +25,13 @@ pub enum GameState {
     Combat,
 }
 
-
-// what if we just got rid of handstate? its basically being driven like a zombie anyway
-
 // player attack animation and getting hit animation
 // snake animation + snake attack animation during tally delay
 
 // particle system, sprite particle should have a 'sprite: &'static Sprite' field
 // make dice emit smoke particles when they disappear back to the hand
+
+// clean up data visualization, mostly for player, move it rightward and chnage the color
 
 // make player and enemy actually attack eachother for real
 
