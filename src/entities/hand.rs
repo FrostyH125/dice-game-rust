@@ -55,7 +55,7 @@ impl Hand {
 
         let total_width = DICE_WIDTH_HEIGHT * num_of_dice as f32 + number_of_margins as f32 * HAND_MARGIN_BETWEEN_DICE;
 
-        let start_pos_x = VIRTUAL_WIDTH / 2.0 - total_width / 2.0;
+        let start_pos_x = VIRTUAL_WIDTH / 2.0 - total_width / 2.0 - 150.0;
         let pos_y = VIRTUAL_HEIGHT - DICE_Y_OFFSET;
         let mut pos_x = start_pos_x;
 
@@ -147,19 +147,21 @@ impl Hand {
                     true => &SMALL_DUST_SPRITE,
                     false => &LARGE_DUST_SPRITE,
                 };
+                
+                let dir_x = rand::random_range(-1.0..=1.0);
+                let dir_y = rand::random_range(-1.0..=1.0);
 
                 let particle_pos_x = rand::random_range(dice.pos.x..=dice.pos.x + DICE_WIDTH_HEIGHT);
-                let particle_pos_y = rand::random_range(dice.pos.y + DICE_WIDTH_HEIGHT - 4.0..=dice.pos.y + DICE_WIDTH_HEIGHT);
+                let particle_pos_y = rand::random_range(dice.pos.y..=dice.pos.y + DICE_WIDTH_HEIGHT);
                 let position = Vector2::new(particle_pos_x, particle_pos_y);
 
-                let velocity_y = rand::random_range(1.0..=15.0);
-                let velocity = Vector2::new(0.0, velocity_y);
+                let velocity = rand::random_range(1.0..=15.0);
+                let velocity = Vector2::new(velocity * dir_x, velocity * dir_y);
 
-                let acceleration_x = rand::random_range(-5.0..=5.0);
-                let acceleration_y = rand::random_range(-60.0..=-40.0);
-                let acceleration = Vector2::new(acceleration_x, acceleration_y);
+                let deceleration = rand::random_range(-7.0..=-4.0);
+                let acceleration = Vector2::new(deceleration * dir_x, deceleration * dir_y);
                 
-                let lifetime = rand::random_range(1.0..=2.0);
+                let lifetime = rand::random_range(1.0..=2.5);
 
                 particle_system.emit(sprite, position, velocity, acceleration, lifetime);
             }

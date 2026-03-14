@@ -91,6 +91,12 @@ impl DiceBoxData {
             dice.update_for_enemy(dt);
         }
     }
+    
+    pub fn update_dice_for_player(&mut self, is_player_dragging_any_dice: &mut bool, hand_stopped: bool, input_state: &InputState, dt: f32) {
+        for i in 0..self.dice_in_box.len() {
+            self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, hand_stopped, input_state, dt);
+        }
+    }
 
     //dice box being empty handled by call site
     pub fn tally_points(&mut self, dt: f32) -> bool {
@@ -212,15 +218,9 @@ impl DiceBoxData {
 
     pub fn handle_dragging_dice(
         &mut self,
-        is_player_dragging_any_dice: &mut bool,
         hand: &mut Hand,
-        input_state: &InputState,
-        dt: f32,
     ) {
-        let hand_stopped = hand.all_dice_stopped_passive_check();
-
         for i in (0..self.dice_in_box.len()).rev() {
-            self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, hand_stopped, input_state, dt);
             if !self
                 .dice_collect_rect
                 .check_collision_point_rec(self.dice_in_box[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)

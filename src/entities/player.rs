@@ -83,7 +83,7 @@ impl Player {
             walk_anim: SpriteAnimationInstance::new(),
             thinking_anim: SpriteAnimationInstance::new(),
             waiting_anim: SpriteAnimationInstance::new(),
-            pos: Vector2 { x: 20.0, y: 150.0 },
+            pos: Vector2 { x: 74.0, y: 125.0 },
             health: 100,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),

@@ -29,10 +29,9 @@ pub enum GameState {
     Combat,
 }
 
-// things for after dice box refactor:
-// make sure snake is drawing and updating snake eyes info hover
-// make sure snake is updating dice for snake eyes
-// make sure player is updating and drawing all things for broadsword box
+// clean up positionings of hand and buttons. just add a pos const
+// then make the arrange_dice hand method to take in a position (actually maybe just make it a field) to center on
+// then, the player and enemy can both set their hand to be displayed anywhere
 
 // player attack animation and getting hit animation
 // snake animation + snake attack animation during tally delay
@@ -74,7 +73,7 @@ fn main() {
 
     let mut player = Player::new(&font);
     let mut confirm_button = Button::new(
-        Rectangle::new(VIRTUAL_WIDTH / 2.0 + 2.0, VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
+        Rectangle::new(VIRTUAL_WIDTH / 2.0 + 2.0 - 150.0, VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
         Sprite::new(80.0, 16.0, 64.0, 32.0),
         Sprite::new(80.0, 48.0, 64.0, 32.0),
         Sprite::new(80.0, 80.0, 64.0, 32.0),
@@ -83,7 +82,7 @@ fn main() {
     );
     let mut stop_button = Button::new(
         Rectangle::new(
-            VIRTUAL_WIDTH / 2.0 - 128.0 / 2.0,
+            VIRTUAL_WIDTH / 2.0 - 128.0 / 2.0 - 150.0,
             VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
             128.0,
             32.0,
@@ -96,7 +95,7 @@ fn main() {
     );
     let mut reroll_button = Button::new(
         Rectangle::new(
-            VIRTUAL_WIDTH / 2.0 - 64.0 - 2.0,
+            VIRTUAL_WIDTH / 2.0 - 64.0 - 2.0 - 150.0,
             VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
             64.0,
             32.0,
