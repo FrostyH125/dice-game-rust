@@ -12,23 +12,22 @@ use crate::{
         dice::Dice,
         dice_box_data::{BASE_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, TOTAL_VALUE_OFFSET},
     },
-
+    system::info_hover::InfoHover,
 };
 
-static ATTACK_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
+static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
 
-pub struct AttackDiceBox {
+pub struct BroadSwordBox {
     pub data: DiceBoxData,
 }
 
-impl AttackDiceBox {
-    pub fn new() -> Self {
-        
+impl BroadSwordBox {
+    pub fn new(font: &Font) -> Self {
         //5.0, 50.0
-        
+
         let pos = Vector2 { x: 75.0, y: 50.0 };
 
-        AttackDiceBox {
+        BroadSwordBox {
             data: DiceBoxData::new(
                 pos,
                 Rectangle {
@@ -37,12 +36,24 @@ impl AttackDiceBox {
                     width: 48.0,
                     height: 32.0,
                 },
+                InfoHover::new(
+                    "Broadsword:\n just an average weapon, should be enough to defend yourself for a while...",
+                    Rectangle::new(
+                        pos.x,
+                        pos.y,
+                        BROADSWORD_BOX_SPRITE.src_rect.width,
+                        BROADSWORD_BOX_SPRITE.src_rect.height,
+                    ),
+                    font,
+                    5.0,
+                    0.5,
+                ),
             ),
         }
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        ATTACK_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
+        BROADSWORD_BOX_SPRITE.draw(d, self.data.pos, texture);
         d.draw_rectangle_lines(
             self.data.dice_collect_rect.x as i32,
             self.data.dice_collect_rect.y as i32,

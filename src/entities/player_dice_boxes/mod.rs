@@ -1,1 +1,2 @@
-pub mod attack_dice_box;
+pub mod broadsword_box;
+pub mod dice_box;

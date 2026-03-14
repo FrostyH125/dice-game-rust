@@ -5,7 +5,10 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
-    entities::{dice::DiceState, player_dice_boxes::attack_dice_box::AttackDiceBox},
+    entities::{
+        dice::DiceState,
+        player_dice_boxes::{broadsword_box::BroadSwordBox, dice_box::DiceBox},
+    },
     system::{input_handler::MouseState, particle_system::ParticleSystem},
 };
 use crate::{
@@ -55,7 +58,7 @@ pub enum PlayerState {
 }
 
 pub struct Player {
-    pub attack_box: AttackDiceBox,
+    pub attack_box: DiceBox,
     pub hand: Hand,
     attack_power: i64,
     health: i64,
@@ -72,9 +75,9 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new() -> Self {
+    pub fn new(font: &Font) -> Self {
         Player {
-            attack_box: AttackDiceBox::new(),
+            attack_box: DiceBox::BroadSwordBox { broadsword_box: BroadSwordBox::new(font) },
             hand: Hand::new(std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect()),
             walk_anim: SpriteAnimationInstance::new(),
             thinking_anim: SpriteAnimationInstance::new(),
@@ -105,27 +108,10 @@ impl Player {
             self.is_player_dragging_dice = false;
         }
 
-        let should_update_hand_and_box_dice = self.state == PlayerState::ChoosingDice
-            || self.state == PlayerState::RollingDice
-            || self.state == PlayerState::RerollingDice 
-            || self.state == PlayerState::StoppingDice
-            || self.state == PlayerState::WaitingForDiceToMoveToHand;
+        self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
 
-        if should_update_hand_and_box_dice {
-            //hand updates dice, so dice could potentially be dicestate::stopped
-            self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
 
-            //now, dice can be pulled in
-            self.attack_box.data.pull_in_dragged_dice(&mut self.hand.dice);
-
-            //finally, updates dice after checking
-            self.attack_box.data.update_dice(&mut self.is_player_dragging_dice, &mut self.hand, input_state, dt);
-
-            if !self.is_player_dragging_dice && self.was_player_dragging_dice {
-                self.hand.arrange_hand(false);
-                self.attack_box.data.set_dice_positions();
-            }
-        }
+        self.attack_box.update_for_player(&mut self.is_player_dragging_dice, self.was_player_dragging_dice, &mut self.hand, input_state, dt);
 
         //logic pass
         match self.state {
@@ -205,9 +191,9 @@ impl Player {
             PlayerState::TallyingAttackTotal => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
-                if self.attack_box.data.dice_in_box.is_empty() {
+                if self.attack_box.get_data().dice_in_box.is_empty() {
                     self.state = PlayerState::EndTurn;
-                } else if self.attack_box.data.tally_points(dt) {
+                } else if self.attack_box.tally(dt) {
                     self.state = PlayerState::BeforeAttackDelay;
                 }
             }
@@ -224,7 +210,7 @@ impl Player {
             PlayerState::Attacking => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
-                self.attack_power = self.attack_box.data.get_value();
+                self.attack_power = self.attack_box.get_data().get_value();
 
                 println!("dealt {} damage!", self.attack_power);
 
@@ -242,7 +228,7 @@ impl Player {
             }
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                self.attack_box.data.emit_smoke_at_each_dice(particle_system);
+                self.attack_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
                 self.state = PlayerState::WaitingForEnemy;
             }
             PlayerState::WaitingForEnemy => {

@@ -7,7 +7,7 @@ use crate::{
         enemy::{EnemyData, EnemyState},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
-        player::{Player, PlayerState},
+        player::{Player, PlayerState}, player_dice_boxes::dice_box::DiceBox,
     },
     system::{input_handler::InputState, particle_system::ParticleSystem},
 };
@@ -17,7 +17,7 @@ static SNAKE_SPRITE: Sprite = Sprite::new(144.0, 176.0, 32.0, 48.0);
 pub struct Snake {
     pub data: EnemyData,
     pub hand: Hand,
-    pub snake_eyes_box: SnakeEyes,
+    pub snake_eyes_box: DiceBox,
     dice_add_timer: Timer,
     before_stopping_dice_timer: Timer,
     before_tally_timer: Timer,
@@ -42,7 +42,7 @@ impl Snake {
                 Dice::new(DiceKind::D4),
                 Dice::new(DiceKind::D4),
             ]),
-            snake_eyes_box: SnakeEyes::new(pos - Vector2 { x: 40.0, y: 0.0 }, font),
+            snake_eyes_box: DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(pos - Vector2::new(40.0, 0.0), font) },
             dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
@@ -53,13 +53,13 @@ impl Snake {
 
     pub fn update(&mut self, input_state: &InputState, player: &Player, particle_system: &mut ParticleSystem, dt: f32) {
         self.hand.update_for_enemy(dt);
-        self.snake_eyes_box.update(input_state, dt);
+        self.snake_eyes_box.update_for_enemy(input_state, dt);
 
         match self.data.state {
             EnemyState::StartTurn => {
                 self.hand.reset_hand();
                 self.dice_add_timer.reset();
-                self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
+                self.snake_eyes_box.reset(&mut self.hand.dice);
                 self.data.state = EnemyState::WaitingForDiceToReturnToHand;
             }
             EnemyState::WaitingForDiceToReturnToHand => {
@@ -109,7 +109,7 @@ impl Snake {
 
                     self.add_one_die();
 
-                    if self.snake_eyes_box.data.dice_in_box.len() == 2 {
+                    if self.snake_eyes_box.get_data().dice_in_box.len() == 2 {
                         self.data.state = EnemyState::BeforeTallyDelay;
                     }
                 }
@@ -124,7 +124,11 @@ impl Snake {
             }
 
             EnemyState::TallyingTotal => {
-                self.snake_eyes_box.data.total_value_for_current_round = self.snake_eyes_box.tally_snake_eyes();
+                
+                if self.snake_eyes_box.tally(dt) {
+                    self.snake_eyes_box.get_mut_data().total_value_for_current_round = 11;
+                }
+                
                 self.data.state = EnemyState::BeforeActingDelay;
             }
             EnemyState::BeforeActingDelay => {
@@ -138,7 +142,7 @@ impl Snake {
                 }
             }
             EnemyState::Acting => {
-                println!("Dealt {} Damage with snake eyes!", self.snake_eyes_box.data.total_value_for_current_round);
+                println!("Dealt {} Damage with snake eyes!", self.snake_eyes_box.get_data().total_value_for_current_round);
                 self.data.state = EnemyState::EndTurnDelay;
             }
             EnemyState::EndTurnDelay => {
@@ -147,9 +151,9 @@ impl Snake {
                 if self.turn_end_timer.is_done() {
                     self.turn_end_timer.reset();
                     self.data.state = EnemyState::WaitingForPlayer;
-                    self.snake_eyes_box.data.emit_smoke_at_each_dice(particle_system);
+                    self.snake_eyes_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
                     self.hand.emit_smoke_at_each_dice(particle_system);
-                    self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
+                    self.snake_eyes_box.get_mut_data().reset_box(&mut self.hand.dice);
                 }
             }
             EnemyState::WaitingForPlayer => {
@@ -172,14 +176,13 @@ impl Snake {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+        SNAKE_SPRITE.draw(d, self.data.pos, texture);
+        self.snake_eyes_box.draw(d, texture, font);
+        
         match self.data.state {
-            EnemyState::WaitingForPlayer => {
-                SNAKE_SPRITE.draw(d, self.data.pos, texture);
-            }
+            EnemyState::WaitingForPlayer => (),
             _ => {
-                SNAKE_SPRITE.draw(d, self.data.pos, texture);
                 self.hand.draw(d, texture);
-                self.snake_eyes_box.draw(d, texture, font);
             }
         }
     }
@@ -188,8 +191,12 @@ impl Snake {
         for i in (0..self.hand.dice.len()).rev() {
             if self.hand.dice[i].value == 1 {
                 let dice = self.hand.dice.remove(i);
-                self.snake_eyes_box.data.dice_in_box.push(dice);
-                self.snake_eyes_box.snake_eyes_set_dice_positions();
+                self.snake_eyes_box.get_mut_data().dice_in_box.push(dice);
+                
+                if let DiceBox::SnakeEyes { snake_eyes_box: dice_box } = &mut self.snake_eyes_box {
+                    dice_box.snake_eyes_set_dice_positions();
+                }
+                
                 return;
             }
         }

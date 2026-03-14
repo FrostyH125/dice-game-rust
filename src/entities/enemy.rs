@@ -60,7 +60,7 @@ pub enum Enemy {
     Snake { snake: Snake },
 }
 
-impl Enemy {
+impl Enemy { 
     fn get_mut_data(&mut self) -> &mut EnemyData {
         match self {
             Self::Snake { snake } => &mut snake.data
@@ -78,10 +78,6 @@ impl Enemy {
         self.get_mut_data().state = EnemyState::HitDelayBeforeWaitingAgain;
     }
 
-    pub fn new_snake(font: &Font) -> Self {
-        Self::Snake { snake: Snake::new(font) }
-    }
-    
 
     pub fn update(&mut self, input_state: &InputState, player: &Player, particle_system: &mut ParticleSystem, dt: f32) {
         match self {

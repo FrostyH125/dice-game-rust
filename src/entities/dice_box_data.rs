@@ -11,7 +11,7 @@ use crate::{
     LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         hand::Hand,
-    }, system::{input_handler::InputState, particle_system::ParticleSystem}
+    }, system::{info_hover::InfoHover, input_handler::InputState, particle_system::ParticleSystem}
 };
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
@@ -35,6 +35,7 @@ pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
 
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
+    pub info_hover: InfoHover,
     pub current_index_of_dice_just_tallied: Option<usize>,
     pub total_tally: i64,
     pub total_multi_for_this_tally: i64,
@@ -48,9 +49,10 @@ pub struct DiceBoxData {
 }
 
 impl DiceBoxData {
-    pub fn new(pos: Vector2, dice_collect_rect: Rectangle) -> Self {
+    pub fn new(pos: Vector2, dice_collect_rect: Rectangle, info_hover: InfoHover) -> Self {
         DiceBoxData {
             dice_in_box: Vec::new(),
+            info_hover,
             current_index_of_dice_just_tallied: None,
             total_tally: 0,
             total_multi_for_this_tally: 1,
@@ -81,6 +83,12 @@ impl DiceBoxData {
                 }
                 _ => (),
             }
+        }
+    }
+    
+    pub fn update_dice_for_enemy(&mut self, dt: f32) {
+        for dice in &mut self.dice_in_box {
+            dice.update_for_enemy(dt);
         }
     }
 
@@ -202,7 +210,7 @@ impl DiceBoxData {
         sprite.draw(d, pos, texture);
     }
 
-    pub fn update_dice(
+    pub fn handle_dragging_dice(
         &mut self,
         is_player_dragging_any_dice: &mut bool,
         hand: &mut Hand,

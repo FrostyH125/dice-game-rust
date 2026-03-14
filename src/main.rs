@@ -8,6 +8,7 @@ use raylib::prelude::*;
 use crate::{
     entities::{
         dice::DICE_WIDTH_HEIGHT,
+        enemies::snake::Snake,
         enemy::{Enemy, EnemyState},
         hand::DICE_Y_OFFSET,
         player::{Player, PlayerState},
@@ -28,17 +29,22 @@ pub enum GameState {
     Combat,
 }
 
+// things for after dice box refactor:
+// make sure snake is drawing and updating snake eyes info hover
+// make sure snake is updating dice for snake eyes
+// make sure player is updating and drawing all things for broadsword box
+
 // player attack animation and getting hit animation
 // snake animation + snake attack animation during tally delay
 
-// for dice returning to hand, make it come down from the center of the screen, 
+// for dice returning to hand, make it come down from the center of the screen,
 // itll be like dealing dice
 
 // hand smoke: out in a circle around the center of the dice, starts fast but slows down
 // dice box smoke, tall, fast column of rising smoke, starts out downward slightly but floats upward
 // i think this mimics being "consumed" in a sense a lot better
 
-// clean up data visualization, mostly for player, move it rightward and change the color, 
+// clean up data visualization, mostly for player, move it rightward and change the color,
 // maybe make it bigger, maybe turn some of those methods to general box_data functions for reusability, since
 // only the color changes
 
@@ -66,7 +72,7 @@ fn main() {
     let sprite_sheet = rl.load_texture(&thread, "SpriteSheet.png").unwrap();
     sprite_sheet.set_texture_filter(&thread, TextureFilter::TEXTURE_FILTER_POINT);
 
-    let mut player = Player::new();
+    let mut player = Player::new(&font);
     let mut confirm_button = Button::new(
         Rectangle::new(VIRTUAL_WIDTH / 2.0 + 2.0, VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
         Sprite::new(80.0, 16.0, 64.0, 32.0),
@@ -179,10 +185,10 @@ fn main() {
 
 fn get_random_enemy(font: &Font) -> Enemy {
     match random_range(0..1) {
-        0 => Enemy::new_snake(font),
+        0 => Enemy::Snake { snake: Snake::new(font) },
         _ => {
             println!("number out of range for spawning enemy");
-            Enemy::new_snake(font)
+            Enemy::Snake { snake: Snake::new(font) }
         }
     }
 }

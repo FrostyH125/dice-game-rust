@@ -23,7 +23,6 @@ const SNAKE_EYES_DAMAGE_DRAW_OFFSET: Vector2 = Vector2 { x: 40.0, y: -5.0 };
 
 pub struct SnakeEyes {
     pub data: DiceBoxData,
-    pub info_hover: InfoHover,
 }
 
 impl SnakeEyes {
@@ -37,27 +36,20 @@ impl SnakeEyes {
                     width: DICE_WIDTH_HEIGHT * 2.0,
                     height: DICE_WIDTH_HEIGHT,
                 },
-            ),
-            info_hover: InfoHover::new(
-                "Snake Eyes:
+                InfoHover::new(
+                    "Snake Eyes:
                 Deals 11 base damage when loaded with two dice of value 1",
-                Rectangle {
-                    x: pos.x,
-                    y: pos.y,
-                    width: SNAKE_EYES_DICE_BOX_SPRITE.src_rect.width,
-                    height: SNAKE_EYES_DICE_BOX_SPRITE.src_rect.height,
-                },
-                font,
-                5.0,
-                0.5,
+                    Rectangle {
+                        x: pos.x,
+                        y: pos.y,
+                        width: SNAKE_EYES_DICE_BOX_SPRITE.src_rect.width,
+                        height: SNAKE_EYES_DICE_BOX_SPRITE.src_rect.height,
+                    },
+                    font,
+                    5.0,
+                    0.5,
+                ),
             ),
-        }
-    }
-
-    pub fn update(&mut self, input: &InputState, dt: f32) {
-        self.info_hover.update(input, dt);
-        for dice in &mut self.data.dice_in_box {
-            dice.update_for_enemy(dt);
         }
     }
 
@@ -68,14 +60,13 @@ impl SnakeEyes {
             self.draw_snake_eyes_text(d, font);
             self.draw_damage(d, font);
             self.draw_dice_outlines(d, texture);
-        }        
-        
+        }
+
         self.snake_eyes_draw_dice(d, texture);
         self.draw_placeholder_dice(d, texture);
-        self.info_hover.draw(d, font, texture);
     }
 
-    pub fn tally_snake_eyes(&mut self) -> i64 {
+    pub fn tally_snake_eyes(&mut self) -> bool {
         let mut num_of_ones = 0;
 
         for dice in &self.data.dice_in_box {
@@ -85,9 +76,9 @@ impl SnakeEyes {
         }
 
         if num_of_ones >= 2 {
-            return 11;
+            return true;
         } else {
-            return 0;
+            return false;
         }
     }
 
@@ -95,7 +86,11 @@ impl SnakeEyes {
         let mut target_pos = self.data.pos + SNAKE_EYES_DICE_DRAW_START_OFFSET; //can only be 0, 1 or 2
         for i in 0..self.data.dice_in_box.len() {
             let old_pos = self.data.dice_in_box[i].pos;
-            self.data.dice_in_box[i].state = DiceState::Rearranging { old_pos, target_pos, should_roll_after: false };
+            self.data.dice_in_box[i].state = DiceState::Rearranging {
+                old_pos,
+                target_pos,
+                should_roll_after: false,
+            };
             target_pos.x -= DICE_WIDTH_HEIGHT;
         }
     }
@@ -123,7 +118,6 @@ impl SnakeEyes {
     }
 
     fn draw_damage(&self, d: &mut RaylibDrawHandle, font: &Font) {
-
         d.draw_text_ex(
             font,
             &format!("{} damage!", self.data.total_value_for_current_round),
@@ -135,7 +129,6 @@ impl SnakeEyes {
     }
 
     fn draw_dice_outlines(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-
         for i in 0..self.data.dice_in_box.len() {
             let dice = &self.data.dice_in_box[i];
             let sprite = dice.kind.outline_sprite();
