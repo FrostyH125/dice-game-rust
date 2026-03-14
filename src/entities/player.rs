@@ -47,9 +47,9 @@ pub enum PlayerState {
     StoppingDice,
     RerollingDice,
     ChoosingDice,
-    TallyingAttackTotal,
-    BeforeAttackDelay,
-    Attacking,
+    TallyingCurrentBox,
+    BeforeActingDelay,
+    Acting,
     EndTurnDelay,
     EndTurn,
     WaitingForEnemy,
@@ -58,10 +58,11 @@ pub enum PlayerState {
 }
 
 pub struct Player {
-    pub attack_box: DiceBox,
+    pub dice_boxes: Vec<DiceBox>,
     pub hand: Hand,
-    attack_power: i64,
+    power_of_current_action: i64,
     health: i64,
+    current_box: usize,
     walk_anim: SpriteAnimationInstance,
     thinking_anim: SpriteAnimationInstance,
     waiting_anim: SpriteAnimationInstance,
@@ -77,7 +78,7 @@ pub struct Player {
 impl Player {
     pub fn new(font: &Font) -> Self {
         Player {
-            attack_box: DiceBox::BroadSwordBox { broadsword_box: BroadSwordBox::new(font) },
+            dice_boxes: vec![DiceBox::BroadSwordBox { broadsword_box: BroadSwordBox::new(font) }],
             hand: Hand::new(std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect()),
             walk_anim: SpriteAnimationInstance::new(),
             thinking_anim: SpriteAnimationInstance::new(),
@@ -88,9 +89,10 @@ impl Player {
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
             hit_delay_timer: Timer::new(1.5),
-            attack_power: 0,
+            power_of_current_action: 0,
             is_player_dragging_dice: false,
             was_player_dragging_dice: false,
+            current_box: 0
         }
     }
 
@@ -110,9 +112,15 @@ impl Player {
 
         self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
 
-
-        self.attack_box.update_for_player(&mut self.is_player_dragging_dice, self.was_player_dragging_dice, &mut self.hand, input_state, dt);
-
+        for dice_box in &mut self.dice_boxes {
+            dice_box.update_for_player(
+                &mut self.is_player_dragging_dice,
+                self.was_player_dragging_dice,
+                &mut self.hand,
+                input_state,
+                dt,
+            );
+        }
         //logic pass
         match self.state {
             PlayerState::Walking => {
@@ -173,7 +181,7 @@ impl Player {
 
                 if confirm_button.is_pressed(input_state) {
                     self.thinking_anim.reset();
-                    self.state = PlayerState::TallyingAttackTotal;
+                    self.state = PlayerState::TallyingCurrentBox;
                     self.hand.emit_smoke_at_each_dice(particle_system);
                     confirm_button.deactivate();
                     reroll_button.deactivate();
@@ -188,33 +196,41 @@ impl Player {
                     confirm_button.reset();
                 }
             }
-            PlayerState::TallyingAttackTotal => {
+            PlayerState::TallyingCurrentBox => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
-                if self.attack_box.get_data().dice_in_box.is_empty() {
-                    self.state = PlayerState::EndTurn;
-                } else if self.attack_box.tally(dt) {
-                    self.state = PlayerState::BeforeAttackDelay;
+                if self.dice_boxes[self.current_box].get_data().dice_in_box.is_empty() {
+                    self.current_box += 1;
+                    if self.current_box > self.dice_boxes.len() - 1 {
+                        self.state = PlayerState::EndTurn;
+                    }
+                } else if self.dice_boxes[self.current_box].tally(dt) {
+                    self.state = PlayerState::BeforeActingDelay;
                 }
             }
-            PlayerState::BeforeAttackDelay => {
+            PlayerState::BeforeActingDelay => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
                 self.acting_timer.track(dt);
 
                 if self.acting_timer.is_done() {
                     self.acting_timer.reset();
-                    self.state = PlayerState::Attacking;
+                    self.state = PlayerState::Acting;
                 }
             }
-            PlayerState::Attacking => {
+            PlayerState::Acting => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
-                self.attack_power = self.attack_box.get_data().get_value();
+                self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
-                println!("dealt {} damage!", self.attack_power);
-
-                self.state = PlayerState::EndTurnDelay;
+                println!("did {} somethings!", self.power_of_current_action);
+                
+                self.current_box += 1;
+                if self.current_box > self.dice_boxes.len() - 1 {
+                    self.state = PlayerState::EndTurnDelay;
+                } else {
+                    self.state = PlayerState::TallyingCurrentBox;
+                }
             }
             PlayerState::EndTurnDelay => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
@@ -228,7 +244,10 @@ impl Player {
             }
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                self.attack_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
+                
+                for dice_box in &mut self.dice_boxes {
+                    dice_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
+                }
                 self.state = PlayerState::WaitingForEnemy;
             }
             PlayerState::WaitingForEnemy => {
@@ -256,22 +275,32 @@ impl Player {
     }
 
     pub fn reset(&mut self) {
-        self.attack_box.reset(&mut self.hand.dice);
+        
+        for dice_box in &mut self.dice_boxes {   
+            dice_box.reset(&mut self.hand.dice);
+        }
+        
         self.hand.reset_hand();
+        self.current_box = 0;
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self.state {
+            
             PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture),
             PlayerState::WaitingForEnemy => PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture),
             PlayerState::ChoosingDice => {
                 PLAYER_THINKING_ANIM.draw(&self.thinking_anim, d, self.pos, texture);
-                self.attack_box.draw(d, texture, font);
+                for dice_box in &mut self.dice_boxes {
+                    dice_box.draw(d, texture, font);
+                }
                 self.hand.draw(d, texture);
             }
             PlayerState::RerollingDice | PlayerState::RollingDice | PlayerState::StoppingDice => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
-                self.attack_box.draw(d, texture, font);
+                for dice_box in &mut self.dice_boxes {
+                    dice_box.draw(d, texture, font);
+                }
                 self.hand.draw(d, texture);
             }
             PlayerState::WaitingForDiceToMoveToHand => {
@@ -280,7 +309,9 @@ impl Player {
             }
             _ => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
-                self.attack_box.draw(d, texture, font);
+                for dice_box in &mut self.dice_boxes {
+                    dice_box.draw(d, texture, font);
+                }
             }
         }
 
