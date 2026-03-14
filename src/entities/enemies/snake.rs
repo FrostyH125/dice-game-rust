@@ -9,7 +9,7 @@ use crate::{
         hand::Hand,
         player::{Player, PlayerState},
     },
-    system::input_handler::InputState,
+    system::{input_handler::InputState, particle_system::ParticleSystem},
 };
 
 static SNAKE_SPRITE: Sprite = Sprite::new(144.0, 176.0, 32.0, 48.0);
@@ -51,7 +51,7 @@ impl Snake {
         }
     }
 
-    pub fn update(&mut self, input_state: &InputState, player: &Player, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, player: &Player, particle_system: &mut ParticleSystem, dt: f32) {
         self.hand.update_for_enemy(dt);
         self.snake_eyes_box.update(input_state, dt);
 
@@ -147,6 +147,8 @@ impl Snake {
                 if self.turn_end_timer.is_done() {
                     self.turn_end_timer.reset();
                     self.data.state = EnemyState::WaitingForPlayer;
+                    self.snake_eyes_box.data.emit_smoke_at_each_dice(particle_system);
+                    self.hand.emit_smoke_at_each_dice(particle_system);
                     self.snake_eyes_box.data.reset_box(&mut self.hand.dice);
                 }
             }

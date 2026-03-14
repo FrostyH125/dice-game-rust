@@ -16,6 +16,9 @@ use crate::{
 };
 use rand::random_range;
 
+pub static SMALL_DUST_SPRITE: Sprite = Sprite::new(0.0, 32.0, 1.0, 1.0);
+pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1.0, 32.0, 3.0, 3.0);
+
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
 
@@ -28,8 +31,12 @@ pub enum GameState {
 // player attack animation and getting hit animation
 // snake animation + snake attack animation during tally delay
 
-// particle system, sprite particle should have a 'sprite: &'static Sprite' field
-// make dice emit smoke particles when they disappear back to the hand
+// for dice returning to hand, make it come down from the center of the screen, 
+// itll be like dealing dice
+
+// hand smoke: out in a circle around the center of the dice, starts fast but slows down
+// dice box smoke, tall, fast column of rising smoke, starts out downward slightly but floats upward
+// i think this mimics being "consumed" in a sense a lot better
 
 // clean up data visualization, mostly for player, move it rightward and chnage the color
 
@@ -126,7 +133,7 @@ fn main() {
                 }
             }
             GameState::Combat => {
-                current_enemy.update(&input_state, &player, dt);
+                current_enemy.update(&input_state, &player, &mut particle_system, dt);
 
                 if current_enemy.get_data().state == EnemyState::Dead {
                     player.reset();

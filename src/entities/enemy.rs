@@ -1,6 +1,6 @@
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 use basic_raylib_core::system::timer::Timer;
-use crate::{entities::{enemies::snake::Snake, player::Player}, system::input_handler::InputState};
+use crate::{entities::{enemies::snake::Snake, player::Player}, system::{input_handler::InputState, particle_system::ParticleSystem}};
 
 #[derive(PartialEq)]
 pub enum EnemyState {
@@ -83,9 +83,9 @@ impl Enemy {
     }
     
 
-    pub fn update(&mut self, input_state: &InputState, player: &Player, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, player: &Player, particle_system: &mut ParticleSystem, dt: f32) {
         match self {
-            Self::Snake { snake } => snake.update(input_state, player, dt),
+            Self::Snake { snake } => snake.update(input_state, player, particle_system, dt),
         }
     }
 

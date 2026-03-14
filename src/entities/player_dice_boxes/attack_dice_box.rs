@@ -26,7 +26,7 @@ impl AttackDiceBox {
         
         //5.0, 50.0
         
-        let pos = Vector2 { x: 50.0, y: 200.0 };
+        let pos = Vector2 { x: 75.0, y: 50.0 };
 
         AttackDiceBox {
             data: DiceBoxData::new(

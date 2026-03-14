@@ -8,11 +8,10 @@ use raylib::{
 };
 
 use crate::{
-    entities::{
+    LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         hand::Hand,
-    },
-    system::{input_handler::InputState, particle_system::ParticleSystem},
+    }, system::{input_handler::InputState, particle_system::ParticleSystem}
 };
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
@@ -33,9 +32,6 @@ pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
     x: DICE_WIDTH_HEIGHT / 2.0,
     y: DICE_WIDTH_HEIGHT / 2.0,
 };
-
-pub static SMALL_DUST_SPRITE: Sprite = Sprite::new(0.0, 32.0, 1.0, 1.0);
-pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1.0, 32.0, 3.0, 3.0);
 
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,

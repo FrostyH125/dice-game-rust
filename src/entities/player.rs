@@ -186,8 +186,11 @@ impl Player {
                 }
 
                 if confirm_button.is_pressed(input_state) {
-                    self.state = PlayerState::TallyingAttackTotal;
                     self.thinking_anim.reset();
+                    self.state = PlayerState::TallyingAttackTotal;
+                    self.hand.emit_smoke_at_each_dice(particle_system);
+                    confirm_button.deactivate();
+                    reroll_button.deactivate();
                 }
             }
             PlayerState::RerollingDice => {
@@ -204,12 +207,8 @@ impl Player {
 
                 if self.attack_box.data.dice_in_box.is_empty() {
                     self.state = PlayerState::EndTurn;
-                    confirm_button.deactivate();
-                    reroll_button.deactivate();
                 } else if self.attack_box.data.tally_points(dt) {
                     self.state = PlayerState::BeforeAttackDelay;
-                    confirm_button.deactivate();
-                    reroll_button.deactivate();
                 }
             }
             PlayerState::BeforeAttackDelay => {
@@ -284,10 +283,18 @@ impl Player {
                 self.attack_box.draw(d, texture, font);
                 self.hand.draw(d, texture);
             }
-            _ => {
+            PlayerState::RerollingDice | PlayerState::RollingDice | PlayerState::StoppingDice => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
                 self.attack_box.draw(d, texture, font);
                 self.hand.draw(d, texture);
+            }
+            PlayerState::WaitingForDiceToMoveToHand => {
+                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
+                self.hand.draw(d, texture);
+            }
+            _ => {
+                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
+                self.attack_box.draw(d, texture, font);
             }
         }
 

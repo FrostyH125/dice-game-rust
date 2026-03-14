@@ -3,7 +3,7 @@ use basic_raylib_core::system::timer::Timer;
 use raylib::prelude::*;
 
 use super::super::{VIRTUAL_HEIGHT, VIRTUAL_WIDTH};
-use crate::{entities::dice::DiceState, system::input_handler::InputState};
+use crate::{LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::dice::DiceState, system::{input_handler::InputState, particle_system::ParticleSystem}};
 
 pub const DICE_Y_OFFSET: f32 = 72.0;
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
@@ -134,6 +134,35 @@ impl Hand {
         
         if let Some(dragged_dice) = dice_being_dragged {
             dragged_dice.draw(d, texture);
+        }
+    }
+    
+    pub fn emit_smoke_at_each_dice(&mut self, particle_system: &mut ParticleSystem) {
+        for dice in &mut self.dice {
+            let cycles_for_this_dice = rand::random_range(15..=25);
+
+            for _ in 0..=cycles_for_this_dice {
+                
+                let sprite = match rand::random_bool(0.5) {
+                    true => &SMALL_DUST_SPRITE,
+                    false => &LARGE_DUST_SPRITE,
+                };
+
+                let particle_pos_x = rand::random_range(dice.pos.x..=dice.pos.x + DICE_WIDTH_HEIGHT);
+                let particle_pos_y = rand::random_range(dice.pos.y + DICE_WIDTH_HEIGHT - 4.0..=dice.pos.y + DICE_WIDTH_HEIGHT);
+                let position = Vector2::new(particle_pos_x, particle_pos_y);
+
+                let velocity_y = rand::random_range(1.0..=15.0);
+                let velocity = Vector2::new(0.0, velocity_y);
+
+                let acceleration_x = rand::random_range(-5.0..=5.0);
+                let acceleration_y = rand::random_range(-60.0..=-40.0);
+                let acceleration = Vector2::new(acceleration_x, acceleration_y);
+                
+                let lifetime = rand::random_range(1.0..=2.0);
+
+                particle_system.emit(sprite, position, velocity, acceleration, lifetime);
+            }
         }
     }
 }
