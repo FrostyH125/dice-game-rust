@@ -38,7 +38,9 @@ pub enum GameState {
 // dice box smoke, tall, fast column of rising smoke, starts out downward slightly but floats upward
 // i think this mimics being "consumed" in a sense a lot better
 
-// clean up data visualization, mostly for player, move it rightward and chnage the color
+// clean up data visualization, mostly for player, move it rightward and change the color, 
+// maybe make it bigger, maybe turn some of those methods to general box_data functions for reusability, since
+// only the color changes
 
 // make player and enemy actually attack eachother for real
 
