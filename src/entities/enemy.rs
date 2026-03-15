@@ -1,6 +1,10 @@
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 use basic_raylib_core::system::timer::Timer;
-use crate::{entities::{enemies::snake::Snake, player::Player}, system::{input_handler::InputState, particle_system::ParticleSystem}};
+use crate::{VIRTUAL_HEIGHT, VIRTUAL_WIDTH, entities::{enemies::snake::Snake, player::Player}, system::{input_handler::InputState, particle_system::ParticleSystem}};
+
+
+pub const ENEMY_HAND_X_CENTER_CORD: f32 = VIRTUAL_WIDTH - 200.0;
+pub const ENEMY_HAND_Y_CORD: f32 = VIRTUAL_HEIGHT - 75.0;
 
 #[derive(PartialEq)]
 pub enum EnemyState {

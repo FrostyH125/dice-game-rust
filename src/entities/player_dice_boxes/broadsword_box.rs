@@ -25,7 +25,7 @@ impl BroadSwordBox {
     pub fn new(font: &Font) -> Self {
         //5.0, 50.0
 
-        let pos = Vector2 { x: 75.0, y: 50.0 };
+        let pos = Vector2 { x: 25.0, y: 50.0 };
 
         BroadSwordBox {
             data: DiceBoxData::new(

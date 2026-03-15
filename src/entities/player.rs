@@ -5,6 +5,7 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
+    PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, VIRTUAL_HEIGHT, VIRTUAL_WIDTH,
     entities::{
         dice::DiceState,
         player_dice_boxes::{broadsword_box::BroadSwordBox, dice_box::DiceBox},
@@ -79,11 +80,14 @@ impl Player {
     pub fn new(font: &Font) -> Self {
         Player {
             dice_boxes: vec![DiceBox::BroadSwordBox { broadsword_box: BroadSwordBox::new(font) }],
-            hand: Hand::new(std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect()),
+            hand: Hand::new(
+                std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect(),
+                Vector2::new(PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD),
+            ),
             walk_anim: SpriteAnimationInstance::new(),
             thinking_anim: SpriteAnimationInstance::new(),
             waiting_anim: SpriteAnimationInstance::new(),
-            pos: Vector2 { x: 74.0, y: 125.0 },
+            pos: Vector2 { x: 84.0, y: 125.0 },
             health: 100,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
@@ -92,7 +96,7 @@ impl Player {
             power_of_current_action: 0,
             is_player_dragging_dice: false,
             was_player_dragging_dice: false,
-            current_box: 0
+            current_box: 0,
         }
     }
 
@@ -224,7 +228,7 @@ impl Player {
                 self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
                 println!("did {} somethings!", self.power_of_current_action);
-                
+
                 self.current_box += 1;
                 if self.current_box > self.dice_boxes.len() - 1 {
                     self.state = PlayerState::EndTurnDelay;
@@ -244,7 +248,7 @@ impl Player {
             }
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                
+
                 for dice_box in &mut self.dice_boxes {
                     dice_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
                 }
@@ -275,18 +279,16 @@ impl Player {
     }
 
     pub fn reset(&mut self) {
-        
-        for dice_box in &mut self.dice_boxes {   
+        for dice_box in &mut self.dice_boxes {
             dice_box.reset(&mut self.hand.dice);
         }
-        
+
         self.hand.reset_hand();
         self.current_box = 0;
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self.state {
-            
             PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture),
             PlayerState::WaitingForEnemy => PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture),
             PlayerState::ChoosingDice => {

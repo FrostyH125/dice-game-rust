@@ -5,19 +5,22 @@ use raylib::prelude::*;
 use super::super::{VIRTUAL_HEIGHT, VIRTUAL_WIDTH};
 use crate::{LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::dice::DiceState, system::{input_handler::InputState, particle_system::ParticleSystem}};
 
-pub const DICE_Y_OFFSET: f32 = 72.0;
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
 
 pub struct Hand {
     pub dice: Vec<Dice>,
+    
+    // x pos represents center of hand, y pos represents top edge of hand
+    pos: Vector2,
     current_index_of_dice_stopping: usize,
     dice_stop_timer: Timer,
 }
 
 impl Hand {
-    pub fn new(dice: Vec<Dice>) -> Self {
+    pub fn new(dice: Vec<Dice>, pos: Vector2) -> Self {
         Hand {
             dice,
+            pos,
             current_index_of_dice_stopping: Default::default(),
             dice_stop_timer: Timer::new(1.0),
         }
@@ -55,8 +58,8 @@ impl Hand {
 
         let total_width = DICE_WIDTH_HEIGHT * num_of_dice as f32 + number_of_margins as f32 * HAND_MARGIN_BETWEEN_DICE;
 
-        let start_pos_x = VIRTUAL_WIDTH / 2.0 - total_width / 2.0 - 150.0;
-        let pos_y = VIRTUAL_HEIGHT - DICE_Y_OFFSET;
+        let start_pos_x = self.pos.x - total_width / 2.0;
+        let pos_y = self.pos.y;
         let mut pos_x = start_pos_x;
 
         for i in 0..num_of_dice {

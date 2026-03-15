@@ -4,7 +4,7 @@ use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Text
 use crate::{
     entities::{
         dice::{Dice, DiceKind, DiceState},
-        enemy::{EnemyData, EnemyState},
+        enemy::{ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData, EnemyState},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::{Player, PlayerState}, player_dice_boxes::dice_box::DiceBox,
@@ -41,7 +41,7 @@ impl Snake {
                 Dice::new(DiceKind::D4),
                 Dice::new(DiceKind::D4),
                 Dice::new(DiceKind::D4),
-            ]),
+            ], Vector2::new(ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD)),
             snake_eyes_box: DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(pos - Vector2::new(40.0, 0.0), font) },
             dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),

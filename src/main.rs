@@ -10,7 +10,6 @@ use crate::{
         dice::DICE_WIDTH_HEIGHT,
         enemies::snake::Snake,
         enemy::{Enemy, EnemyState},
-        hand::DICE_Y_OFFSET,
         player::{Player, PlayerState},
     },
     system::{button::Button, input_handler::InputState, particle_system::ParticleSystem},
@@ -22,6 +21,8 @@ pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1.0, 32.0, 3.0, 3.0);
 
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
+const PLAYER_UI_Y_BASE_CORD: f32 = VIRTUAL_HEIGHT - 75.0;
+const PLAYER_UI_X_CENTER_CORD: f32 = 100.0;
 
 #[derive(PartialEq)]
 pub enum GameState {
@@ -29,9 +30,8 @@ pub enum GameState {
     Combat,
 }
 
-// clean up positionings of hand and buttons. just add a pos const
-// then make the arrange_dice hand method to take in a position (actually maybe just make it a field) to center on
-// then, the player and enemy can both set their hand to be displayed anywhere
+// eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
+// will have to arrange dice boxes
 
 // player attack animation and getting hit animation
 // snake animation + snake attack animation during tally delay
@@ -73,7 +73,7 @@ fn main() {
 
     let mut player = Player::new(&font);
     let mut confirm_button = Button::new(
-        Rectangle::new(VIRTUAL_WIDTH / 2.0 + 2.0 - 150.0, VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
+        Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
         Sprite::new(80.0, 16.0, 64.0, 32.0),
         Sprite::new(80.0, 48.0, 64.0, 32.0),
         Sprite::new(80.0, 80.0, 64.0, 32.0),
@@ -82,8 +82,8 @@ fn main() {
     );
     let mut stop_button = Button::new(
         Rectangle::new(
-            VIRTUAL_WIDTH / 2.0 - 128.0 / 2.0 - 150.0,
-            VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
+            PLAYER_UI_X_CENTER_CORD - 128.0 / 2.0,
+            PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0,
             128.0,
             32.0,
         ),
@@ -95,8 +95,8 @@ fn main() {
     );
     let mut reroll_button = Button::new(
         Rectangle::new(
-            VIRTUAL_WIDTH / 2.0 - 64.0 - 2.0 - 150.0,
-            VIRTUAL_HEIGHT - DICE_Y_OFFSET + DICE_WIDTH_HEIGHT + 8.0,
+            PLAYER_UI_X_CENTER_CORD - 64.0 - 2.0,
+            PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0,
             64.0,
             32.0,
         ),
