@@ -30,18 +30,9 @@ pub enum GameState {
     Combat,
 }
 
-// eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
-// will have to arrange dice boxes
 
 // player attack animation and getting hit animation
 // snake animation + snake attack animation during tally delay
-
-// for dice returning to hand, make it come down from the center of the screen,
-// itll be like dealing dice
-
-// hand smoke: out in a circle around the center of the dice, starts fast but slows down
-// dice box smoke, tall, fast column of rising smoke, starts out downward slightly but floats upward
-// i think this mimics being "consumed" in a sense a lot better
 
 // clean up data visualization, mostly for player, move it rightward and change the color,
 // maybe make it bigger, maybe turn some of those methods to general box_data functions for reusability, since
@@ -49,6 +40,9 @@ pub enum GameState {
 
 // make player and enemy actually attack eachother for real
 
+// eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
+// will have to arrange dice boxes
+// 
 fn main() {
     let (mut rl, thread) =
         raylib::init().size(VIRTUAL_WIDTH as i32 * 3, VIRTUAL_HEIGHT as i32 * 3).title("Dice Game").build();

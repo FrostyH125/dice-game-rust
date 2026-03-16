@@ -8,30 +8,29 @@ use raylib::{
 };
 
 use crate::{
-    LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::{
+    LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, VIRTUAL_HEIGHT, VIRTUAL_WIDTH,
+    entities::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         hand::Hand,
-    }, system::{info_hover::InfoHover, input_handler::InputState, particle_system::ParticleSystem}
+    },
+    system::{info_hover::InfoHover, input_handler::InputState, particle_system::ParticleSystem},
 };
 
-pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2 { x: 0.0, y: 20.0 };
-pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2 { x: 52.0, y: -31.0 };
-pub const BASE_MULTI_OFFSET: Vector2 = Vector2 { x: 20.0, y: 7.0 };
+pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2::new(0.0, 20.0);
+pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2::new(52.0, -31.0);
+pub const BASE_MULTI_OFFSET: Vector2 = Vector2::new(20.0, 7.0);
+pub const DICE_CENTER_OF_SCREEN_POS: Vector2 =
+    Vector2::new(VIRTUAL_WIDTH / 2.0 - DICE_WIDTH_HEIGHT / 2.0, VIRTUAL_HEIGHT / 2.0 - DICE_WIDTH_HEIGHT / 2.0);
 
-pub const DICE_BORDER_OFFSET: Vector2 = Vector2 { x: -1.0, y: -1.0 };
-pub const DICE_BORDER_SIZE: Vector2 = Vector2 {
-    x: DICE_WIDTH_HEIGHT + 2.0,
-    y: DICE_WIDTH_HEIGHT + 2.0,
-};
+pub const DICE_BORDER_OFFSET: Vector2 = Vector2::new(-1.0, -1.0);
+pub const DICE_BORDER_SIZE: Vector2 = Vector2::new(DICE_WIDTH_HEIGHT + 2.0, DICE_WIDTH_HEIGHT + 2.0);
 
 pub const D6_DICE_BORDER_SPRITE: Sprite = Sprite::new(223.0, 15.0, 18.0, 18.0);
 pub const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191.0, 15.0, 18.0, 18.0);
 
-pub const DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 34.0, y: -15.0 };
-pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 = Vector2 {
-    x: DICE_WIDTH_HEIGHT / 2.0,
-    y: DICE_WIDTH_HEIGHT / 2.0,
-};
+pub const DICE_DRAW_START_OFFSET: Vector2 = Vector2::new(34.0, -15.0);
+pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 =
+    Vector2::new(DICE_WIDTH_HEIGHT / 2.0, DICE_WIDTH_HEIGHT / 2.0);
 
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
@@ -85,14 +84,20 @@ impl DiceBoxData {
             }
         }
     }
-    
+
     pub fn update_dice_for_enemy(&mut self, dt: f32) {
         for dice in &mut self.dice_in_box {
             dice.update_for_enemy(dt);
         }
     }
-    
-    pub fn update_dice_for_player(&mut self, is_player_dragging_any_dice: &mut bool, hand_stopped: bool, input_state: &InputState, dt: f32) {
+
+    pub fn update_dice_for_player(
+        &mut self,
+        is_player_dragging_any_dice: &mut bool,
+        hand_stopped: bool,
+        input_state: &InputState,
+        dt: f32,
+    ) {
         for i in 0..self.dice_in_box.len() {
             self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, hand_stopped, input_state, dt);
         }
@@ -143,7 +148,8 @@ impl DiceBoxData {
     }
 
     pub fn reset_box(&mut self, hand_dice: &mut Vec<Dice>) {
-        while let Some(dice) = self.dice_in_box.pop() {
+        while let Some(mut dice) = self.dice_in_box.pop() {
+            dice.pos = DICE_CENTER_OF_SCREEN_POS;
             hand_dice.push(dice);
         }
 
@@ -216,10 +222,7 @@ impl DiceBoxData {
         sprite.draw(d, pos, texture);
     }
 
-    pub fn handle_dragging_dice(
-        &mut self,
-        hand: &mut Hand,
-    ) {
+    pub fn handle_dragging_dice(&mut self, hand: &mut Hand) {
         for i in (0..self.dice_in_box.len()).rev() {
             if !self
                 .dice_collect_rect
@@ -238,14 +241,14 @@ impl DiceBoxData {
             let cycles_for_this_dice = rand::random_range(15..=25);
 
             for _ in 0..=cycles_for_this_dice {
-                
                 let sprite = match rand::random_bool(0.5) {
                     true => &SMALL_DUST_SPRITE,
                     false => &LARGE_DUST_SPRITE,
                 };
 
                 let particle_pos_x = rand::random_range(dice.pos.x..=dice.pos.x + DICE_WIDTH_HEIGHT);
-                let particle_pos_y = rand::random_range(dice.pos.y + DICE_WIDTH_HEIGHT - 4.0..=dice.pos.y + DICE_WIDTH_HEIGHT);
+                let particle_pos_y =
+                    rand::random_range(dice.pos.y + DICE_WIDTH_HEIGHT - 4.0..=dice.pos.y + DICE_WIDTH_HEIGHT);
                 let position = Vector2::new(particle_pos_x, particle_pos_y);
 
                 let velocity_y = rand::random_range(1.0..=15.0);
@@ -254,7 +257,7 @@ impl DiceBoxData {
                 let acceleration_x = rand::random_range(-5.0..=5.0);
                 let acceleration_y = rand::random_range(-60.0..=-40.0);
                 let acceleration = Vector2::new(acceleration_x, acceleration_y);
-                
+
                 let lifetime = rand::random_range(1.0..=2.0);
 
                 particle_system.emit(sprite, position, velocity, acceleration, lifetime);
