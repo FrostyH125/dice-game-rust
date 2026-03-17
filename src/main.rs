@@ -32,17 +32,19 @@ pub enum GameState {
 
 
 // player attack animation and getting hit animation
-// snake animation + snake attack animation during tally delay
+// snake animation + snake attack animation + snake getting hit animation
 
 // clean up data visualization, mostly for player, move it rightward and change the color,
 // maybe make it bigger, maybe turn some of those methods to general box_data functions for reusability, since
 // only the color changes
+ 
+// somehow make the updating of animations cleaner?
 
 // make player and enemy actually attack eachother for real
 
 // eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
 // will have to arrange dice boxes
-// 
+
 fn main() {
     let (mut rl, thread) =
         raylib::init().size(VIRTUAL_WIDTH as i32 * 3, VIRTUAL_HEIGHT as i32 * 3).title("Dice Game").build();

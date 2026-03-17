@@ -12,7 +12,7 @@ use crate::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box_data::{DICE_BORDER_OFFSET, DiceBoxData},
     },
-    system::{info_hover::InfoHover, input_handler::InputState},
+    system::{info_hover::InfoHover},
 };
 
 static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80.0, 160.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT);
