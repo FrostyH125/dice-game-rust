@@ -17,7 +17,7 @@ use crate::{
 };
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2::new(0.0, 20.0);
-pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2::new(52.0, -31.0);
+pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2::new(60.0, -31.0);
 pub const BASE_MULTI_OFFSET: Vector2 = Vector2::new(20.0, 7.0);
 pub const DICE_CENTER_OF_SCREEN_POS: Vector2 =
     Vector2::new(VIRTUAL_WIDTH / 2.0 - DICE_WIDTH_HEIGHT / 2.0, VIRTUAL_HEIGHT / 2.0 - DICE_WIDTH_HEIGHT / 2.0);

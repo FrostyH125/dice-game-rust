@@ -208,7 +208,7 @@ impl Snake {
                     self.data.state = EnemyState::StartTurn;
                 }
             }
-            EnemyState::HitDelayBeforeWaitingAgain => {
+            EnemyState::HitDelay => {
                 self.data.hit_timer.track(dt);
                 if self.data.hit_timer.is_done() {
                     if self.data.health <= 0 {
@@ -230,7 +230,7 @@ impl Snake {
                 SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, texture);
                 // hand not supposed to be drawn here, so thats why this exists
             }
-            EnemyState::HitDelayBeforeWaitingAgain => {
+            EnemyState::HitDelay => {
                 //draw hit here
             }
             EnemyState::BeforeActingDelay | EnemyState::Acting => {

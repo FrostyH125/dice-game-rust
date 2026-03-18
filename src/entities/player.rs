@@ -107,7 +107,7 @@ impl Player {
         stop_button: &mut Button,
         reroll_button: &mut Button,
         particle_system: &mut ParticleSystem,
-        enemy: &Enemy,
+        enemy: &mut Enemy,
         dt: f32,
     ) {
         if input_state.mouse_state == MouseState::Inactive {
@@ -227,7 +227,7 @@ impl Player {
 
                 self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
-                println!("did {} somethings!", self.power_of_current_action);
+                self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy);
 
                 self.current_box += 1;
                 if self.current_box > self.dice_boxes.len() - 1 {
@@ -322,7 +322,7 @@ impl Player {
         }
     }
 
-    pub fn hit(&mut self, damage: i64) {
+    pub fn take_hit(&mut self, damage: i64) {
         self.health -= damage;
         self.state = PlayerState::HitDelay;
     }

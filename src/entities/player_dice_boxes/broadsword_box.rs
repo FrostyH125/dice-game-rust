@@ -15,6 +15,7 @@ use crate::{
     system::info_hover::InfoHover,
 };
 
+const RESULTS_TEXT_COLOR: Color = Color { r: 208, g: 184, b: 184, a: 255 };
 static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
 
 pub struct BroadSwordBox {
@@ -99,9 +100,9 @@ impl BroadSwordBox {
                 tally * multi * base
             ),
             self.data.pos + TOTAL_VALUE_OFFSET,
-            5.0,
+            8.0,
             0.0,
-            Color::RED,
+            RESULTS_TEXT_COLOR,
         );
     }
 
@@ -116,9 +117,9 @@ impl BroadSwordBox {
             font,
             &format!("Streak {} !", streak),
             self.data.pos + CURRENT_STREAK_OFFSET,
-            5.0,
+            8.0,
             0.0,
-            Color { r: 208, g: 184, b: 184, a: 255 },
+            RESULTS_TEXT_COLOR,
         );
     }
 

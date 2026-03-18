@@ -42,7 +42,7 @@ pub enum EnemyState {
     Acting,
     
     // handles being hit, animation for being hit, other effects for being hit, before turning back to waiting for player
-    HitDelayBeforeWaitingAgain,
+    HitDelay,
     
     //the delay before fully ending turn for seamless, sensible transitions 
     EndTurnDelay,
@@ -79,7 +79,7 @@ impl Enemy {
     
     pub fn take_hit(&mut self, damage: i64) {
         self.get_mut_data().health -= damage;
-        self.get_mut_data().state = EnemyState::HitDelayBeforeWaitingAgain;
+        self.get_mut_data().state = EnemyState::HitDelay;
     }
 
 
