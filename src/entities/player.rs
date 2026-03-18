@@ -290,7 +290,12 @@ impl Player {
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self.state {
             PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture),
-            PlayerState::WaitingForEnemy => PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture),
+            PlayerState::WaitingForEnemy => {
+                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
+                for dice_box in &mut self.dice_boxes {
+                    dice_box.draw(d, texture, font);
+                }
+            }
             PlayerState::ChoosingDice => {
                 PLAYER_THINKING_ANIM.draw(&self.thinking_anim, d, self.pos, texture);
                 for dice_box in &mut self.dice_boxes {
@@ -298,15 +303,14 @@ impl Player {
                 }
                 self.hand.draw(d, texture);
             }
-            PlayerState::RerollingDice | PlayerState::RollingDice | PlayerState::StoppingDice => {
+            PlayerState::RerollingDice
+            | PlayerState::RollingDice
+            | PlayerState::StoppingDice
+            | PlayerState::WaitingForDiceToMoveToHand => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, texture, font);
                 }
-                self.hand.draw(d, texture);
-            }
-            PlayerState::WaitingForDiceToMoveToHand => {
-                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
                 self.hand.draw(d, texture);
             }
             _ => {
@@ -315,10 +319,6 @@ impl Player {
                     dice_box.draw(d, texture, font);
                 }
             }
-        }
-
-        if !self.is_player_dragging_dice {
-            return;
         }
     }
 

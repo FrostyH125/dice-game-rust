@@ -27,6 +27,17 @@ static SNAKE_IDLE_ANIM: AnimationData = AnimationData {
     should_loop: true,
 };
 
+static SNAKE_ATTACK_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(144.0, 224.0, 32.0, 48.0),
+        Sprite::new(176.0, 224.0, 32.0, 48.0),
+        Sprite::new(208.0, 224.0, 32.0, 48.0),
+        Sprite::new(240.0, 224.0, 32.0, 48.0),
+    ],
+    frame_duration: 0.25,
+    should_loop: true,
+};
+
 pub struct Snake {
     pub data: EnemyData,
     pub hand: Hand,
@@ -37,11 +48,12 @@ pub struct Snake {
     before_act_timer: Timer,
     turn_end_timer: Timer,
     idle_anim: SpriteAnimationInstance,
+    attack_anim: SpriteAnimationInstance,
 }
 
 impl Snake {
     pub fn new(font: &Font) -> Self {
-        let pos = Vector2 { x: 350.0, y: 150.0 };
+        let pos = Vector2 { x: 400.0, y: 150.0 };
 
         Snake {
             data: EnemyData {
@@ -68,6 +80,7 @@ impl Snake {
             before_act_timer: Timer::new(2.0),
             turn_end_timer: Timer::new(2.0),
             idle_anim: SpriteAnimationInstance::new(),
+            attack_anim: SpriteAnimationInstance::new(),
         }
     }
 
@@ -160,6 +173,7 @@ impl Snake {
                 self.data.state = EnemyState::BeforeActingDelay;
             }
             EnemyState::BeforeActingDelay => {
+                SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
                 self.before_act_timer.track(dt);
 
                 if self.before_act_timer.is_done() {
@@ -168,11 +182,13 @@ impl Snake {
                 }
             }
             EnemyState::Acting => {
+                SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
                 println!(
                     "Dealt {} Damage with snake eyes!",
                     self.snake_eyes_box.get_data().total_value_for_current_round
                 );
                 self.data.state = EnemyState::EndTurnDelay;
+                self.attack_anim.reset();
             }
             EnemyState::EndTurnDelay => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
@@ -217,8 +233,8 @@ impl Snake {
             EnemyState::HitDelayBeforeWaitingAgain => {
                 //draw hit here
             }
-            EnemyState::BeforeActingDelay => {
-                //draw attack here
+            EnemyState::BeforeActingDelay | EnemyState::Acting => {
+                SNAKE_ATTACK_ANIM.draw(&mut self.attack_anim, d, self.data.pos, texture);
             }
             _ => {
                 SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, texture);
