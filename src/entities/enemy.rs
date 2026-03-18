@@ -3,8 +3,8 @@ use basic_raylib_core::system::timer::Timer;
 use crate::{VIRTUAL_HEIGHT, VIRTUAL_WIDTH, entities::{enemies::snake::Snake, player::Player}, system::{input_handler::InputState, particle_system::ParticleSystem}};
 
 
-pub const ENEMY_HAND_X_CENTER_CORD: f32 = VIRTUAL_WIDTH - 200.0;
-pub const ENEMY_HAND_Y_CORD: f32 = VIRTUAL_HEIGHT - 75.0;
+pub const ENEMY_HAND_X_CENTER_CORD: f32 = VIRTUAL_WIDTH - 100.0;
+pub const ENEMY_HAND_Y_CORD: f32 = 195.0;
 
 #[derive(PartialEq)]
 pub enum EnemyState {
@@ -83,7 +83,7 @@ impl Enemy {
     }
 
 
-    pub fn update(&mut self, input_state: &InputState, player: &Player, particle_system: &mut ParticleSystem, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, player: &mut Player, particle_system: &mut ParticleSystem, dt: f32) {
         match self {
             Self::Snake { snake } => snake.update(input_state, player, particle_system, dt),
         }

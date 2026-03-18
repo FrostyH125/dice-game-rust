@@ -140,7 +140,7 @@ fn main() {
                 }
             }
             GameState::Combat => {
-                current_enemy.update(&input_state, &player, &mut particle_system, dt);
+                current_enemy.update(&input_state, &mut player, &mut particle_system, dt);
 
                 if current_enemy.get_data().state == EnemyState::Dead {
                     player.reset();
@@ -167,6 +167,7 @@ fn main() {
             PlayerState::WaitingForEnemy
             | PlayerState::StartTurn
             | PlayerState::WaitingForDiceToMoveToHand
+            | PlayerState::HitDelay
             | PlayerState::Walking => (),
             _ => {
                 confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);

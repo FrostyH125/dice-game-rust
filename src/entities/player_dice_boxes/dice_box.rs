@@ -2,8 +2,7 @@ use raylib::{prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
     entities::{
-        dice::Dice, dice_box_data::DiceBoxData, enemy::Enemy, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand,
-        player_dice_boxes::broadsword_box::BroadSwordBox,
+        dice::Dice, dice_box_data::DiceBoxData, enemy::Enemy, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::broadsword_box::BroadSwordBox
     },
     system::input_handler::InputState,
 };
@@ -78,6 +77,7 @@ impl DiceBox {
     }
     
     // player and enemy action differentiated so i can only have to pass in player or enemy, not both
+    // otherwise, if i wanted them in the same one, id make them take in an Option<&mut T> of both, which is just noisy
     pub fn player_action(&self, power: i64, enemy: &mut Enemy) {
         match self {
             Self::BroadSwordBox { .. } => Self::player_basic_attack(power, enemy),
@@ -86,11 +86,24 @@ impl DiceBox {
             ),
         }
     }
+    
+    pub fn enemy_action(&self, power: i64, player: &mut Player) {
+        match self {
+            Self::SnakeEyes { .. } => Self::enemy_basic_attack(power, player),
+            _ => panic!(
+                "'enemy_action()' not implemented for this dice box. Perhaps its a player box you're trying to use it with?"
+            ),
+        }
+    }
 
     // free method to use for dice boxes whos only gimmick is higher power, and no special abilities
     // otherwise, dice box structs are free to implement their own actions and act accordingly
     pub fn player_basic_attack(power: i64, enemy: &mut Enemy) {
         enemy.take_hit(power);
+    }
+    
+    pub fn enemy_basic_attack(power: i64, player: &mut Player) {
+        player.take_hit(power);
     }
 
     pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>) {

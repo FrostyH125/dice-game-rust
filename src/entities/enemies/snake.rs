@@ -5,15 +5,14 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
-    entities::{
+    VIRTUAL_WIDTH, entities::{
         dice::{Dice, DiceKind, DiceState},
         enemy::{ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData, EnemyState},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::{Player, PlayerState},
         player_dice_boxes::dice_box::DiceBox,
-    },
-    system::{input_handler::InputState, particle_system::ParticleSystem},
+    }, system::{input_handler::InputState, particle_system::ParticleSystem}
 };
 
 static SNAKE_IDLE_ANIM: AnimationData = AnimationData {
@@ -53,7 +52,7 @@ pub struct Snake {
 
 impl Snake {
     pub fn new(font: &Font) -> Self {
-        let pos = Vector2 { x: 400.0, y: 150.0 };
+        let pos = Vector2 { x: VIRTUAL_WIDTH - 116.0, y: 125.0 };
 
         Snake {
             data: EnemyData {
@@ -84,7 +83,7 @@ impl Snake {
         }
     }
 
-    pub fn update(&mut self, input_state: &InputState, player: &Player, particle_system: &mut ParticleSystem, dt: f32) {
+    pub fn update(&mut self, input_state: &InputState, player: &mut Player, particle_system: &mut ParticleSystem, dt: f32) {
         self.hand.update_for_enemy(dt);
         self.snake_eyes_box.update_for_enemy(input_state, dt);
 
@@ -183,10 +182,7 @@ impl Snake {
             }
             EnemyState::Acting => {
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
-                println!(
-                    "Dealt {} Damage with snake eyes!",
-                    self.snake_eyes_box.get_data().total_value_for_current_round
-                );
+                self.snake_eyes_box.enemy_action(self.snake_eyes_box.get_data().total_value_for_current_round, player);
                 self.data.state = EnemyState::EndTurnDelay;
                 self.attack_anim.reset();
             }
@@ -235,6 +231,7 @@ impl Snake {
             }
             EnemyState::BeforeActingDelay | EnemyState::Acting => {
                 SNAKE_ATTACK_ANIM.draw(&mut self.attack_anim, d, self.data.pos, texture);
+                self.hand.draw(d, texture);
             }
             _ => {
                 SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, texture);

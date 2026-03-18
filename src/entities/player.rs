@@ -228,7 +228,7 @@ impl Player {
                 self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
                 self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy);
-
+                
                 self.current_box += 1;
                 if self.current_box > self.dice_boxes.len() - 1 {
                     self.state = PlayerState::EndTurnDelay;
@@ -251,6 +251,7 @@ impl Player {
 
                 for dice_box in &mut self.dice_boxes {
                     dice_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
+                    dice_box.reset(&mut self.hand.dice);
                 }
                 self.state = PlayerState::WaitingForEnemy;
             }
@@ -292,6 +293,12 @@ impl Player {
             PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture),
             PlayerState::WaitingForEnemy => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
+                for dice_box in &mut self.dice_boxes {
+                    dice_box.draw(d, texture, font);
+                }
+            }
+            PlayerState::HitDelay => {
+                // draw hit anim here
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, texture, font);
                 }
