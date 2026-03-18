@@ -31,17 +31,8 @@ pub enum GameState {
 }
 
 // snake getting hit animation
- 
-// make snake (and therefore, enemies) hit player
-// probably an action method for dice_box where it takes in power and player
-// define 'enemy_basic_attack' method in dice_box for reuse just like player. itll make things easier 
-
 // player attack animation and getting hit animation
 
-// clean up data visualization, mostly for player, move it rightward and change the color,
-// maybe make it bigger, maybe turn some of those methods to general box_data functions for reusability, since
-// only the color changes
- 
 // somehow make the updating of animations cleaner? idk if necessary but it is repetetive
 
 // make player and enemy actually attack eachother for real

@@ -63,64 +63,10 @@ impl BroadSwordBox {
             Color::WHITE,
         );
         self.data.draw_dice(d, texture);
-        self.draw_base_multi(d, font);
-        self.draw_current_streak(d, font);
+        self.data.draw_base_multi(d, font, RESULTS_TEXT_COLOR);
+        self.data.draw_current_streak(d, font, RESULTS_TEXT_COLOR);
         self.data.draw_border_around_current_dice(d, texture);
-        self.draw_total_amounts(d, font);
-    }
-
-    fn draw_base_multi(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        d.draw_text_ex(
-            font,
-            &format!("base: x{}", self.data.base_multi_for_this_dice_box),
-            self.data.pos + BASE_MULTI_OFFSET,
-            3.0,
-            0.0,
-            Color { r: 208, g: 184, b: 184, a: 255 },
-        );
-    }
-
-    fn draw_total_amounts(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        let no_dice_counted_yet = self.data.current_index_of_dice_just_tallied == None;
-        if no_dice_counted_yet {
-            return;
-        }
-
-        let base = self.data.base_multi_for_this_dice_box;
-        let tally = self.data.total_tally;
-        let multi = self.data.total_multi_for_this_tally;
-
-        d.draw_text_ex(
-            font,
-            &format!(
-                "total:\n{} tally\n* {} multi \n* {} base\n= {} damage!",
-                tally,
-                multi,
-                base,
-                tally * multi * base
-            ),
-            self.data.pos + TOTAL_VALUE_OFFSET,
-            8.0,
-            0.0,
-            RESULTS_TEXT_COLOR,
-        );
-    }
-
-    fn draw_current_streak(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        let streak = self.data.current_streak;
-
-        if streak <= 1 {
-            return;
-        }
-
-        d.draw_text_ex(
-            font,
-            &format!("Streak {} !", streak),
-            self.data.pos + CURRENT_STREAK_OFFSET,
-            8.0,
-            0.0,
-            RESULTS_TEXT_COLOR,
-        );
+        self.data.draw_total_amounts(d, font, RESULTS_TEXT_COLOR);
     }
 
     pub fn reset(&mut self, hand_dice: &mut Vec<Dice>) {
