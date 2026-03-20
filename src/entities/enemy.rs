@@ -57,7 +57,6 @@ pub struct EnemyData {
     pub health: i64,
     pub pos: Vector2,
     pub state: EnemyState,
-    pub hit_timer: Timer,
 }
 
 pub enum Enemy {

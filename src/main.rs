@@ -19,6 +19,8 @@ use rand::random_range;
 pub static SMALL_DUST_SPRITE: Sprite = Sprite::new(0.0, 32.0, 1.0, 1.0);
 pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1.0, 32.0, 3.0, 3.0);
 
+pub const EMPTY_SPRITE: Sprite = Sprite::new(0.0, 0.0, 0.0, 0.0);
+
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
 const PLAYER_UI_Y_BASE_CORD: f32 = VIRTUAL_HEIGHT - 75.0;
@@ -30,12 +32,21 @@ pub enum GameState {
     Combat,
 }
 
+// in boxes where player and enemy may have animations
+// have a player attack draw function that draws a player attack anim defined in the box
+// have a enemy attack draw function that matches against the enemy type and then draws the animation
+// also defined in the box
+// make it return a bool so that you can finish every animation before moving on. animation length will be the deciding
+// factor for timing from then onward
+ 
+// have player action draw and enemy action draw methods in dice_box.rs that dispatch these methods on a per box basis 
+
 // snake getting hit animation
 // player attack animation and getting hit animation
 
 // somehow make the updating of animations cleaner? idk if necessary but it is repetetive
 
-// make player and enemy actually attack eachother for real
+// show player health and enemy health
 
 // eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
 // will have to arrange dice boxes

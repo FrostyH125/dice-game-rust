@@ -5,12 +5,9 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
-    PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
-    entities::{
-        dice::{DICE_WIDTH_HEIGHT, DiceState},
-        player_dice_boxes::{broadsword_box::BroadSwordBox, dice_box::DiceBox},
-    },
-    system::{input_handler::MouseState, particle_system::ParticleSystem},
+    EMPTY_SPRITE, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
+        dice::{DICE_WIDTH_HEIGHT, DiceState}, dice_box::DiceBox, player_dice_boxes::broadsword_box::BroadSwordBox
+    }, system::{input_handler::MouseState, particle_system::ParticleSystem}
 };
 use crate::{
     entities::{
@@ -48,7 +45,7 @@ static PLAYER_WAITING_ANIM: AnimationData = AnimationData {
 static PLAYER_HIT_ANIM: AnimationData = AnimationData {
     frames: &[
         Sprite::new(240.0, 128.0, 32.0, 48.0),
-        Sprite::new(0.0, 0.0, 0.0, 0.0),
+        EMPTY_SPRITE,
     ],
     frame_duration: HIT_DELAY_DURATION / 4.0,
     should_loop: true,
