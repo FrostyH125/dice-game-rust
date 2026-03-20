@@ -68,8 +68,4 @@ impl BroadSwordBox {
         self.data.draw_border_around_current_dice(d, texture);
         self.data.draw_total_amounts(d, font, RESULTS_TEXT_COLOR);
     }
-
-    pub fn reset(&mut self, hand_dice: &mut Vec<Dice>) {
-        self.data.reset_box(hand_dice);
-    }
 }

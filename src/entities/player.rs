@@ -5,9 +5,9 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
-    PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, VIRTUAL_HEIGHT, VIRTUAL_WIDTH,
+    PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
     entities::{
-        dice::DiceState,
+        dice::{DICE_WIDTH_HEIGHT, DiceState},
         player_dice_boxes::{broadsword_box::BroadSwordBox, dice_box::DiceBox},
     },
     system::{input_handler::MouseState, particle_system::ParticleSystem},
@@ -20,6 +20,12 @@ use crate::{
     },
     system::{button::Button, input_handler::InputState},
 };
+
+const HIT_DELAY_DURATION: f32 = 1.0;
+const PLAYER_WIDTH: f32 = 32.0;
+const PLAYER_HEIGHT: f32 = 48.0;
+const PLAYER_POS: Vector2 = Vector2::new(84.0, 125.0);
+const PLAYER_CENTER: Vector2 = Vector2::new(PLAYER_POS.x + PLAYER_WIDTH / 2.0, PLAYER_POS.y + PLAYER_HEIGHT / 2.0);
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
     frames: &[Sprite::new(80.0, 112.0, 32.0, 48.0), Sprite::new(112.0, 112.0, 32.0, 48.0)],
@@ -36,6 +42,15 @@ static PLAYER_THINKING_ANIM: AnimationData = AnimationData {
 static PLAYER_WAITING_ANIM: AnimationData = AnimationData {
     frames: &[Sprite::new(144.0, 128.0, 32.0, 48.0), Sprite::new(176.0, 128.0, 32.0, 48.0)],
     frame_duration: 0.5,
+    should_loop: true,
+};
+
+static PLAYER_HIT_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(240.0, 128.0, 32.0, 48.0),
+        Sprite::new(0.0, 0.0, 0.0, 0.0),
+    ],
+    frame_duration: HIT_DELAY_DURATION / 4.0,
     should_loop: true,
 };
 
@@ -67,6 +82,7 @@ pub struct Player {
     walk_anim: SpriteAnimationInstance,
     thinking_anim: SpriteAnimationInstance,
     waiting_anim: SpriteAnimationInstance,
+    hit_anim: SpriteAnimationInstance,
     pos: raylib::math::Vector2,
     acting_timer: Timer,
     end_turn_delay_timer: Timer,
@@ -87,12 +103,13 @@ impl Player {
             walk_anim: SpriteAnimationInstance::new(),
             thinking_anim: SpriteAnimationInstance::new(),
             waiting_anim: SpriteAnimationInstance::new(),
-            pos: Vector2 { x: 84.0, y: 125.0 },
+            hit_anim: SpriteAnimationInstance::new(),
+            pos: PLAYER_POS,
             health: 100,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
-            hit_delay_timer: Timer::new(1.5),
+            hit_delay_timer: Timer::new(HIT_DELAY_DURATION),
             power_of_current_action: 0,
             is_player_dragging_dice: false,
             was_player_dragging_dice: false,
@@ -228,7 +245,7 @@ impl Player {
                 self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
                 self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy);
-                
+
                 self.current_box += 1;
                 if self.current_box > self.dice_boxes.len() - 1 {
                     self.state = PlayerState::EndTurnDelay;
@@ -248,10 +265,9 @@ impl Player {
             }
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-
                 for dice_box in &mut self.dice_boxes {
                     dice_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
-                    dice_box.reset(&mut self.hand.dice);
+                    dice_box.reset(&mut self.hand.dice, PLAYER_CENTER + DICE_WIDTH_HEIGHT / 2.0);
                 }
                 self.state = PlayerState::WaitingForEnemy;
             }
@@ -265,12 +281,14 @@ impl Player {
             }
             PlayerState::HitDelay => {
                 self.hit_delay_timer.track(dt);
+                PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
                 if self.hit_delay_timer.is_done() {
                     if self.health <= 0 {
                         self.state = PlayerState::Dead
                     } else {
                         self.state = PlayerState::WaitingForEnemy;
                     }
+                    self.hit_anim.reset();
                 }
             }
             PlayerState::Dead => (),
@@ -281,7 +299,7 @@ impl Player {
 
     pub fn reset(&mut self) {
         for dice_box in &mut self.dice_boxes {
-            dice_box.reset(&mut self.hand.dice);
+            dice_box.reset(&mut self.hand.dice, PLAYER_CENTER + DICE_WIDTH_HEIGHT / 2.0);
         }
 
         self.hand.reset_hand();
@@ -298,7 +316,7 @@ impl Player {
                 }
             }
             PlayerState::HitDelay => {
-                // draw hit anim here
+                PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, texture);
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, texture, font);
                 }

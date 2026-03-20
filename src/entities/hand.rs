@@ -66,8 +66,19 @@ impl Hand {
             
             let old_pos = self.dice[i].pos;
             let target_pos = Vector2 { x: pos_x, y: pos_y };
+            
+            // this way, if the dice are already in the right spot (player didnt use any)
+            // it goes right to having the stop button because the player doesnt have to
+            // wait for any of the dice to stop
+            if self.dice[i].pos == target_pos {
+                match should_roll_after {
+                    true => self.dice[i].state = DiceState::Rolling,
+                    false => self.dice[i].state = DiceState::Stopped,
+                }
+            } else {
+                self.dice[i].state = DiceState::Rearranging { old_pos, target_pos, should_roll_after };   
+            }
 
-            self.dice[i].state = DiceState::Rearranging { old_pos, target_pos, should_roll_after };
             pos_x += DICE_WIDTH_HEIGHT + HAND_MARGIN_BETWEEN_DICE;
         }
     }

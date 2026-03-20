@@ -1,4 +1,4 @@
-use raylib::{prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
+use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
     entities::{
@@ -106,7 +106,7 @@ impl DiceBox {
         player.take_hit(power);
     }
 
-    pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>) {
-        self.get_mut_data().reset_box(dice_in_hand);
+    pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {
+        self.get_mut_data().reset_box(dice_in_hand, dice_origin_pos);
     }
 }

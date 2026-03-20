@@ -145,9 +145,13 @@ impl DiceBoxData {
         return false;
     }
 
-    pub fn reset_box(&mut self, hand_dice: &mut Vec<Dice>) {
+    pub fn reset_box(&mut self, hand_dice: &mut Vec<Dice>, dice_origin_pos: Vector2) {
         while let Some(mut dice) = self.dice_in_box.pop() {
-            dice.pos = DICE_CENTER_OF_SCREEN_POS;
+            
+            // this is so when the hand arranges itself, the dice will come
+            // from this spot. they wont be drawn or reset until the turn starts
+            // though
+            dice.pos = dice_origin_pos;
             hand_dice.push(dice);
         }
 
