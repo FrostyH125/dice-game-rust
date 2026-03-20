@@ -61,7 +61,8 @@ pub enum PlayerState {
     RerollingDice,
     ChoosingDice,
     TallyingCurrentBox,
-    BeforeActingDelay,
+    BeforeActingDelay, 
+    ActionVisual,
     Acting,
     EndTurnDelay,
     EndTurn,
@@ -80,6 +81,7 @@ pub struct Player {
     thinking_anim: SpriteAnimationInstance,
     waiting_anim: SpriteAnimationInstance,
     hit_anim: SpriteAnimationInstance,
+    acting_anim: SpriteAnimationInstance,
     pos: raylib::math::Vector2,
     acting_timer: Timer,
     end_turn_delay_timer: Timer,
@@ -101,6 +103,7 @@ impl Player {
             thinking_anim: SpriteAnimationInstance::new(),
             waiting_anim: SpriteAnimationInstance::new(),
             hit_anim: SpriteAnimationInstance::new(),
+            acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
             health: 100,
             state: PlayerState::Walking,
@@ -233,6 +236,12 @@ impl Player {
 
                 if self.acting_timer.is_done() {
                     self.acting_timer.reset();
+                    self.state = PlayerState::ActionVisual;
+                }
+            }
+            PlayerState::ActionVisual => {
+                if self.dice_boxes[self.current_box].player_update_action(&mut self.acting_anim, dt) { 
+                    self.acting_anim.reset();
                     self.state = PlayerState::Acting;
                 }
             }
@@ -242,8 +251,9 @@ impl Player {
                 self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
                 self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy);
-
+                
                 self.current_box += 1;
+                
                 if self.current_box > self.dice_boxes.len() - 1 {
                     self.state = PlayerState::EndTurnDelay;
                 } else {
@@ -334,6 +344,12 @@ impl Player {
                     dice_box.draw(d, texture, font);
                 }
                 self.hand.draw(d, texture);
+            }
+            PlayerState::ActionVisual => {
+                self.dice_boxes[self.current_box].player_draw_action(&mut self.acting_anim, d, self.pos, texture);
+                for dice_box in &mut self.dice_boxes {
+                    dice_box.draw(d, texture, font);
+                }
             }
             _ => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);

@@ -34,10 +34,9 @@ pub enum GameState {
 
 // in boxes where player and enemy may have animations
 // have a player attack draw function that draws a player attack anim defined in the box
-// have a enemy attack draw function that matches against the enemy type and then draws the animation
-// also defined in the box
 // make it return a bool so that you can finish every animation before moving on. animation length will be the deciding
 // factor for timing from then onward
+// enemies will hold and call their own actions because they are easier to determine at write time. each enemy will only support a small number of actions anyway
  
 // have player action draw and enemy action draw methods in dice_box.rs that dispatch these methods on a per box basis 
 

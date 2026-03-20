@@ -236,6 +236,7 @@ impl Snake {
                         self.data.state = EnemyState::WaitingForPlayer;
                     }
                     self.hit_anim.reset();
+                    self.hit_timer.reset();
                 }
             }
             EnemyState::Dead => (),

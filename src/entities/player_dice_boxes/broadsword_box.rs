@@ -1,4 +1,4 @@
-use basic_raylib_core::graphics::sprite::Sprite;
+use basic_raylib_core::graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance};
 use raylib::{
     color::Color,
     math::{Rectangle, Vector2},
@@ -17,6 +17,20 @@ use crate::{
 
 const RESULTS_TEXT_COLOR: Color = Color { r: 208, g: 184, b: 184, a: 255 };
 static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
+static PLAYER_ATTACK_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(0.0, 272.0, 32.0, 48.0),
+        Sprite::new(32.0, 272.0, 32.0, 48.0),
+        Sprite::new(64.0, 272.0, 32.0, 48.0),
+        Sprite::new(96.0, 272.0, 32.0, 48.0),
+        Sprite::new(128.0, 272.0, 32.0, 48.0),
+        Sprite::new(160.0, 272.0, 32.0, 48.0),
+        Sprite::new(192.0, 272.0, 32.0, 48.0),
+        Sprite::new(224.0, 272.0, 32.0, 48.0),
+    ],
+    frame_duration: 0.075,
+    should_loop: false,
+};
 
 pub struct BroadSwordBox {
     pub data: DiceBoxData,
@@ -67,5 +81,20 @@ impl BroadSwordBox {
         self.data.draw_current_streak(d, font, RESULTS_TEXT_COLOR);
         self.data.draw_border_around_current_dice(d, texture);
         self.data.draw_total_amounts(d, font, RESULTS_TEXT_COLOR);
+    }
+    
+    pub fn player_draw_attack(d: &mut RaylibDrawHandle, anim: &mut SpriteAnimationInstance, pos: Vector2, texture: &Texture2D) {
+        PLAYER_ATTACK_ANIM.draw(anim, d, pos, texture);
+    }
+    
+    pub fn player_update_attack(anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
+        PLAYER_ATTACK_ANIM.update(anim, dt);
+        
+        if !anim.can_play {
+            return true;
+        } else {
+            return false;
+        }
+        // return true if complete and reset, else return false
     }
 }

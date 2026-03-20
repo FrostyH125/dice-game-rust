@@ -1,3 +1,4 @@
+use basic_raylib_core::graphics::sprite_animation::SpriteAnimationInstance;
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
@@ -108,5 +109,19 @@ impl DiceBox {
 
     pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {
         self.get_mut_data().reset_box(dice_in_hand, dice_origin_pos);
+    }
+    
+    pub fn player_draw_action(&self, anim: &mut SpriteAnimationInstance, d: &mut RaylibDrawHandle, pos: Vector2, texture: &Texture2D) {
+        match self {
+            DiceBox::BroadSwordBox { .. } => BroadSwordBox::player_draw_attack(d, anim, pos, texture),
+            _ => panic!("not a player defined action. there is no animation for it")
+        }
+    }
+    
+    pub fn player_update_action(&self, anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
+        match self {
+            DiceBox::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
+            _ => panic!("not a player defined action. there is no animation for it")
+        }
     }
 }
