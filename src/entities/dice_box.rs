@@ -1,6 +1,16 @@
 use basic_raylib_core::graphics::sprite_animation::SpriteAnimationInstance;
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
+// ok heres the deal for anyone reading this code
+// this could absolutely be done in a more explicit, cleaner, less error prone way
+// however, i figured this was still a decent way to have dice boxes that can be
+// either implemented exclusively for player, exclusively for enemy, or for both
+// while still keeping their api in one spot and treating them as the same object
+// i think it would get messy quick if i had different enums for enemy dice boxes
+// and player dice boxes, when the same box implemented for either is actually the exact same, 
+// its just used slightly differently (updating to check for dice being picked up and 
+// dice boxes having different animations for player and enemy being the main differences)
+
 use crate::{
     entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy::Enemy, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::broadsword_box::BroadSwordBox
@@ -14,9 +24,6 @@ pub enum DiceBox {
 }
 
 impl DiceBox {
-    // really, the only updating a box needs is updating dice and updating the info hover
-    // this is the reason i just kind merged them into one thing
-    // every enemy and the player should be calling this every frame.
     pub fn update_for_player(
         &mut self,
         is_player_dragging_dice: &mut bool,
