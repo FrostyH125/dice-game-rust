@@ -49,15 +49,15 @@ impl DiceBox {
 
     pub fn tally(&mut self, dt: f32) -> bool {
         match self {
-            DiceBox::BroadSwordBox { broadsword_box } => broadsword_box.data.tally_points(dt),
-            DiceBox::SnakeEyes { snake_eyes_box } => snake_eyes_box.tally_snake_eyes(),
+            Self::BroadSwordBox { broadsword_box } => broadsword_box.data.tally_points(dt),
+            Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.tally_snake_eyes(),
         }
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self {
-            DiceBox::BroadSwordBox { broadsword_box } => broadsword_box.draw(d, texture, font),
-            DiceBox::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, texture, font),
+            Self::BroadSwordBox { broadsword_box } => broadsword_box.draw(d, texture, font),
+            Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, texture, font),
         }
 
         self.get_data().info_hover.draw(d, font, texture);
@@ -82,18 +82,14 @@ impl DiceBox {
     pub fn player_action(&self, power: i64, enemy: &mut Enemy) {
         match self {
             Self::BroadSwordBox { .. } => Self::player_basic_attack(power, enemy),
-            _ => panic!(
-                "'player_action()' not implemented for this dice box. Perhaps its an enemy box you're trying to use it with?"
-            ),
+            Self::SnakeEyes { .. } => unimplemented!(),
         }
     }
     
     pub fn enemy_action(&self, power: i64, player: &mut Player) {
         match self {
             Self::SnakeEyes { .. } => Self::enemy_basic_attack(power, player),
-            _ => panic!(
-                "'enemy_action()' not implemented for this dice box. Perhaps its a player box you're trying to use it with?"
-            ),
+            Self::BroadSwordBox { .. } => unimplemented!(),
         }
     }
 
@@ -113,15 +109,15 @@ impl DiceBox {
     
     pub fn player_draw_action(&self, anim: &mut SpriteAnimationInstance, d: &mut RaylibDrawHandle, pos: Vector2, texture: &Texture2D) {
         match self {
-            DiceBox::BroadSwordBox { .. } => BroadSwordBox::player_draw_attack(d, anim, pos, texture),
-            _ => panic!("not a player defined action. there is no animation for it")
+            Self::BroadSwordBox { .. } => BroadSwordBox::player_draw_attack(d, anim, pos, texture),
+            Self::SnakeEyes { .. } => unimplemented!()
         }
     }
     
     pub fn player_update_action(&self, anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
         match self {
-            DiceBox::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
-            _ => panic!("not a player defined action. there is no animation for it")
+            Self::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
+            Self::SnakeEyes { .. } => unimplemented!()
         }
     }
 }
