@@ -44,14 +44,13 @@ static PLAYER_WAITING_ANIM: AnimationData = AnimationData {
 
 static PLAYER_HIT_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(240.0, 128.0, 32.0, 48.0),
         EMPTY_SPRITE,
+        Sprite::new(240.0, 128.0, 32.0, 48.0),
     ],
     frame_duration: HIT_DELAY_DURATION / 4.0,
     should_loop: true,
 };
 
-#[derive(PartialEq)]
 pub enum PlayerState {
     Walking,
     StartTurn,
@@ -127,7 +126,7 @@ impl Player {
         enemy: &mut Enemy,
         dt: f32,
     ) {
-        if input_state.mouse_state == MouseState::Inactive {
+        if let MouseState::Inactive = input_state.mouse_state {
             self.is_player_dragging_dice = false;
         }
 
@@ -281,7 +280,7 @@ impl Player {
             PlayerState::WaitingForEnemy => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
-                if enemy.get_data().state == EnemyState::WaitingForPlayer {
+                if let EnemyState::WaitingForPlayer = enemy.get_data().state {
                     self.state = PlayerState::StartTurn;
                     self.waiting_anim.reset();
                 }

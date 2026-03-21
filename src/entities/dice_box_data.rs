@@ -2,7 +2,11 @@ use std::{i8, usize};
 
 use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
 use raylib::{
-    color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, text::Font, texture::Texture2D
+    color::Color,
+    math::{Rectangle, Vector2},
+    prelude::{RaylibDraw, RaylibDrawHandle},
+    text::Font,
+    texture::Texture2D,
 };
 
 use crate::{
@@ -147,7 +151,6 @@ impl DiceBoxData {
 
     pub fn reset_box(&mut self, hand_dice: &mut Vec<Dice>, dice_origin_pos: Vector2) {
         while let Some(mut dice) = self.dice_in_box.pop() {
-            
             // this is so when the hand arranges itself, the dice will come
             // from this spot. they wont be drawn or reset until the turn starts
             // though
@@ -167,9 +170,11 @@ impl DiceBoxData {
     pub fn set_dice_positions(&mut self) {
         let mut target_pos = self.pos + DICE_DRAW_START_OFFSET;
         let mut times_increased_x = 0;
-
+    
         for i in (0..self.dice_in_box.len()).rev() {
-            if self.dice_in_box[i].state != DiceState::Dragging {
+            if let DiceState::Dragging = self.dice_in_box[i].state {
+                // do nuthin
+            } else {
                 let old_pos = self.dice_in_box[i].pos;
                 self.dice_in_box[i].state = DiceState::Rearranging {
                     old_pos,
@@ -177,8 +182,10 @@ impl DiceBoxData {
                     should_roll_after: false,
                 };
             }
+            
             target_pos.x -= DICE_WIDTH_HEIGHT;
             times_increased_x += 1;
+    
             if times_increased_x == 3 {
                 target_pos.x += DICE_WIDTH_HEIGHT * 3.0;
                 target_pos.y -= DICE_WIDTH_HEIGHT;
@@ -229,7 +236,7 @@ impl DiceBoxData {
             if !self
                 .dice_collect_rect
                 .check_collision_point_rec(self.dice_in_box[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
-                && self.dice_in_box[i].state == DiceState::Stopped
+                && matches!(self.dice_in_box[i].state, DiceState::Stopped)
             {
                 let dice = self.dice_in_box.remove(i);
                 hand.dice.push(dice);
@@ -266,7 +273,7 @@ impl DiceBoxData {
             }
         }
     }
-    
+
     // these draw methods are the rebirth of my old api for this
     // now, theyre not required for implementing a new dice box, simply a tool
     // to use if the dice box doesnt deviate much and wants to use it
@@ -281,7 +288,7 @@ impl DiceBoxData {
             color,
         );
     }
-    
+
     pub fn draw_total_amounts(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
         let no_dice_counted_yet = self.current_index_of_dice_just_tallied == None;
         if no_dice_counted_yet {
@@ -307,7 +314,7 @@ impl DiceBoxData {
             color,
         );
     }
-    
+
     pub fn draw_current_streak(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
         let streak = self.current_streak;
 
@@ -315,13 +322,6 @@ impl DiceBoxData {
             return;
         }
 
-        d.draw_text_ex(
-            font,
-            &format!("Streak {} !", streak),
-            self.pos + CURRENT_STREAK_OFFSET,
-            8.0,
-            0.0,
-            color,
-        );
+        d.draw_text_ex(font, &format!("Streak {} !", streak), self.pos + CURRENT_STREAK_OFFSET, 8.0, 0.0, color);
     }
 }

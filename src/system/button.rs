@@ -35,26 +35,17 @@ impl Button {
 
     pub fn is_pressed(&mut self, input_state: &InputState) -> bool {
         let is_clicked =
-            self.rect.check_collision_point_rec(input_state.mouse_pos) && input_state.mouse_state == Clicked;
+            self.rect.check_collision_point_rec(input_state.mouse_pos) && matches!(input_state.mouse_state, Clicked);
 
-        if is_clicked {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    fn passive_is_pressed(&self, input_state: &InputState) -> bool {
-        let is_clicked =
-            self.rect.check_collision_point_rec(input_state.mouse_pos) && input_state.mouse_state == Clicked;
         return is_clicked;
     }
+
 
     pub fn draw_with_text(&mut self, d: &mut RaylibDrawHandle, sprite_sheet: &Texture2D, font: &Font, input_state: &InputState) {
         let pos = Vector2::new(self.rect.x, self.rect.y);
 
         match self.inactive {
-            true => match self.passive_is_pressed(input_state) {
+            true => match self.is_pressed(input_state) {
                 true => self.down_clicked_sprite.draw(d, pos, sprite_sheet),
                 false => self.down_sprite.draw(d, pos, sprite_sheet),
             },
@@ -71,18 +62,24 @@ impl Button {
         let pos = Vector2::new(self.rect.x, self.rect.y);
         
         match self.inactive {
-            true => match self.passive_is_pressed(input_state) {
+            true => match self.is_pressed(input_state) {
                 true => self.down_clicked_sprite.draw(d, pos, sprite_sheet),
                 false => self.down_sprite.draw(d, pos, sprite_sheet),
             },
             false => self.sprite.draw(d, pos, sprite_sheet)
         }
     }
-
+    
+    // purely for visual effect
     pub fn reset(&mut self) {
         self.inactive = false;
     }
     
+    // purely for visual effect
+    // really, this method was born out of having an annoying time dealing with the timing of the buttons
+    // much easier to just manually deactivate it from the code calling it, and then manually reset it, instead of having the 
+    // pressing method do two things at once and sometimes yield results you dont want (unfortunate, because it really
+    // should be simple, so maybe a skill issue)
     pub fn deactivate(&mut self) {
         self.inactive = true;
     }

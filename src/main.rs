@@ -26,7 +26,6 @@ const VIRTUAL_HEIGHT: f32 = 270.0;
 const PLAYER_UI_Y_BASE_CORD: f32 = VIRTUAL_HEIGHT - 75.0;
 const PLAYER_UI_X_CENTER_CORD: f32 = 100.0;
 
-#[derive(PartialEq)]
 pub enum GameState {
     Travelling,
     Combat,
@@ -142,8 +141,8 @@ fn main() {
             }
             GameState::Combat => {
                 current_enemy.update(&input_state, &mut player, &mut particle_system, dt);
-
-                if current_enemy.get_data().state == EnemyState::Dead {
+                
+                if let EnemyState::Dead = current_enemy.get_data().state  {
                     player.reset();
                     state = GameState::Travelling;
                     player.state = PlayerState::Walking;
@@ -156,8 +155,8 @@ fn main() {
 
         let mut cam_handle = handle.begin_mode2D(&camera);
         player.draw(&mut cam_handle, &sprite_sheet, &font);
-
-        if state == GameState::Combat {
+        
+        if let GameState::Combat = state {
             current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);
         }
 

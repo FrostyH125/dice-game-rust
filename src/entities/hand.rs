@@ -1,8 +1,6 @@
 use super::dice::{DICE_WIDTH_HEIGHT, Dice};
 use basic_raylib_core::system::timer::Timer;
 use raylib::prelude::*;
-
-use super::super::{VIRTUAL_HEIGHT, VIRTUAL_WIDTH};
 use crate::{LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::dice::DiceState, system::{input_handler::InputState, particle_system::ParticleSystem}};
 
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
@@ -122,7 +120,7 @@ impl Hand {
     
     pub fn all_dice_stopped_passive_check(&self) -> bool {
         for dice in &self.dice {
-            if dice.state == DiceState::Rolling {
+            if let DiceState::Rolling = dice.state {
                 return false;
             }
         }

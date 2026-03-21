@@ -4,7 +4,7 @@ use raylib::prelude::{MouseButton::*, *};
 
 static MOUSE_SPRITE: Sprite = Sprite::new(0.0, 16.0, 16.0, 16.0);
 
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum MouseState {
     Inactive,
     Clicked,
@@ -37,12 +37,11 @@ impl InputState {
 
         let held = rl.is_mouse_button_down(MOUSE_BUTTON_LEFT);
         
-        if !held && self.previous_mouse_state == Dragging {
-            self.stopped_dragging_this_frame = true;
-        } else {
-            self.stopped_dragging_this_frame = false;
-        }
-
+        self.stopped_dragging_this_frame = match self.previous_mouse_state {
+            MouseState::Dragging if !held => true,
+            _ => false
+        };
+        
         if !held && !clicked {
             self.mouse_state = Inactive;
         }

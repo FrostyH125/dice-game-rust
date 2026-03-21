@@ -47,7 +47,7 @@ static SNAKE_ATTACK_ANIM: AnimationData = AnimationData {
 };
 
 static SNAKE_HIT_ANIM: AnimationData = AnimationData {
-    frames: &[Sprite::new(272.0, 176.0, SNAKE_WIDTH, SNAKE_HEIGHT), EMPTY_SPRITE],
+    frames: &[EMPTY_SPRITE, Sprite::new(272.0, 176.0, SNAKE_WIDTH, SNAKE_HEIGHT)],
     frame_duration: HIT_TIME / 4.0,
     should_loop: true,
 };
@@ -121,11 +121,12 @@ impl Snake {
                 let mut should_move_on = false;
 
                 for dice in &self.hand.dice {
-                    if dice.state != DiceState::Rolling {
-                        continue;
+                    if let DiceState::Rolling = dice.state {
+                        should_move_on = true;
+                    } else {
+                        should_move_on = false;
                     }
 
-                    should_move_on = true;
                 }
 
                 if should_move_on {
@@ -222,7 +223,8 @@ impl Snake {
             }
             EnemyState::WaitingForPlayer => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
-                if player.state == PlayerState::WaitingForEnemy {
+
+                if let PlayerState::WaitingForEnemy = player.state {
                     self.data.state = EnemyState::StartTurn;
                 }
             }

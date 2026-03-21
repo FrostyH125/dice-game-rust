@@ -9,8 +9,7 @@ use raylib::{
 
 use crate::{
     entities::{
-        dice::Dice,
-        dice_box_data::{BASE_MULTI_OFFSET, CURRENT_STREAK_OFFSET, DiceBoxData, TOTAL_VALUE_OFFSET},
+        dice_box_data::DiceBoxData,
     },
     system::info_hover::InfoHover,
 };
@@ -24,6 +23,7 @@ static PLAYER_ATTACK_ANIM: AnimationData = AnimationData {
         Sprite::new(64.0, 272.0, 32.0, 48.0),
         Sprite::new(96.0, 272.0, 32.0, 48.0),
         Sprite::new(128.0, 272.0, 32.0, 48.0),
+        Sprite::new(160.0, 272.0, 32.0, 48.0),
         Sprite::new(160.0, 272.0, 32.0, 48.0),
         Sprite::new(192.0, 272.0, 32.0, 48.0),
         Sprite::new(224.0, 272.0, 32.0, 48.0),

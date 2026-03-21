@@ -41,7 +41,6 @@ pub static D4_ROLL_ANIM: AnimationData = AnimationData {
     should_loop: true,
 };
 
-#[derive(PartialEq, Copy, Clone)]
 pub enum DiceState {
     Stopped,
     Rearranging { old_pos: Vector2, target_pos: Vector2, should_roll_after: bool },
@@ -143,8 +142,8 @@ impl Dice {
                 if !hand_stopped {
                     return;
                 }
-
-                let mouse_dragging = input_state.mouse_state == MouseState::Dragging;
+                
+                let mouse_dragging = matches!(input_state.mouse_state, MouseState::Dragging);
                 let mouse_over_this = {
                     let rect = Rectangle {
                         x: self.pos.x,
@@ -185,7 +184,7 @@ impl Dice {
                 self.pos.y = smooth_lerp(old_pos.y, target_pos.y, current_time, total_duration)
             }
             DiceState::Dragging => {
-                if input_state.mouse_state == MouseState::Dragging {
+                if let MouseState::Dragging = input_state.mouse_state {
                     self.pos = input_state.mouse_pos
                         - Vector2 {
                             x: DICE_WIDTH_HEIGHT / 2.0,
