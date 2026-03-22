@@ -170,22 +170,24 @@ impl DiceBoxData {
     pub fn set_dice_positions(&mut self) {
         let mut target_pos = self.pos + DICE_DRAW_START_OFFSET;
         let mut times_increased_x = 0;
-    
+
         for i in (0..self.dice_in_box.len()).rev() {
-            if let DiceState::Dragging = self.dice_in_box[i].state {
-                // do nuthin
-            } else {
-                let old_pos = self.dice_in_box[i].pos;
-                self.dice_in_box[i].state = DiceState::Rearranging {
-                    old_pos,
-                    target_pos,
-                    should_roll_after: false,
-                };
+            match self.dice_in_box[i].state {
+                // do NOT reorganize this dice when its being dragged
+                DiceState::Dragging => (),
+                _ => {
+                    let old_pos = self.dice_in_box[i].pos;
+                    self.dice_in_box[i].state = DiceState::Rearranging {
+                        old_pos,
+                        target_pos,
+                        should_roll_after: false,
+                    };
+                }
             }
-            
+
             target_pos.x -= DICE_WIDTH_HEIGHT;
             times_increased_x += 1;
-    
+
             if times_increased_x == 3 {
                 target_pos.x += DICE_WIDTH_HEIGHT * 3.0;
                 target_pos.y -= DICE_WIDTH_HEIGHT;
