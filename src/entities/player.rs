@@ -2,7 +2,7 @@ use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
 };
-use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
+use raylib::{color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D};
 
 use crate::{
     EMPTY_SPRITE, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
@@ -23,6 +23,7 @@ const PLAYER_WIDTH: f32 = 32.0;
 const PLAYER_HEIGHT: f32 = 48.0;
 const PLAYER_POS: Vector2 = Vector2::new(84.0, 125.0);
 const PLAYER_CENTER: Vector2 = Vector2::new(PLAYER_POS.x + PLAYER_WIDTH / 2.0, PLAYER_POS.y + PLAYER_HEIGHT / 2.0);
+const PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE: f32 = 6.0;
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
     frames: &[Sprite::new(80.0, 112.0, 32.0, 48.0), Sprite::new(112.0, 112.0, 32.0, 48.0)],
@@ -126,6 +127,7 @@ impl Player {
         enemy: &mut Enemy,
         dt: f32,
     ) {
+        
         if let MouseState::Inactive = input_state.mouse_state {
             self.is_player_dragging_dice = false;
         }
@@ -141,7 +143,7 @@ impl Player {
                 dt,
             );
         }
-        //logic pass
+        
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
@@ -314,7 +316,9 @@ impl Player {
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self.state {
-            PlayerState::Walking => PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture),
+            PlayerState::Walking => {
+                PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture);
+            },
             PlayerState::WaitingForEnemy => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
                 for dice_box in &mut self.dice_boxes {
@@ -357,10 +361,39 @@ impl Player {
                 }
             }
         }
+        
+        // don't draw the health if you're walking
+        if let PlayerState::Walking = self.state {
+            return;
+        }
+        
+        let health_str = &format!("HP: {}", self.health);
+        let font_size = 10.0;
+        let spacing = 0.5;
+        let size_of_str = font.measure_text(health_str, font_size, spacing);
+        let self_width = 32.0;
+        let self_height = 48.0;
+        
+        d.draw_text_ex(
+            font,
+            health_str,
+            self.pos + Vector2::new(
+                self_width / 2.0 - size_of_str.x / 2.0,
+                self_height + PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE,
+            ),
+            font_size,
+            spacing,
+            Color::WHITE,
+        );
+        
     }
 
     pub fn take_hit(&mut self, damage: i64) {
         self.health -= damage;
-        self.state = PlayerState::HitDelay;
+        if self.health <= 0 {
+            self.state = PlayerState::Dead;
+        } else {
+            self.state = PlayerState::HitDelay;
+        }
     }
 }

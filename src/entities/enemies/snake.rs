@@ -74,6 +74,8 @@ impl Snake {
                 health: 100,
                 pos: SNAKE_POS,
                 state: EnemyState::WaitingForPlayer,
+                width: 32.0,
+                height: 48.0
             },
             hand: Hand::new(
                 vec![
