@@ -16,47 +16,50 @@ pub const ENEMY_HAND_Y_CORD: f32 = 195.0;
 pub const ENEMY_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE: f32 = 6.0;
 
 pub enum EnemyState {
-    // reset hands and boxes
+    ///reset hands and boxes
     StartTurn,
 
-    // waits for hand to recieve all dice physically before continuing
+    ///waits for hand to recieve all dice physically before continuing
     WaitingForDiceToReturnToHand,
 
-    // exists only to smoothly transition from start turn to
-    // actually letting the dice stop. Should have a timer, and
-    // once the timer goes off, put all the hands to start stopping
-    // their dice
+    ///exists only to smoothly transition from start turn to
+    ///actually letting the dice stop. Should have a timer, and
+    ///once the timer goes off, put all the hands to start stopping
+    ///their dice
     StartDiceStopDelayTime,
 
-    // waits for the dice to be stopped
+    ///waits for the dice to be stopped
     StoppingDice,
 
-    // once the hand is stopped, chooses to either choose dice based on the
-    // roll (mostly important for special condition boxes), or go straight to
-    // ending the turn
+    ///once the hand is stopped, chooses to either choose dice based on the
+    ///roll, or go straight to ending the turn
     EvaluateRoll,
 
-    // actually chooses which dice to add to their box
+    ///actually chooses which dice to add to their box
     ChoosingDice,
 
-    // some transition time between choosing the final die, and tallying
+    ///some transition time between choosing the final die, and tallying
     BeforeTallyDelay,
-
+    
+    /// can either be tallying on by one like in the player boxes or tally all at once based on a condition like snake eyes
     TallyingTotal,
-
-    BeforeActingDelay, // used for special visuals depending on the action
-
+    
+    ///for the animation of the action
+    BeforeActingDelay,
+    
+    ///handles the actual acting logic (should only be one frame long)
     Acting,
 
-    // handles being hit, animation for being hit, other effects for being hit, before turning back to waiting for player
+    ///handles being hit, animation for being hit, other effects for being hit, before turning back to waiting for player
     HitDelay,
 
-    //the delay before fully ending turn for seamless, sensible transitions
+    ///the delay before fully ending turn for seamless, sensible transitions
     EndTurnDelay,
 
-    // should be a simple check to see if player is waiting for enemy, and then
-    // if so, start turn
+    ///should be a simple check to see if player is waiting for enemy, and then
+    ///if so, start turn
     WaitingForPlayer,
+    
     Dead,
 }
 

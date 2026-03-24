@@ -9,7 +9,6 @@ pub struct Particle {
     pub velocity: Vector2,
     pub acceleration: Vector2,
     pub lifetime: f32,
-    pub is_active: bool,
 }
 
 impl Particle {
@@ -20,7 +19,6 @@ impl Particle {
             velocity: Default::default(),
             acceleration: Default::default(),
             lifetime: Default::default(),
-            is_active: false,
         }
     }
 }
