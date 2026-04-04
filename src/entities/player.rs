@@ -2,12 +2,22 @@ use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
 };
-use raylib::{color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D};
+use raylib::{
+    color::Color,
+    math::Vector2,
+    prelude::{RaylibDraw, RaylibDrawHandle},
+    text::{Font, RaylibFont},
+    texture::Texture2D,
+};
 
 use crate::{
-    EMPTY_SPRITE, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
-        dice::{DICE_WIDTH_HEIGHT, DiceState}, dice_box::DiceBox, player_dice_boxes::broadsword_box::BroadSwordBox
-    }, system::{input_handler::MouseState, particle_system::ParticleSystem}
+    EMPTY_SPRITE, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
+    entities::{
+        dice::{DICE_WIDTH_HEIGHT, DiceState},
+        dice_box::DiceBox,
+        player_dice_boxes::broadsword_box::BroadSwordBox,
+    },
+    system::{input_handler::MouseState, particle_system::ParticleSystem},
 };
 use crate::{
     entities::{
@@ -44,10 +54,7 @@ static PLAYER_WAITING_ANIM: AnimationData = AnimationData {
 };
 
 static PLAYER_HIT_ANIM: AnimationData = AnimationData {
-    frames: &[
-        EMPTY_SPRITE,
-        Sprite::new(240.0, 128.0, 32.0, 48.0),
-    ],
+    frames: &[EMPTY_SPRITE, Sprite::new(240.0, 128.0, 32.0, 48.0)],
     frame_duration: HIT_DELAY_DURATION / 4.0,
     should_loop: true,
 };
@@ -61,7 +68,7 @@ pub enum PlayerState {
     RerollingDice,
     ChoosingDice,
     TallyingCurrentBox,
-    BeforeActingDelay, 
+    BeforeActingDelay,
     ActionVisual,
     Acting,
     EndTurnDelay,
@@ -127,7 +134,6 @@ impl Player {
         enemy: &mut Enemy,
         dt: f32,
     ) {
-        
         if let MouseState::Inactive = input_state.mouse_state {
             self.is_player_dragging_dice = false;
         }
@@ -143,7 +149,7 @@ impl Player {
                 dt,
             );
         }
-        
+
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
@@ -241,7 +247,7 @@ impl Player {
                 }
             }
             PlayerState::ActionVisual => {
-                if self.dice_boxes[self.current_box].player_update_action(&mut self.acting_anim, dt) { 
+                if self.dice_boxes[self.current_box].player_update_action(&mut self.acting_anim, dt) {
                     self.acting_anim.reset();
                     self.state = PlayerState::Acting;
                 }
@@ -252,9 +258,9 @@ impl Player {
                 self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
                 self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy);
-                
+
                 self.current_box += 1;
-                
+
                 if self.current_box > self.dice_boxes.len() - 1 {
                     self.state = PlayerState::EndTurnDelay;
                 } else {
@@ -318,7 +324,7 @@ impl Player {
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture);
-            },
+            }
             PlayerState::WaitingForEnemy => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
                 for dice_box in &mut self.dice_boxes {
@@ -361,31 +367,31 @@ impl Player {
                 }
             }
         }
-        
+
         // don't draw the health if you're walking
         if let PlayerState::Walking = self.state {
             return;
         }
-        
+
         let health_str = &format!("HP: {}", self.health);
         let font_size = 10.0;
         let spacing = 0.5;
         let size_of_str = font.measure_text(health_str, font_size, spacing);
         let self_width = 32.0;
         let self_height = 48.0;
-        
+
         d.draw_text_ex(
             font,
             health_str,
-            self.pos + Vector2::new(
-                self_width / 2.0 - size_of_str.x / 2.0,
-                self_height + PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE,
-            ),
+            self.pos
+                + Vector2::new(
+                    self_width / 2.0 - size_of_str.x / 2.0,
+                    self_height + PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE,
+                ),
             font_size,
             spacing,
             Color::WHITE,
         );
-        
     }
 
     pub fn take_hit(&mut self, damage: i64) {
@@ -394,6 +400,36 @@ impl Player {
             self.state = PlayerState::Dead;
         } else {
             self.state = PlayerState::HitDelay;
+        }
+    }
+
+    pub fn place_boxes(&mut self) {
+        let num_of_boxes = self.dice_boxes.len();
+        let half_player_width = 32.0 / 2.0;
+        let margin = 5.0;
+        let dice_box_height = 16.0;
+
+        let bottom_layer_y = self.pos.y - margin - dice_box_height;
+        let top_layer_y = bottom_layer_y - margin - dice_box_height;
+
+        // need to modify this as number of boxes moves from 1 to 4
+        match num_of_boxes {
+            1 => {
+                // set the only box's position
+                let box_data = self.dice_boxes[0].get_mut_data();
+                let half_dice_box_width = box_data.width / 2.0;
+                let pos_x = self.pos.x + half_player_width - half_dice_box_width;
+                let pos_y = bottom_layer_y;
+                box_data.pos = Vector2::new(pos_x, pos_y);
+            }
+            2 => {
+                let box_one_data = self.dice_boxes[0].get_mut_data();
+                let first_box_width = box_one_data.width;
+                box_one_data.pos = Vector2::new((self.pos.x - first_box_width) - margin, bottom_layer_y);
+
+                let box_two_data = self.dice_boxes[1].get_mut_data();
+                box_two_data.pos = Vector2::new(self.pos.x + 32.0 + margin, bottom_layer_y);
+            }
         }
     }
 }

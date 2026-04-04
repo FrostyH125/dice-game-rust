@@ -30,6 +30,8 @@ impl SnakeEyes {
         SnakeEyes {
             data: DiceBoxData::new(
                 pos,
+                38.0,
+                16.0,
                 Rectangle {
                     x: pos.x + 2.0,
                     y: pos.y - DICE_WIDTH_HEIGHT,

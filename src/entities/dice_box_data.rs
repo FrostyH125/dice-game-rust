@@ -43,6 +43,8 @@ pub struct DiceBoxData {
     pub base_multi_for_this_dice_box: i64,
     pub total_value_for_current_round: i64,
     pub pos: Vector2,
+    pub width: f32,
+    pub height: f32,
     pub dice_collect_rect: Rectangle,
     pub timer_for_tallying_dice: Timer,
     pub previous_dice_value: i8,
@@ -50,7 +52,7 @@ pub struct DiceBoxData {
 }
 
 impl DiceBoxData {
-    pub fn new(pos: Vector2, dice_collect_rect: Rectangle, info_hover: InfoHover) -> Self {
+    pub fn new(pos: Vector2, width: f32, height: f32, dice_collect_rect: Rectangle, info_hover: InfoHover) -> Self {
         DiceBoxData {
             dice_in_box: Vec::new(),
             info_hover,
@@ -61,6 +63,8 @@ impl DiceBoxData {
             total_value_for_current_round: 0,
             pos,
             dice_collect_rect,
+            width,
+            height,
             timer_for_tallying_dice: Timer::new(1.5),
             previous_dice_value: i8::MAX,
             current_streak: 1,

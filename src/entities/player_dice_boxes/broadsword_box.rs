@@ -45,6 +45,8 @@ impl BroadSwordBox {
         BroadSwordBox {
             data: DiceBoxData::new(
                 pos,
+                52.0,
+                16.0,
                 Rectangle {
                     x: pos.x + 2.0,
                     y: pos.y - 31.0,
