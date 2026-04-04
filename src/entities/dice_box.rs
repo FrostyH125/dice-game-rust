@@ -1,5 +1,10 @@
 use basic_raylib_core::graphics::sprite_animation::SpriteAnimationInstance;
-use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
+use raylib::{
+    math::{Rectangle, Vector2},
+    prelude::RaylibDrawHandle,
+    text::Font,
+    texture::Texture2D,
+};
 
 // ok heres the deal for anyone reading this code
 // this could absolutely be done in a more explicit, cleaner, less error prone way
@@ -7,13 +12,14 @@ use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Text
 // either implemented exclusively for player, exclusively for enemy, or for both
 // while still keeping their api in one spot and treating them as the same object
 // i think it would get messy quick if i had different enums for enemy dice boxes
-// and player dice boxes, when the same box implemented for either is actually the exact same, 
-// its just used slightly differently (updating to check for dice being picked up and 
+// and player dice boxes, when the same box implemented for either is actually the exact same,
+// its just used slightly differently (updating to check for dice being picked up and
 // dice boxes having different animations for player and enemy being the main differences)
 
 use crate::{
     entities::{
-        dice::Dice, dice_box_data::DiceBoxData, enemy::Enemy, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::broadsword_box::BroadSwordBox
+        dice::Dice, dice_box_data::DiceBoxData, enemy::Enemy, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand,
+        player::Player, player_dice_boxes::broadsword_box::BroadSwordBox,
     },
     system::input_handler::InputState,
 };
@@ -83,7 +89,7 @@ impl DiceBox {
             Self::SnakeEyes { snake_eyes_box: dice_box } => &mut dice_box.data,
         }
     }
-    
+
     // player and enemy action differentiated so i can only have to pass in player or enemy, not both
     // otherwise, if i wanted them in the same one, id make them take in an Option<&mut T> of both, which is just noisy
     pub fn player_action(&self, power: i64, enemy: &mut Enemy) {
@@ -92,7 +98,7 @@ impl DiceBox {
             Self::SnakeEyes { .. } => unimplemented!(),
         }
     }
-    
+
     pub fn enemy_action(&self, power: i64, player: &mut Player) {
         match self {
             Self::SnakeEyes { .. } => Self::enemy_basic_attack(power, player),
@@ -105,7 +111,7 @@ impl DiceBox {
     pub fn player_basic_attack(power: i64, enemy: &mut Enemy) {
         enemy.take_hit(power);
     }
-    
+
     pub fn enemy_basic_attack(power: i64, player: &mut Player) {
         player.take_hit(power);
     }
@@ -113,18 +119,40 @@ impl DiceBox {
     pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {
         self.get_mut_data().reset_box(dice_in_hand, dice_origin_pos);
     }
-    
-    pub fn player_draw_action(&self, anim: &mut SpriteAnimationInstance, d: &mut RaylibDrawHandle, pos: Vector2, texture: &Texture2D) {
+
+    pub fn player_draw_action(
+        &self,
+        anim: &mut SpriteAnimationInstance,
+        d: &mut RaylibDrawHandle,
+        pos: Vector2,
+        texture: &Texture2D,
+    ) {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_draw_attack(d, anim, pos, texture),
-            Self::SnakeEyes { .. } => unimplemented!()
+            Self::SnakeEyes { .. } => unimplemented!(),
         }
     }
-    
+
     pub fn player_update_action(&self, anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
-            Self::SnakeEyes { .. } => unimplemented!()
+            Self::SnakeEyes { .. } => unimplemented!(),
         }
+    }
+
+    pub fn place(&mut self, pos: Vector2) {
+        let data = self.get_mut_data();
+        let dice_collect_rect_offset_x = data.dice_collect_rect.x - pos.x;
+        let dice_collect_rect_offset_y = data.dice_collect_rect.y - pos.y;
+
+        data.pos = pos;
+        data.dice_collect_rect = Rectangle {
+            x: pos.x + dice_collect_rect_offset_x,
+            y: pos.y + dice_collect_rect_offset_y,
+            width: data.dice_collect_rect.width,
+            height: data.dice_collect_rect.height,
+        };
+        data.info_hover.activation_rect =
+            Rectangle::new(pos.x, pos.y, data.info_hover.activation_rect.width, data.info_hover.activation_rect.height);
     }
 }

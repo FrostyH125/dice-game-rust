@@ -31,7 +31,12 @@ pub enum GameState {
     Combat,
 }
 
-// show player health and enemy health
+// player has a box placing algorithm that
+// if 1 box, places them directly above player, centered
+// if 2 boxes, places them on directly above player on either side, with the empty space in the middle
+// if 3 boxes, places 2 boxes in the same arrangement as in the 2 box condition, except one box height higher, 
+// and then places the 3rd in the exact same spot as the 1 box arrangement
+// if 4 boxes, places both rows of boxes in same arrangement as in the 2 box condition, stacked on top of eachother
 
 // eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
 // will have to arrange dice boxes

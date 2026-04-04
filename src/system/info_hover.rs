@@ -33,7 +33,7 @@ pub struct InfoHover {
     spacing: f32,
     text_width: f32,
     text_height: f32,
-    activation_rect: Rectangle,
+    pub activation_rect: Rectangle,
     inner_rect: Rectangle,
     activation_timer: Timer,
 }
