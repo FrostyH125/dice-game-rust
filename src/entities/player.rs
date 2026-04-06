@@ -3,11 +3,7 @@ use basic_raylib_core::{
     system::timer::Timer,
 };
 use raylib::{
-    color::Color,
-    math::Vector2,
-    prelude::{RaylibDraw, RaylibDrawHandle},
-    text::{Font, RaylibFont},
-    texture::Texture2D,
+    color::Color, ffi::rlSetUniformSampler, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D
 };
 
 use crate::{
@@ -99,9 +95,9 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(font: &Font) -> Self {
+    pub fn new() -> Self {
         Player {
-            dice_boxes: vec![DiceBox::BroadSwordBox { broadsword_box: BroadSwordBox::new(font) }],
+            dice_boxes: Vec::new(),
             hand: Hand::new(
                 std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect(),
                 Vector2::new(PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD),
@@ -402,6 +398,11 @@ impl Player {
             self.state = PlayerState::HitDelay;
         }
     }
+    
+    pub fn add_box(&mut self, dice_box: DiceBox) {
+        self.dice_boxes.push(dice_box);
+        self.place_boxes();
+    }
 
     pub fn place_boxes(&mut self) {
         let num_of_boxes = self.dice_boxes.len();
@@ -413,9 +414,9 @@ impl Player {
         let top_layer_y = bottom_layer_y - margin - dice_box_height;
 
         // need to modify this as number of boxes moves from 1 to 4
+        // eventually number of boxes may be 5+, but we will cross that bridge when we get there
         match num_of_boxes {
             1 => {
-                // set the only box's position
                 let box_data = self.dice_boxes[0].get_mut_data();
                 let half_dice_box_width = box_data.width / 2.0;
                 let pos_x = self.pos.x + half_player_width - half_dice_box_width;
@@ -428,8 +429,42 @@ impl Player {
                 box_one_data.pos = Vector2::new((self.pos.x - first_box_width) - margin, bottom_layer_y);
 
                 let box_two_data = self.dice_boxes[1].get_mut_data();
-                box_two_data.pos = Vector2::new(self.pos.x + 32.0 + margin, bottom_layer_y);
+                box_two_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, bottom_layer_y);
+            } 
+            3 => {
+                let box_one_data = self.dice_boxes[0].get_mut_data();
+                let first_box_width = box_one_data.width;
+                box_one_data.pos = Vector2::new((self.pos.x - first_box_width) - margin, top_layer_y);
+                
+                let box_two_data = self.dice_boxes[1].get_mut_data();
+                box_two_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, top_layer_y);
+                
+                let box_three_data = self.dice_boxes[2].get_mut_data();
+                let half_dice_box_width = box_three_data.width / 2.0;
+                let box_three_pos_x = self.pos.x + half_player_width - half_dice_box_width;
+                let box_three_pos_y = bottom_layer_y;
+                box_three_data.pos = Vector2::new(box_three_pos_x, box_three_pos_y);
             }
+            4 => {
+                let box_one_data = self.dice_boxes[0].get_mut_data();
+                let first_box_width = box_one_data.width;
+                box_one_data.pos = Vector2::new((self.pos.x - first_box_width) - margin, top_layer_y);
+                
+                let box_two_data = self.dice_boxes[1].get_mut_data();
+                box_two_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, top_layer_y);
+                
+                let box_three_data = self.dice_boxes[2].get_mut_data();
+                let third_box_width = box_three_data.width;
+                box_three_data.pos = Vector2::new((self.pos.x - third_box_width) - margin, bottom_layer_y);
+                
+                let box_four_data = self.dice_boxes[3].get_mut_data();
+                box_four_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, bottom_layer_y);
+            }
+            _ => unimplemented!("function player.place_boxes() not implemented for {} boxes", num_of_boxes)
+        }
+        
+        for dice_box in &mut self.dice_boxes {
+            dice_box.adjust_collect_rect_pos_for_current_pos();
         }
     }
 }

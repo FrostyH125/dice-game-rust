@@ -7,10 +7,7 @@ use raylib::prelude::*;
 
 use crate::{
     entities::{
-        dice::DICE_WIDTH_HEIGHT,
-        enemies::snake::Snake,
-        enemy::{Enemy, EnemyState},
-        player::{Player, PlayerState},
+        dice::DICE_WIDTH_HEIGHT, dice_box::DiceBox, enemies::snake::Snake, enemy::{Enemy, EnemyState}, player::{Player, PlayerState}, player_dice_boxes::broadsword_box::BroadSwordBox
     },
     system::{button::Button, input_handler::InputState, particle_system::ParticleSystem},
 };
@@ -31,12 +28,7 @@ pub enum GameState {
     Combat,
 }
 
-// player has a box placing algorithm that
-// if 1 box, places them directly above player, centered
-// if 2 boxes, places them on directly above player on either side, with the empty space in the middle
-// if 3 boxes, places 2 boxes in the same arrangement as in the 2 box condition, except one box height higher, 
-// and then places the 3rd in the exact same spot as the 1 box arrangement
-// if 4 boxes, places both rows of boxes in same arrangement as in the 2 box condition, stacked on top of eachother
+// enemy.place_boxes(), acts basically same as player except needs to account for enemy width
 
 // eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
 // will have to arrange dice boxes
@@ -63,7 +55,9 @@ fn main() {
     let sprite_sheet = rl.load_texture(&thread, "SpriteSheet.png").unwrap();
     sprite_sheet.set_texture_filter(&thread, TextureFilter::TEXTURE_FILTER_POINT);
 
-    let mut player = Player::new(&font);
+    let mut player = Player::new();
+    player.add_box(DiceBox::BroadSwordBox { broadsword_box: BroadSwordBox::new(&font)});
+    
     let mut confirm_button = Button::new(
         Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
         Sprite::new(80.0, 16.0, 64.0, 32.0),

@@ -49,6 +49,8 @@ pub struct DiceBoxData {
     pub timer_for_tallying_dice: Timer,
     pub previous_dice_value: i8,
     pub current_streak: i8,
+    pub collect_rect_x_offset: f32,
+    pub collect_rect_y_offset: f32,
 }
 
 impl DiceBoxData {
@@ -68,6 +70,8 @@ impl DiceBoxData {
             timer_for_tallying_dice: Timer::new(1.5),
             previous_dice_value: i8::MAX,
             current_streak: 1,
+            collect_rect_x_offset: dice_collect_rect.x - pos.x,
+            collect_rect_y_offset: dice_collect_rect.y - pos.y,
         }
     }
 }

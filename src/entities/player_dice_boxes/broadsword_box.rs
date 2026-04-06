@@ -41,6 +41,8 @@ impl BroadSwordBox {
         //5.0, 50.0
 
         let pos = Vector2 { x: 25.0, y: 50.0 };
+        let collect_rect_offset_x = 2.0;
+        let collect_rect_offset_y = -31.0;
 
         BroadSwordBox {
             data: DiceBoxData::new(
@@ -48,8 +50,8 @@ impl BroadSwordBox {
                 52.0,
                 16.0,
                 Rectangle {
-                    x: pos.x + 2.0,
-                    y: pos.y - 31.0,
+                    x: pos.x + collect_rect_offset_x,
+                    y: pos.y + collect_rect_offset_y,
                     width: 48.0,
                     height: 32.0,
                 },
