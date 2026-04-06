@@ -1,6 +1,6 @@
 use crate::{
     VIRTUAL_WIDTH,
-    entities::{enemies::snake::Snake, player::Player},
+    entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player},
     system::{input_handler::InputState, particle_system::ParticleSystem},
 };
 use raylib::{
@@ -108,6 +108,33 @@ impl Enemy {
     ) {
         match self {
             Self::Snake { snake } => snake.update(input_state, player, particle_system, dt),
+        }
+    }
+    
+    pub fn place_boxes(&mut self) {
+        
+        let margin = 5.0;
+        let dice_box_height = 16.0;
+        let self_width = self.get_data().width;
+        let self_pos = self.get_data().pos;
+        
+        let mut boxes: Vec<&mut DiceBox> = match self {
+            Self::Snake { snake } => vec![&mut snake.snake_eyes_box],
+        };
+        
+        let num_of_boxes = boxes.len();
+        
+        match num_of_boxes {
+            1 => {
+                let self_half_width = self_width / 2.0;
+                
+                let box_data = boxes[0].get_mut_data();
+                let half_dice_box_width = box_data.width / 2.0;
+                let box_x_pos = self_pos.x + self_half_width - half_dice_box_width;
+                let box_y_pos = self_pos.y - margin - dice_box_height;
+                box_data.pos = Vector2::new(box_x_pos, box_y_pos);
+            }
+            _ => unimplemented!("place_boxes(enemy) not implemented for {} boxes", num_of_boxes)
         }
     }
 

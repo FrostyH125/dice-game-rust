@@ -460,7 +460,7 @@ impl Player {
                 let box_four_data = self.dice_boxes[3].get_mut_data();
                 box_four_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, bottom_layer_y);
             }
-            _ => unimplemented!("function player.place_boxes() not implemented for {} boxes", num_of_boxes)
+            _ => unimplemented!("place_boxes(player) not implemented for {} boxes", num_of_boxes)
         }
         
         for dice_box in &mut self.dice_boxes {

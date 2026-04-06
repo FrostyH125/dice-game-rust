@@ -170,11 +170,15 @@ fn main() {
 }
 
 fn get_random_enemy(font: &Font) -> Enemy {
-    match random_range(0..1) {
+    let mut enemy = match random_range(0..1) {
         0 => Enemy::Snake { snake: Snake::new(font) },
         _ => {
             println!("number out of range for spawning enemy");
             Enemy::Snake { snake: Snake::new(font) }
         }
-    }
+    };
+    
+    enemy.place_boxes();
+    
+    return enemy;
 }
