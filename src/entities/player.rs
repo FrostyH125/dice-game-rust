@@ -356,6 +356,9 @@ impl Player {
                     dice_box.draw(d, texture, font);
                 }
             }
+            PlayerState::Dead => {
+                
+            }
             _ => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
                 for dice_box in &mut self.dice_boxes {

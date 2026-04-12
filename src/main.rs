@@ -26,9 +26,10 @@ const PLAYER_UI_X_CENTER_CORD: f32 = 100.0;
 pub enum GameState {
     Travelling,
     Combat,
+    GameOver,
 }
 
-// decide what should happen when player dies and when the enemy dies
+// impl gameover state
 
 fn main() {
     let (mut rl, thread) =
@@ -93,7 +94,7 @@ fn main() {
     let mut current_enemy = get_random_enemy(&font);
 
     let mut particle_system = ParticleSystem::new();
-
+    
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
@@ -126,11 +127,18 @@ fn main() {
             GameState::Combat => {
                 current_enemy.update(&input_state, &mut player, &mut particle_system, dt);
                 
+                if rl.is_key_pressed(KeyboardKey::KEY_A) {
+                    player.take_hit(100);
+                }
+                
                 if let EnemyState::Dead = current_enemy.get_data().state  {
                     player.reset();
                     state = GameState::Travelling;
                     player.state = PlayerState::Walking;
                 }
+            }
+            GameState::GameOver => {
+                todo!("Draw game over text here, add a replay button, and a quit button")
             }
         }
 
@@ -152,6 +160,7 @@ fn main() {
             | PlayerState::StartTurn
             | PlayerState::WaitingForDiceToMoveToHand
             | PlayerState::HitDelay
+            | PlayerState::Dead
             | PlayerState::Walking => (),
             _ => {
                 confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
