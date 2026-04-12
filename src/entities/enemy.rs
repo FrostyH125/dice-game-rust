@@ -139,22 +139,22 @@ impl Enemy {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        let pos = self.get_data().pos;
-        let health = self.get_data().health;
-        let health_str = &format!("HP: {}", health);
-        let font_size = 10.0;
-        let spacing = 0.5;
-        let size_of_str = font.measure_text(health_str, font_size, spacing);
-
+        
         match self {
             Self::Snake { snake } => snake.draw(d, texture, font),
         }
+        
+        let pos = self.get_data().pos;
+        let font_size = 10.0;
+        let spacing = 0.5;
+        let health_str = &format!("HP: {}", self.get_data().health);
+        let size_of_health_str = font.measure_text(health_str, font_size, spacing);
 
         d.draw_text_ex(
             font,
             health_str,
             pos + Vector2::new(
-                self.get_data().width / 2.0 - size_of_str.x / 2.0,
+                self.get_data().width / 2.0 - size_of_health_str.x / 2.0,
                 self.get_data().height + ENEMY_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE,
             ),
             font_size,

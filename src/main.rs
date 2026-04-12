@@ -28,10 +28,7 @@ pub enum GameState {
     Combat,
 }
 
-// enemy.place_boxes(), acts basically same as player except needs to account for enemy width
-
-// eventually broadsword box will need to take in a pos to place, and when more dice boxes, player
-// will have to arrange dice boxes
+// decide what should happen when player dies and when the enemy dies
 
 fn main() {
     let (mut rl, thread) =
