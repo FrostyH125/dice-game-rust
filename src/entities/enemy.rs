@@ -92,11 +92,7 @@ impl Enemy {
 
     pub fn take_hit(&mut self, damage: i64) {
         self.get_mut_data().health -= damage;
-        if self.get_data().health <= 0 {
-            self.get_mut_data().state = EnemyState::Dead;
-        } else {
-            self.get_mut_data().state = EnemyState::HitDelay;
-        }
+        self.get_mut_data().state = EnemyState::HitDelay;
     }
 
     pub fn update(

@@ -120,6 +120,7 @@ fn main() {
 
                     state = GameState::Combat;
                     player.state = PlayerState::StartTurn;
+                    next_enemy_timer.reset();
                 }
             }
             GameState::Combat => {

@@ -392,11 +392,7 @@ impl Player {
 
     pub fn take_hit(&mut self, damage: i64) {
         self.health -= damage;
-        if self.health <= 0 {
-            self.state = PlayerState::Dead;
-        } else {
-            self.state = PlayerState::HitDelay;
-        }
+        self.state = PlayerState::HitDelay;
     }
     
     pub fn add_box(&mut self, dice_box: DiceBox) {
