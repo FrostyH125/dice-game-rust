@@ -49,6 +49,8 @@ impl InputState {
         if clicked {
             self.mouse_state = Clicked;
             self.click_pos = self.mouse_pos;
+        } else {
+            self.mouse_state = Inactive;
         }
 
         let dx = self.mouse_pos.x - self.click_pos.x;

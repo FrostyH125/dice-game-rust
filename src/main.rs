@@ -9,7 +9,7 @@ use crate::{
     entities::{
         dice::DICE_WIDTH_HEIGHT, dice_box::DiceBox, enemies::snake::Snake, enemy::{Enemy, EnemyState}, player::{Player, PlayerState}, player_dice_boxes::broadsword_box::BroadSwordBox
     },
-    system::{button::Button, input_handler::InputState, particle_system::ParticleSystem},
+    system::{button::Button, dialogue_system::{Dialogue, DialogueSystem}, input_handler::InputState, particle_system::ParticleSystem},
 };
 use rand::random_range;
 
@@ -30,6 +30,7 @@ pub enum GameState {
 }
 
 // impl gameover state
+// combine dialogue system, particle system, and input state as a GlobalState struct
 
 fn main() {
     let (mut rl, thread) =
@@ -95,6 +96,9 @@ fn main() {
 
     let mut particle_system = ParticleSystem::new();
     
+    let mut dialogue_system = DialogueSystem::new();
+    dialogue_system.add_dialogue(Dialogue { text_blocks: vec![String::from("this is test dialogue"), String::from("I added a second one just to test"), String::from("blah blah blah")] });
+    
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
@@ -109,6 +113,7 @@ fn main() {
             dt,
         );
         particle_system.update(dt);
+        dialogue_system.update(&input_state);
 
         match state {
             GameState::Travelling => {
@@ -172,6 +177,7 @@ fn main() {
         }
 
         particle_system.draw(&mut cam_handle, &sprite_sheet);
+        dialogue_system.draw(&mut cam_handle);
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
     }
 }
