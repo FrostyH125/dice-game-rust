@@ -3,7 +3,7 @@ use basic_raylib_core::{
     system::timer::Timer,
 };
 use raylib::{
-    color::Color, ffi::rlSetUniformSampler, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D
+    color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D
 };
 
 use crate::{
@@ -11,7 +11,6 @@ use crate::{
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::DiceBox,
-        player_dice_boxes::broadsword_box::BroadSwordBox,
     },
     system::{input_handler::MouseState, particle_system::ParticleSystem},
 };

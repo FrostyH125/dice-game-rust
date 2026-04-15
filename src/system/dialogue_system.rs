@@ -1,4 +1,5 @@
-use raylib::{color::Color, math::Rectangle, prelude::{RaylibDraw, RaylibDrawHandle}};
+use basic_raylib_core::utils::string_utils::wrap_string;
+use raylib::{color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, text::Font};
 
 use crate::system::input_handler::{InputState, MouseState};
 
@@ -32,17 +33,19 @@ impl DialogueSystem {
     }
     
     // 480 x 270
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle) {
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, font: &Font) {
         
-        if let None = self.current_dialogue {
-            return;
+        if let Some(dialogue) = &self.current_dialogue {
+            
+            let text_pos = Vector2::new(40.0, 180.0);
+            
+            d.draw_rectangle(30, 170, 420, 90, Color::BLACK);
+            d.draw_rectangle_lines_ex(Rectangle::new(28.0, 168.0, 424.0, 92.0), 2.0, Color::WHITE);
+            
+            d.draw_text_ex(font, &dialogue.text_blocks[self.current_text_index], text_pos, 10.0, 0.5, Color::WHITE);
+            // next goal, draw the text. should be easy but will need to use the text wrapping function, perhaps you can store it in a variable
+            // in order to not need to recalculate it every frame, even if its cheap and wouldnt take very long, theres no reason to
         }
-        
-        d.draw_rectangle(30, 170, 420, 90, Color::BLACK);
-        d.draw_rectangle_lines_ex(Rectangle::new(28.0, 168.0, 424.0, 92.0), 2.0, Color::WHITE);
-        
-        // next goal, draw the text. should be easy but will need to use the text wrapping function, perhaps you can store it in a variable
-        // in order to not need to recalculate it every frame, even if its cheap and wouldnt take very long, theres no reason to
         
     }
     
@@ -60,4 +63,17 @@ impl DialogueSystem {
 // <String> to start though. the etc would be like, Vec<(String, TextEffect, SoundEffect)>, for example
 pub struct Dialogue {
     pub text_blocks: Vec<String>,
+}
+
+impl Dialogue {
+    // this is going to be a little more than just a new function
+    // its going to actually wrap the text it recieves as well.
+    pub fn new(text_blocks: Vec<String>, font: &Font) -> Self {
+        
+        let wrapped_blocks: Vec<String> = text_blocks.iter().map(|text| wrap_string(&text, 400.0, font, 10.0, 0.5)).collect();
+        
+        Self {
+            text_blocks: wrapped_blocks
+        }
+    }
 }

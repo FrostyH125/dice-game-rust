@@ -7,9 +7,19 @@ use raylib::prelude::*;
 
 use crate::{
     entities::{
-        dice::DICE_WIDTH_HEIGHT, dice_box::DiceBox, enemies::snake::Snake, enemy::{Enemy, EnemyState}, player::{Player, PlayerState}, player_dice_boxes::broadsword_box::BroadSwordBox
+        dice::DICE_WIDTH_HEIGHT,
+        dice_box::DiceBox,
+        enemies::snake::Snake,
+        enemy::{Enemy, EnemyState},
+        player::{Player, PlayerState},
+        player_dice_boxes::broadsword_box::BroadSwordBox,
     },
-    system::{button::Button, dialogue_system::{Dialogue, DialogueSystem}, input_handler::InputState, particle_system::ParticleSystem},
+    system::{
+        button::Button,
+        dialogue_system::{Dialogue, DialogueSystem},
+        input_handler::InputState,
+        particle_system::ParticleSystem,
+    },
 };
 use rand::random_range;
 
@@ -31,6 +41,7 @@ pub enum GameState {
 
 // impl gameover state
 // combine dialogue system, particle system, and input state as a GlobalState struct
+// disable input if the dialogue is running
 
 fn main() {
     let (mut rl, thread) =
@@ -55,8 +66,10 @@ fn main() {
     sprite_sheet.set_texture_filter(&thread, TextureFilter::TEXTURE_FILTER_POINT);
 
     let mut player = Player::new();
-    player.add_box(DiceBox::BroadSwordBox { broadsword_box: BroadSwordBox::new(&font)});
-    
+    player.add_box(DiceBox::BroadSwordBox {
+        broadsword_box: BroadSwordBox::new(&font),
+    });
+
     let mut confirm_button = Button::new(
         Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
         Sprite::new(80.0, 16.0, 64.0, 32.0),
@@ -95,10 +108,18 @@ fn main() {
     let mut current_enemy = get_random_enemy(&font);
 
     let mut particle_system = ParticleSystem::new();
-    
+
     let mut dialogue_system = DialogueSystem::new();
-    dialogue_system.add_dialogue(Dialogue { text_blocks: vec![String::from("this is test dialogue"), String::from("I added a second one just to test"), String::from("blah blah blah")] });
-    
+    dialogue_system.add_dialogue(Dialogue::new(
+        vec![
+            String::from("this is test dialogue"),
+            String::from("I added a second one just to test"),
+            String::from("blah blah blah"),
+            String::from("heres a really long one just to test the text wrapping in this scenario. I want it to look right. I will also probably add a thing that auto splits text if its too long to prevent it going over the box")
+        ],
+        &font,
+    ));
+
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
@@ -131,12 +152,12 @@ fn main() {
             }
             GameState::Combat => {
                 current_enemy.update(&input_state, &mut player, &mut particle_system, dt);
-                
+
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
                     player.take_hit(100);
                 }
-                
-                if let EnemyState::Dead = current_enemy.get_data().state  {
+
+                if let EnemyState::Dead = current_enemy.get_data().state {
                     player.reset();
                     state = GameState::Travelling;
                     player.state = PlayerState::Walking;
@@ -152,7 +173,7 @@ fn main() {
 
         let mut cam_handle = handle.begin_mode2D(&camera);
         player.draw(&mut cam_handle, &sprite_sheet, &font);
-        
+
         if let GameState::Combat = state {
             current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);
         }
@@ -177,7 +198,7 @@ fn main() {
         }
 
         particle_system.draw(&mut cam_handle, &sprite_sheet);
-        dialogue_system.draw(&mut cam_handle);
+        dialogue_system.draw(&mut cam_handle, &font);
         input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
     }
 }
@@ -190,8 +211,8 @@ fn get_random_enemy(font: &Font) -> Enemy {
             Enemy::Snake { snake: Snake::new(font) }
         }
     };
-    
+
     enemy.place_boxes();
-    
+
     return enemy;
 }
