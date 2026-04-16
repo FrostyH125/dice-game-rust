@@ -46,7 +46,6 @@ impl DiceBox {
         data.handle_dragging_dice(hand);
 
         if !*is_player_dragging_dice && was_player_dragging_dice {
-            hand.arrange_hand(false);
             data.set_dice_positions();
         }
 

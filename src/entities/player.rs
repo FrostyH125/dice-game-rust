@@ -10,7 +10,7 @@ use crate::{
     EMPTY_SPRITE, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
-        dice_box::DiceBox,
+        dice_box::DiceBox, hand,
     },
     system::{input_handler::MouseState, particle_system::ParticleSystem},
 };
@@ -144,7 +144,12 @@ impl Player {
                 dt,
             );
         }
+        
+        if !self.is_player_dragging_dice && self.was_player_dragging_dice {
+            self.hand.arrange_hand(false);
+        }
 
+        
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
@@ -407,9 +412,10 @@ impl Player {
         let half_player_width = 32.0 / 2.0;
         let margin = 5.0;
         let dice_box_height = 16.0;
+        let collect_rect_height = 32.0;
 
         let bottom_layer_y = self.pos.y - margin - dice_box_height;
-        let top_layer_y = bottom_layer_y - margin - dice_box_height;
+        let top_layer_y = bottom_layer_y - margin - dice_box_height - collect_rect_height;
 
         // need to modify this as number of boxes moves from 1 to 4
         // eventually number of boxes may be 5+, but we will cross that bridge when we get there

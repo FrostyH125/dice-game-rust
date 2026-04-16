@@ -69,6 +69,15 @@ fn main() {
     player.add_box(DiceBox::BroadSwordBox {
         broadsword_box: BroadSwordBox::new(&font),
     });
+    player.add_box(DiceBox::BroadSwordBox {
+        broadsword_box: BroadSwordBox::new(&font),
+    });
+    player.add_box(DiceBox::BroadSwordBox {
+        broadsword_box: BroadSwordBox::new(&font),
+    });
+    player.add_box(DiceBox::BroadSwordBox {
+        broadsword_box: BroadSwordBox::new(&font),
+    });
 
     let mut confirm_button = Button::new(
         Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
@@ -110,15 +119,15 @@ fn main() {
     let mut particle_system = ParticleSystem::new();
 
     let mut dialogue_system = DialogueSystem::new();
-    dialogue_system.add_dialogue(Dialogue::new(
-        vec![
-            String::from("this is test dialogue"),
-            String::from("I added a second one just to test"),
-            String::from("blah blah blah"),
-            String::from("heres a really long one just to test the text wrapping in this scenario. I want it to look right. I will also probably add a thing that auto splits text if its too long to prevent it going over the box")
-        ],
-        &font,
-    ));
+    // dialogue_system.add_dialogue(Dialogue::new(
+    //     vec![
+    //         String::from("this is test dialogue"),
+    //         String::from("I added a second one just to test"),
+    //         String::from("blah blah blah"),
+    //         String::from("heres a really long one just to test the text wrapping in this scenario. I want it to look right. I will also probably add a thing that auto splits text if its too long to prevent it going over the box")
+    //     ],
+    //     &font,
+    // ));
 
     while !rl.window_should_close() {
         rl.hide_cursor();
