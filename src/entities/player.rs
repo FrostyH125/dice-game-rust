@@ -145,6 +145,8 @@ impl Player {
             );
         }
         
+        // this is here to run after all boxes have ran
+        // 
         if !self.is_player_dragging_dice && self.was_player_dragging_dice {
             self.hand.arrange_hand(false);
         }
@@ -371,8 +373,8 @@ impl Player {
             }
         }
 
-        // don't draw the health if you're walking
-        if let PlayerState::Walking = self.state {
+        // don't draw the health if you're walking or dead
+        if let PlayerState::Walking | PlayerState::Dead = self.state {
             return;
         }
 

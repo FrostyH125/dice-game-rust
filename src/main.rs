@@ -42,6 +42,20 @@ pub enum GameState {
 // impl gameover state
 // combine dialogue system, particle system, and input state as a GlobalState struct
 // disable input if the dialogue is running
+// healing box, make plus sign particles come out of player when healing with the wavy upward motion
+// shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
+// shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
+
+// put away for the moment to test other things, will come back to this when desired
+// dialogue_system.add_dialogue(Dialogue::new(
+//     vec![
+//         String::from("this is test dialogue"),
+//         String::from("I added a second one just to test"),
+//         String::from("blah blah blah"),
+//         String::from("heres a really long one just to test the text wrapping in this scenario. I want it to look right. I will also probably add a thing that auto splits text if its too long to prevent it going over the box")
+//     ],
+//     &font,
+// ));
 
 fn main() {
     let (mut rl, thread) =
@@ -66,15 +80,6 @@ fn main() {
     sprite_sheet.set_texture_filter(&thread, TextureFilter::TEXTURE_FILTER_POINT);
 
     let mut player = Player::new();
-    player.add_box(DiceBox::BroadSwordBox {
-        broadsword_box: BroadSwordBox::new(&font),
-    });
-    player.add_box(DiceBox::BroadSwordBox {
-        broadsword_box: BroadSwordBox::new(&font),
-    });
-    player.add_box(DiceBox::BroadSwordBox {
-        broadsword_box: BroadSwordBox::new(&font),
-    });
     player.add_box(DiceBox::BroadSwordBox {
         broadsword_box: BroadSwordBox::new(&font),
     });
@@ -119,15 +124,6 @@ fn main() {
     let mut particle_system = ParticleSystem::new();
 
     let mut dialogue_system = DialogueSystem::new();
-    // dialogue_system.add_dialogue(Dialogue::new(
-    //     vec![
-    //         String::from("this is test dialogue"),
-    //         String::from("I added a second one just to test"),
-    //         String::from("blah blah blah"),
-    //         String::from("heres a really long one just to test the text wrapping in this scenario. I want it to look right. I will also probably add a thing that auto splits text if its too long to prevent it going over the box")
-    //     ],
-    //     &font,
-    // ));
 
     while !rl.window_should_close() {
         rl.hide_cursor();
@@ -171,22 +167,39 @@ fn main() {
                     state = GameState::Travelling;
                     player.state = PlayerState::Walking;
                 }
+                
+                if let PlayerState::Dead = player.state {
+                    state = GameState::GameOver;
+                }
             }
-            GameState::GameOver => {
-                todo!("Draw game over text here, add a replay button, and a quit button")
-            }
+            _ => (),
         }
 
         let mut handle = rl.begin_drawing(&thread);
         handle.clear_background(Color { r: 40, g: 40, b: 40, a: 255 });
 
         let mut cam_handle = handle.begin_mode2D(&camera);
+        
+        // so far player is always drawn regardless of state, that will eventually change but it doesnt need to at the moment
         player.draw(&mut cam_handle, &sprite_sheet, &font);
 
-        if let GameState::Combat = state {
-            current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);
-        }
+        match state {
+            GameState::Combat => {
+                current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);
+            }
+            GameState::GameOver => {
+                // Draw game over text here, add a replay button, and a quit button
 
+                let string = "Game Over!";
+                let string_length = font.measure_text(string, 10.0, 0.5);
+                let string_y = VIRTUAL_HEIGHT / 2.0 - string_length.y / 2.0;
+                let string_x = VIRTUAL_WIDTH / 2.0 - string_length.x / 2.0;
+                cam_handle.draw_text_pro(&font, string, Vector2::new(string_x, string_y), Vector2::zero(), 0.0, 10.0, 0.5, Color::PALEVIOLETRED);
+            }
+            _ => ()
+        }
+        
+        // handle buttons specifically
         match player.state {
             PlayerState::RollingDice | PlayerState::StoppingDice => {
                 stop_button.draw(&mut cam_handle, &sprite_sheet, &input_state);
