@@ -1,7 +1,7 @@
 use super::dice::{DICE_WIDTH_HEIGHT, Dice};
-use basic_raylib_core::system::timer::Timer;
+use basic_raylib_core::system::{timer::Timer, sprite_particle_system::SpriteParticleSystem};
 use raylib::prelude::*;
-use crate::{LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::dice::DiceState, system::{input_handler::InputState, particle_system::ParticleSystem}};
+use crate::{LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::dice::DiceState, system::input_handler::InputState};
 
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
 
@@ -149,7 +149,7 @@ impl Hand {
         }
     }
     
-    pub fn emit_smoke_at_each_dice(&mut self, particle_system: &mut ParticleSystem) {
+    pub fn emit_smoke_at_each_dice(&mut self, particle_system: &mut SpriteParticleSystem) {
         for dice in &mut self.dice {
             let cycles_for_this_dice = rand::random_range(15..=25);
 

@@ -1,6 +1,6 @@
 use std::{i8, usize};
 
-use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
+use basic_raylib_core::{graphics::sprite::Sprite, system::{timer::Timer, sprite_particle_system::SpriteParticleSystem}};
 use raylib::{
     color::Color,
     math::{Rectangle, Vector2},
@@ -15,7 +15,7 @@ use crate::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         hand::Hand,
     },
-    system::{info_hover::InfoHover, input_handler::InputState, particle_system::ParticleSystem},
+    system::{info_hover::InfoHover, input_handler::InputState},
 };
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2::new(0.0, 20.0);
@@ -49,12 +49,13 @@ pub struct DiceBoxData {
     pub timer_for_tallying_dice: Timer,
     pub previous_dice_value: i8,
     pub current_streak: i8,
-    pub collect_rect_x_offset: f32,
-    pub collect_rect_y_offset: f32,
+    pub collect_rect_offset_x: f32,
+    pub collect_rect_offset_y: f32,
 }
 
 impl DiceBoxData {
-    pub fn new(pos: Vector2, width: f32, height: f32, dice_collect_rect: Rectangle, info_hover: InfoHover) -> Self {
+    pub fn new(collect_rect_offset_x: f32, collect_rect_offset_y: f32, collect_rect_width: f32, collect_rect_height: f32, dice_box_width: f32, dice_box_height: f32, info_hover: InfoHover) -> Self {
+        
         DiceBoxData {
             dice_in_box: Vec::new(),
             info_hover,
@@ -63,15 +64,15 @@ impl DiceBoxData {
             total_multi_for_this_tally: 1,
             base_multi_for_this_dice_box: 1,
             total_value_for_current_round: 0,
-            pos,
-            dice_collect_rect,
-            width,
-            height,
+            pos: Vector2::zero(),
+            dice_collect_rect: Rectangle::new(collect_rect_offset_x, collect_rect_offset_y, collect_rect_width, collect_rect_height),
+            width: dice_box_width,
+            height: dice_box_height,
             timer_for_tallying_dice: Timer::new(1.5),
             previous_dice_value: i8::MAX,
             current_streak: 1,
-            collect_rect_x_offset: dice_collect_rect.x - pos.x,
-            collect_rect_y_offset: dice_collect_rect.y - pos.y,
+            collect_rect_offset_x,
+            collect_rect_offset_y,
         }
     }
 }
@@ -255,7 +256,7 @@ impl DiceBoxData {
         }
     }
 
-    pub fn emit_smoke_at_each_dice(&mut self, particle_system: &mut ParticleSystem) {
+    pub fn emit_smoke_at_each_dice(&mut self, particle_system: &mut SpriteParticleSystem) {
         for dice in &mut self.dice_in_box {
             let cycles_for_this_dice = rand::random_range(15..=25);
 

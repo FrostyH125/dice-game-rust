@@ -1,4 +1,6 @@
-use basic_raylib_core::graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance};
+use basic_raylib_core::graphics::{
+    animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance,
+};
 use raylib::{
     color::Color,
     math::{Rectangle, Vector2},
@@ -7,12 +9,7 @@ use raylib::{
     texture::Texture2D,
 };
 
-use crate::{
-    entities::{
-        dice_box_data::DiceBoxData,
-    },
-    system::info_hover::InfoHover,
-};
+use crate::{entities::dice_box_data::DiceBoxData, system::info_hover::InfoHover};
 
 const RESULTS_TEXT_COLOR: Color = Color { r: 208, g: 184, b: 184, a: 255 };
 static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
@@ -38,28 +35,26 @@ pub struct BroadSwordBox {
 
 impl BroadSwordBox {
     pub fn new(font: &Font) -> Self {
-        //5.0, 50.0
-
-        let pos = Vector2 { x: 25.0, y: 50.0 };
         let collect_rect_offset_x = 2.0;
         let collect_rect_offset_y = -31.0;
+        let collect_rect_width = 48.0;
+        let collect_rect_height = 32.0;
+        let dice_box_width = 52.0;
+        let dice_box_height = 16.0;
 
         BroadSwordBox {
             data: DiceBoxData::new(
-                pos,
-                52.0,
-                16.0,
-                Rectangle {
-                    x: pos.x + collect_rect_offset_x,
-                    y: pos.y + collect_rect_offset_y,
-                    width: 48.0,
-                    height: 32.0,
-                },
+                collect_rect_offset_x,
+                collect_rect_offset_y,
+                collect_rect_width,
+                collect_rect_height,
+                dice_box_width,
+                dice_box_height,
                 InfoHover::new(
                     "Broadsword:\n just an average weapon, should be enough to defend yourself for a while...",
                     Rectangle::new(
-                        pos.x,
-                        pos.y,
+                        0.0,
+                        0.0,
                         BROADSWORD_BOX_SPRITE.src_rect.width,
                         BROADSWORD_BOX_SPRITE.src_rect.height,
                     ),
@@ -86,14 +81,19 @@ impl BroadSwordBox {
         self.data.draw_border_around_current_dice(d, texture);
         self.data.draw_total_amounts(d, font, RESULTS_TEXT_COLOR);
     }
-    
-    pub fn player_draw_attack(d: &mut RaylibDrawHandle, anim: &mut SpriteAnimationInstance, pos: Vector2, texture: &Texture2D) {
+
+    pub fn player_draw_attack(
+        d: &mut RaylibDrawHandle,
+        anim: &mut SpriteAnimationInstance,
+        pos: Vector2,
+        texture: &Texture2D,
+    ) {
         PLAYER_ATTACK_ANIM.draw(anim, d, pos, texture);
     }
-    
+
     pub fn player_update_attack(anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
         PLAYER_ATTACK_ANIM.update(anim, dt);
-        
+
         if !anim.can_play {
             return true;
         } else {

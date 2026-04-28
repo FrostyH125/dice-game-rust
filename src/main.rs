@@ -2,7 +2,10 @@ pub mod entities;
 pub mod system;
 pub mod utilities;
 
-use basic_raylib_core::{graphics::sprite::Sprite, system::timer::Timer};
+use basic_raylib_core::{
+    graphics::sprite::Sprite,
+    system::{sprite_particle::SpriteParticle, sprite_particle_system::SpriteParticleSystem, timer::Timer},
+};
 use raylib::prelude::*;
 
 use crate::{
@@ -18,7 +21,6 @@ use crate::{
         button::Button,
         dialogue_system::{Dialogue, DialogueSystem},
         input_handler::InputState,
-        particle_system::ParticleSystem,
     },
 };
 use rand::random_range;
@@ -38,6 +40,8 @@ pub enum GameState {
     Combat,
     GameOver,
 }
+
+// when arranging dice boxes, move info hover with them
 
 // impl gameover state
 // combine dialogue system, particle system, and input state as a GlobalState struct
@@ -121,7 +125,7 @@ fn main() {
 
     let mut current_enemy = get_random_enemy(&font);
 
-    let mut particle_system = ParticleSystem::new();
+    let mut particle_system = SpriteParticleSystem::new();
 
     let mut dialogue_system = DialogueSystem::new();
 
@@ -167,7 +171,7 @@ fn main() {
                     state = GameState::Travelling;
                     player.state = PlayerState::Walking;
                 }
-                
+
                 if let PlayerState::Dead = player.state {
                     state = GameState::GameOver;
                 }
@@ -179,7 +183,7 @@ fn main() {
         handle.clear_background(Color { r: 40, g: 40, b: 40, a: 255 });
 
         let mut cam_handle = handle.begin_mode2D(&camera);
-        
+
         // so far player is always drawn regardless of state, that will eventually change but it doesnt need to at the moment
         player.draw(&mut cam_handle, &sprite_sheet, &font);
 
@@ -190,15 +194,24 @@ fn main() {
             GameState::GameOver => {
                 // Draw game over text here, add a replay button, and a quit button
 
-                let string = "Game Over!";
-                let string_length = font.measure_text(string, 10.0, 0.5);
-                let string_y = VIRTUAL_HEIGHT / 2.0 - string_length.y / 2.0;
-                let string_x = VIRTUAL_WIDTH / 2.0 - string_length.x / 2.0;
-                cam_handle.draw_text_pro(&font, string, Vector2::new(string_x, string_y), Vector2::zero(), 0.0, 10.0, 0.5, Color::PALEVIOLETRED);
+                let game_over_string = "Game Over!";
+                let game_over_string_length = font.measure_text(game_over_string, 10.0, 0.5);
+                let game_over_string_y = VIRTUAL_HEIGHT / 2.0 - game_over_string_length.y / 2.0;
+                let game_over_string_x = VIRTUAL_WIDTH / 2.0 - game_over_string_length.x / 2.0;
+                cam_handle.draw_text_pro(
+                    &font,
+                    game_over_string,
+                    Vector2::new(game_over_string_x, game_over_string_y),
+                    Vector2::zero(),
+                    0.0,
+                    10.0,
+                    0.5,
+                    Color::PALEVIOLETRED,
+                );
             }
-            _ => ()
+            _ => (),
         }
-        
+
         // handle buttons specifically
         match player.state {
             PlayerState::RollingDice | PlayerState::StoppingDice => {

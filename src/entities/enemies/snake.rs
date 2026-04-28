@@ -1,6 +1,6 @@
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::timer::Timer,
+    system::{timer::Timer, sprite_particle_system::SpriteParticleSystem},
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
@@ -14,8 +14,7 @@ use crate::{
         hand::Hand,
         player::{Player, PlayerState},
     },
-    system::{input_handler::InputState, particle_system::ParticleSystem},
-};
+    system::input_handler::InputState};
 
 const BEFORE_ATTACKING_TIME: f32 = 2.0;
 const HIT_TIME: f32 = 1.0;
@@ -87,7 +86,7 @@ impl Snake {
                 Vector2::new(ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD),
             ),
             snake_eyes_box: DiceBox::SnakeEyes {
-                snake_eyes_box: SnakeEyes::new(SNAKE_POS - Vector2::new(40.0, 0.0), font),
+                snake_eyes_box: SnakeEyes::new(font),
             },
             dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),
@@ -105,7 +104,7 @@ impl Snake {
         &mut self,
         input_state: &InputState,
         player: &mut Player,
-        particle_system: &mut ParticleSystem,
+        particle_system: &mut SpriteParticleSystem,
         dt: f32,
     ) {
         self.hand.update_for_enemy(dt);

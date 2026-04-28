@@ -1,6 +1,6 @@
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::timer::Timer,
+    system::{timer::Timer, sprite_particle::SpriteParticle, sprite_particle_system::SpriteParticleSystem},
 };
 use raylib::{
     color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D
@@ -12,7 +12,7 @@ use crate::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::DiceBox, hand,
     },
-    system::{input_handler::MouseState, particle_system::ParticleSystem},
+    system::input_handler::MouseState,
 };
 use crate::{
     entities::{
@@ -125,7 +125,7 @@ impl Player {
         confirm_button: &mut Button,
         stop_button: &mut Button,
         reroll_button: &mut Button,
-        particle_system: &mut ParticleSystem,
+        particle_system: &mut SpriteParticleSystem,
         enemy: &mut Enemy,
         dt: f32,
     ) {

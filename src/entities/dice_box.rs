@@ -61,8 +61,8 @@ impl DiceBox {
     
     pub fn adjust_collect_rect_pos_for_current_pos(&mut self) {
         let data = self.get_mut_data();
-        data.dice_collect_rect.x = data.pos.x + data.collect_rect_x_offset;
-        data.dice_collect_rect.y = data.pos.y + data.collect_rect_y_offset;
+        data.dice_collect_rect.x = data.pos.x + data.collect_rect_offset_x;
+        data.dice_collect_rect.y = data.pos.y + data.collect_rect_offset_y;
     }
 
     pub fn tally(&mut self, dt: f32) -> bool {

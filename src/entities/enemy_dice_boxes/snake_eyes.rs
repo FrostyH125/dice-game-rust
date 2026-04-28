@@ -26,24 +26,29 @@ pub struct SnakeEyes {
 }
 
 impl SnakeEyes {
-    pub fn new(pos: Vector2, font: &Font) -> Self {
+    pub fn new(font: &Font) -> Self {
+        
+        let collect_rect_offset_x = 2.0;
+        let collect_rect_offset_y = -16.0;
+        let collect_rect_width = 32.0;
+        let collect_rect_height = 16.0;
+        let dice_box_width = 38.0;
+        let dice_box_height = 16.0;
+        
         SnakeEyes {
             data: DiceBoxData::new(
-                pos,
-                38.0,
-                16.0,
-                Rectangle {
-                    x: pos.x + 2.0,
-                    y: pos.y - DICE_WIDTH_HEIGHT,
-                    width: DICE_WIDTH_HEIGHT * 2.0,
-                    height: DICE_WIDTH_HEIGHT,
-                },
+                collect_rect_offset_x,
+                collect_rect_offset_y,
+                collect_rect_width,
+                collect_rect_height,
+                dice_box_width,
+                dice_box_height,
                 InfoHover::new(
                     "Snake Eyes:
                 Deals 11 base damage when loaded with two dice of value 1",
                     Rectangle {
-                        x: pos.x,
-                        y: pos.y,
+                        x: 0.0,
+                        y: 0.0,
                         width: SNAKE_EYES_DICE_BOX_SPRITE.src_rect.width,
                         height: SNAKE_EYES_DICE_BOX_SPRITE.src_rect.height,
                     },

@@ -1,8 +1,9 @@
 use crate::{
     VIRTUAL_WIDTH,
     entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player},
-    system::{input_handler::InputState, particle_system::ParticleSystem},
+    system::input_handler::InputState,
 };
+use basic_raylib_core::system::sprite_particle_system::SpriteParticleSystem;
 use raylib::{
     color::Color,
     math::Vector2,
@@ -99,7 +100,7 @@ impl Enemy {
         &mut self,
         input_state: &InputState,
         player: &mut Player,
-        particle_system: &mut ParticleSystem,
+        particle_system: &mut SpriteParticleSystem,
         dt: f32,
     ) {
         match self {
