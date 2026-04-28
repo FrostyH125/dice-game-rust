@@ -64,6 +64,12 @@ impl DiceBox {
         data.dice_collect_rect.x = data.pos.x + data.collect_rect_offset_x;
         data.dice_collect_rect.y = data.pos.y + data.collect_rect_offset_y;
     }
+    
+    pub fn adjust_info_hover_pos_for_current_pos(&mut self) {
+        let data = self.get_mut_data();
+        data.info_hover.activation_rect.x = data.pos.x;
+        data.info_hover.activation_rect.y = data.pos.y;
+    }
 
     pub fn tally(&mut self, dt: f32) -> bool {
         match self {

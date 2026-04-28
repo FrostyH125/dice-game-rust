@@ -41,9 +41,8 @@ pub enum GameState {
     GameOver,
 }
 
-// when arranging dice boxes, move info hover with them
-
-// impl gameover state
+// add heal box
+// impl gameover state (still need to add quit and retry buttons)
 // combine dialogue system, particle system, and input state as a GlobalState struct
 // disable input if the dialogue is running
 // healing box, make plus sign particles come out of player when healing with the wavy upward motion

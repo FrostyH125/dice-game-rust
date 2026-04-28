@@ -471,6 +471,7 @@ impl Player {
         
         for dice_box in &mut self.dice_boxes {
             dice_box.adjust_collect_rect_pos_for_current_pos();
+            dice_box.adjust_info_hover_pos_for_current_pos();
         }
     }
 }

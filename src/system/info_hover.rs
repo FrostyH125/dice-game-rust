@@ -71,9 +71,11 @@ impl InfoHover {
         if !self.activation_timer.is_done() {
             return;
         }
+        
+        let margin = 10.0;
 
         let start_pos_x = input.mouse_pos.x - self.text_width / 2.0;
-        let start_pos_y = input.mouse_pos.y - self.text_height;
+        let start_pos_y = input.mouse_pos.y - self.text_height - margin;
 
         self.inner_rect.x = start_pos_x.round();
         self.inner_rect.y = start_pos_y.round();

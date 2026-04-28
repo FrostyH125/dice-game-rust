@@ -133,6 +133,11 @@ impl Enemy {
             }
             _ => unimplemented!("place_boxes(enemy) not implemented for {} boxes", num_of_boxes)
         }
+        
+        for dice_box in &mut boxes {
+            dice_box.adjust_info_hover_pos_for_current_pos();
+            dice_box.adjust_collect_rect_pos_for_current_pos();
+        }
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
