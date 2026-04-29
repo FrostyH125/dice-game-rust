@@ -64,8 +64,10 @@ pub enum PlayerState {
     ChoosingDice,
     TallyingCurrentBox,
     BeforeActingDelay,
-    ActionVisual,
+    BeforeActionVisual,
     Acting,
+    // when applicable, will add an after action visual, such as
+    // explosions, particles, smoke, etc, theres a lot of potential for that
     EndTurnDelay,
     EndTurn,
     WaitingForEnemy,
@@ -245,11 +247,11 @@ impl Player {
 
                 if self.acting_timer.is_done() {
                     self.acting_timer.reset();
-                    self.state = PlayerState::ActionVisual;
+                    self.state = PlayerState::BeforeActionVisual;
                 }
             }
-            PlayerState::ActionVisual => {
-                if self.dice_boxes[self.current_box].player_update_action(&mut self.acting_anim, dt) {
+            PlayerState::BeforeActionVisual => {
+                if self.dice_boxes[self.current_box].player_update_before_action_visuals(&mut self.acting_anim, dt) {
                     self.acting_anim.reset();
                     self.state = PlayerState::Acting;
                 }
@@ -356,7 +358,7 @@ impl Player {
                 }
                 self.hand.draw(d, texture);
             }
-            PlayerState::ActionVisual => {
+            PlayerState::BeforeActionVisual => {
                 self.dice_boxes[self.current_box].player_draw_action(&mut self.acting_anim, d, self.pos, texture);
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, texture, font);

@@ -144,7 +144,7 @@ impl DiceBox {
         }
     }
 
-    pub fn player_update_action(&self, anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
+    pub fn player_update_before_action_visuals(&self, anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
             Self::SnakeEyes { .. } => unimplemented!(),

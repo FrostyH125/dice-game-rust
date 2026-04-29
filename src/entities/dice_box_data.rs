@@ -33,6 +33,21 @@ pub const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191.0, 15.0, 18.0, 18.0);
 pub const DICE_DRAW_START_OFFSET: Vector2 = Vector2::new(34.0, -15.0);
 pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 =
     Vector2::new(DICE_WIDTH_HEIGHT / 2.0, DICE_WIDTH_HEIGHT / 2.0);
+    
+    // let collect_rect_offset_x = 2.0;
+    // let collect_rect_offset_y = -31.0;
+    // let collect_rect_width = 48.0;
+    // let collect_rect_height = 32.0;
+    // let dice_box_width = 52.0;
+    // let dice_box_height = 16.0;
+
+// standard measurements for the average box size (small boxes will have different measurements)
+pub const STANDARD_BOX_COLLECT_RECT_OFFSET_X: f32 = 2.0;
+pub const STANDARD_BOX_COLLECT_RECT_OFFSET_Y: f32 = -31.0;
+pub const STANDARD_BOX_COLLECT_RECT_WIDTH: f32 = 48.0;
+pub const STANDARD_BOX_COLLECT_RECT_HEIGHT: f32 = 32.0;
+pub const STANDARD_BOX_WIDTH: f32 = 52.0;
+pub const STANDARD_BOX_HEIGHT: f32 = 16.0;
 
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
