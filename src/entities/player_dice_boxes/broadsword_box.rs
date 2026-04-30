@@ -92,6 +92,5 @@ impl BroadSwordBox {
         } else {
             return false;
         }
-        // return true if complete and reset, else return false
     }
 }
