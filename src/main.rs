@@ -15,7 +15,7 @@ use crate::{
         enemies::snake::Snake,
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
-        player_dice_boxes::broadsword_box::BroadSwordBox,
+        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
     },
     system::{
         button::Button,
@@ -42,6 +42,13 @@ pub enum GameState {
 }
 
 // add heal box
+// change points to f64 so they can be divided (multiplied by a number less than 1, like
+// in heal box) without losing any information, also need to change heal box base multi to 0.25 after that
+// maybe make the draw method on box actually not a match statement, instead making
+// color and sprite a field in the data struct instead, and then not having to repeat
+// code like in broadswordbox.draw and healbox.draw, since the only things that change are
+// the sprite and color
+//
 // impl gameover state (still need to add quit and retry buttons)
 // combine dialogue system, particle system, and input state as a GlobalState struct
 // disable input if the dialogue is running
@@ -86,6 +93,7 @@ fn main() {
     player.add_box(DiceBox::BroadSwordBox {
         broadsword_box: BroadSwordBox::new(&font),
     });
+    player.add_box(DiceBox::HealBox { heal_box: HealBox::new(&font) });
 
     let mut confirm_button = Button::new(
         Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),

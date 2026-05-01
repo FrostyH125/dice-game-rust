@@ -19,13 +19,14 @@ use raylib::{
 use crate::{
     entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy::Enemy, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand,
-        player::Player, player_dice_boxes::broadsword_box::BroadSwordBox,
+        player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
     },
     system::input_handler::InputState,
 };
 
 pub enum DiceBox {
     BroadSwordBox { broadsword_box: BroadSwordBox },
+    HealBox { heal_box: HealBox },
     SnakeEyes { snake_eyes_box: SnakeEyes },
 }
 
@@ -74,6 +75,7 @@ impl DiceBox {
     pub fn tally(&mut self, dt: f32) -> bool {
         match self {
             Self::BroadSwordBox { broadsword_box } => broadsword_box.data.tally_points(dt),
+            Self::HealBox { heal_box } => heal_box.data.tally_points(dt),
             Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.tally_snake_eyes(),
         }
     }
@@ -81,6 +83,7 @@ impl DiceBox {
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self {
             Self::BroadSwordBox { broadsword_box } => broadsword_box.draw(d, texture, font),
+            Self::HealBox { heal_box } => heal_box.draw(d, texture, font),
             Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, texture, font),
         }
 
@@ -88,8 +91,10 @@ impl DiceBox {
     }
 
     pub fn get_data(&self) -> &DiceBoxData {
+        
         match self {
             Self::BroadSwordBox { broadsword_box: dice_box } => &dice_box.data,
+            Self::HealBox { heal_box: dice_box } => &dice_box.data,
             Self::SnakeEyes { snake_eyes_box: dice_box } => &dice_box.data,
         }
     }
@@ -97,15 +102,17 @@ impl DiceBox {
     pub fn get_mut_data(&mut self) -> &mut DiceBoxData {
         match self {
             Self::BroadSwordBox { broadsword_box: dice_box } => &mut dice_box.data,
+            Self::HealBox { heal_box: dice_box } => &mut dice_box.data,
             Self::SnakeEyes { snake_eyes_box: dice_box } => &mut dice_box.data,
         }
     }
 
     // player and enemy action differentiated so i can only have to pass in player or enemy, not both
     // otherwise, if i wanted them in the same one, id make them take in an Option<&mut T> of both, which is just noisy
-    pub fn player_action(&self, power: i64, enemy: &mut Enemy) {
+    pub fn player_action(&self, power: i64, enemy: &mut Enemy, player_health: &mut i64) {
         match self {
             Self::BroadSwordBox { .. } => Self::player_basic_attack(power, enemy),
+            Self::HealBox { .. } => *player_health += power,
             Self::SnakeEyes { .. } => unimplemented!(),
         }
     }
@@ -113,6 +120,7 @@ impl DiceBox {
     pub fn enemy_action(&self, power: i64, player: &mut Player) {
         match self {
             Self::SnakeEyes { .. } => Self::enemy_basic_attack(power, player),
+            Self::HealBox { .. } => unimplemented!(),
             Self::BroadSwordBox { .. } => unimplemented!(),
         }
     }
@@ -140,6 +148,7 @@ impl DiceBox {
     ) {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_draw_attack(d, anim, pos, texture),
+            Self::HealBox { .. } => HealBox::player_draw_heal(d, anim, pos, texture),
             Self::SnakeEyes { .. } => unimplemented!(),
         }
     }
@@ -147,6 +156,7 @@ impl DiceBox {
     pub fn player_update_before_action_visuals(&self, anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
+            Self::HealBox { .. } => HealBox::player_update_heal(anim, dt),
             Self::SnakeEyes { .. } => unimplemented!(),
         }
     }

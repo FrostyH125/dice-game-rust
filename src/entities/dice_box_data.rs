@@ -328,7 +328,7 @@ impl DiceBoxData {
         d.draw_text_ex(
             font,
             &format!(
-                "total:\n{} tally\n* {} multi \n* {} base\n= {} damage!",
+                "total:\n{} tally\n* {} multi \n* {} base\n= {}!",
                 tally,
                 multi,
                 base,

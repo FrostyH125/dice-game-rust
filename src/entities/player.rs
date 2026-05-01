@@ -261,7 +261,7 @@ impl Player {
 
                 self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
 
-                self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy);
+                self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy, &mut self.health);
 
                 self.current_box += 1;
 
@@ -404,6 +404,10 @@ impl Player {
     pub fn take_hit(&mut self, damage: i64) {
         self.health -= damage;
         self.state = PlayerState::HitDelay;
+    }
+    
+    pub fn heal(&mut self, heal_amount: i64) {
+        self.health += heal_amount;
     }
     
     pub fn add_box(&mut self, dice_box: DiceBox) {
