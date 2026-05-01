@@ -65,7 +65,7 @@ pub enum EnemyState {
 }
 
 pub struct EnemyData {
-    pub health: i64,
+    pub health: f64,
     pub pos: Vector2,
     pub state: EnemyState,
 
@@ -91,7 +91,7 @@ impl Enemy {
         }
     }
 
-    pub fn take_hit(&mut self, damage: i64) {
+    pub fn take_hit(&mut self, damage: f64) {
         self.get_mut_data().health -= damage;
         self.get_mut_data().state = EnemyState::HitDelay;
     }

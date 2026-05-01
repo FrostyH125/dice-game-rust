@@ -70,7 +70,7 @@ impl Snake {
     pub fn new(font: &Font) -> Self {
         Snake {
             data: EnemyData {
-                health: 100,
+                health: 100.0,
                 pos: SNAKE_POS,
                 state: EnemyState::WaitingForPlayer,
                 width: 32.0,
@@ -187,10 +187,10 @@ impl Snake {
 
             EnemyState::TallyingTotal => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
-                if self.snake_eyes_box.tally(dt) {
-                    self.snake_eyes_box.get_mut_data().total_value_for_current_round = 11;
-                }
-
+                
+                // if it got to this stage, it will be 11.0
+                self.snake_eyes_box.tally(dt);
+                
                 self.idle_anim.reset();
                 self.data.state = EnemyState::BeforeActingDelay;
             }
@@ -233,7 +233,7 @@ impl Snake {
                 SNAKE_HIT_ANIM.update(&mut self.hit_anim, dt);
                 self.hit_timer.track(dt);
                 if self.hit_timer.is_done() {
-                    if self.data.health <= 0 {
+                    if self.data.health <= 0.0 {
                         self.data.state = EnemyState::Dead;
                     } else {
                         self.data.state = EnemyState::WaitingForPlayer;

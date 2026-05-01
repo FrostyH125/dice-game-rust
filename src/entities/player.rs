@@ -78,8 +78,8 @@ pub enum PlayerState {
 pub struct Player {
     pub dice_boxes: Vec<DiceBox>,
     pub hand: Hand,
-    power_of_current_action: i64,
-    health: i64,
+    power_of_current_action: f64,
+    health: f64,
     current_box: usize,
     walk_anim: SpriteAnimationInstance,
     thinking_anim: SpriteAnimationInstance,
@@ -109,12 +109,12 @@ impl Player {
             hit_anim: SpriteAnimationInstance::new(),
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
-            health: 100,
+            health: 100.0,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
             hit_delay_timer: Timer::new(HIT_DELAY_DURATION),
-            power_of_current_action: 0,
+            power_of_current_action: 0.0,
             is_player_dragging_dice: false,
             was_player_dragging_dice: false,
             current_box: 0,
@@ -301,7 +301,7 @@ impl Player {
                 self.hit_delay_timer.track(dt);
                 PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
                 if self.hit_delay_timer.is_done() {
-                    if self.health <= 0 {
+                    if self.health <= 0.0 {
                         self.state = PlayerState::Dead
                     } else {
                         self.state = PlayerState::WaitingForEnemy;
@@ -401,12 +401,12 @@ impl Player {
         );
     }
 
-    pub fn take_hit(&mut self, damage: i64) {
+    pub fn take_hit(&mut self, damage: f64) {
         self.health -= damage;
         self.state = PlayerState::HitDelay;
     }
     
-    pub fn heal(&mut self, heal_amount: i64) {
+    pub fn heal(&mut self, heal_amount: f64) {
         self.health += heal_amount;
     }
     

@@ -63,7 +63,7 @@ impl SnakeEyes {
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         SNAKE_EYES_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
 
-        if self.data.total_value_for_current_round != 0 {
+        if self.data.total_value_for_current_round != 0.0f64.floor() {
             self.draw_snake_eyes_text(d, font);
             self.draw_damage(d, font);
             self.draw_dice_outlines(d, texture);
@@ -73,7 +73,7 @@ impl SnakeEyes {
         self.draw_placeholder_dice(d, texture);
     }
 
-    pub fn tally_snake_eyes(&mut self) -> bool {
+    pub fn check_if_two_ones(&mut self) -> bool {
         let mut num_of_ones = 0;
 
         for dice in &self.data.dice_in_box {
@@ -83,8 +83,10 @@ impl SnakeEyes {
         }
 
         if num_of_ones >= 2 {
+            self.data.total_value_for_current_round = 11.0;
             return true;
         } else {
+            self.data.total_value_for_current_round = 0.0f64.floor();
             return false;
         }
     }

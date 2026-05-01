@@ -64,7 +64,7 @@ impl HealBox {
             ),
         );
         
-        data.base_multi_for_this_dice_box = 1;
+        data.base_multi_for_this_dice_box = 0.25;
 
         HealBox { data }
     }

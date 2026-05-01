@@ -53,10 +53,10 @@ pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
     pub info_hover: InfoHover,
     pub current_index_of_dice_just_tallied: Option<usize>,
-    pub total_tally: i64,
-    pub total_multi_for_this_tally: i64,
-    pub base_multi_for_this_dice_box: i64,
-    pub total_value_for_current_round: i64,
+    pub total_tally: f64,
+    pub total_multi_for_this_tally: f64,
+    pub base_multi_for_this_dice_box: f64,
+    pub total_value_for_current_round: f64,
     pub pos: Vector2,
     pub width: f32,
     pub height: f32,
@@ -75,10 +75,12 @@ impl DiceBoxData {
             dice_in_box: Vec::new(),
             info_hover,
             current_index_of_dice_just_tallied: None,
-            total_tally: 0,
-            total_multi_for_this_tally: 1,
-            base_multi_for_this_dice_box: 1,
-            total_value_for_current_round: 0,
+            total_tally: 0.0,
+            total_multi_for_this_tally: 1.0,
+            base_multi_for_this_dice_box: 1.0,
+            
+            // some boxes use this value in equality, im making sure it is actually equal no matter what, since floats are weird
+            total_value_for_current_round: 0.0f64.floor(),
             pos: Vector2::zero(),
             dice_collect_rect: Rectangle::new(collect_rect_offset_x, collect_rect_offset_y, collect_rect_width, collect_rect_height),
             width: dice_box_width,
@@ -147,11 +149,11 @@ impl DiceBoxData {
 
             let should_reset_streak = !is_first && !continue_streak;
 
-            self.total_tally += current_dice.value as i64;
+            self.total_tally += current_dice.value as f64;
 
             if continue_streak {
                 self.current_streak += 1;
-                self.total_multi_for_this_tally += 1;
+                self.total_multi_for_this_tally += 1.0;
             }
 
             if should_reset_streak {
@@ -182,13 +184,13 @@ impl DiceBoxData {
             hand_dice.push(dice);
         }
 
-        self.total_value_for_current_round = 0;
+        self.total_value_for_current_round = 0.0f64.floor();
         self.current_index_of_dice_just_tallied = None;
         self.current_streak = 1;
         self.previous_dice_value = i8::MAX;
         self.timer_for_tallying_dice.reset();
-        self.total_multi_for_this_tally = 1;
-        self.total_tally = 0;
+        self.total_multi_for_this_tally = 1.0;
+        self.total_tally = 0.0;
     }
 
     pub fn set_dice_positions(&mut self) {
@@ -220,7 +222,7 @@ impl DiceBoxData {
         }
     }
 
-    pub fn get_value(&self) -> i64 {
+    pub fn get_value(&self) -> f64 {
         return self.total_tally * self.base_multi_for_this_dice_box * self.total_multi_for_this_tally;
     }
 

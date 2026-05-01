@@ -157,7 +157,7 @@ fn main() {
                 next_enemy_timer.track(dt);
 
                 if next_enemy_timer.is_done() {
-                    if current_enemy.get_data().health <= 0 {
+                    if current_enemy.get_data().health <= 0.0 {
                         current_enemy = get_random_enemy(&font);
                     }
 
@@ -170,7 +170,7 @@ fn main() {
                 current_enemy.update(&input_state, &mut player, &mut particle_system, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
-                    player.take_hit(100);
+                    player.take_hit(100.0);
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {

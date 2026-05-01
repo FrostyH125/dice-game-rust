@@ -76,7 +76,7 @@ impl DiceBox {
         match self {
             Self::BroadSwordBox { broadsword_box } => broadsword_box.data.tally_points(dt),
             Self::HealBox { heal_box } => heal_box.data.tally_points(dt),
-            Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.tally_snake_eyes(),
+            Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.check_if_two_ones(),
         }
     }
 
@@ -109,7 +109,7 @@ impl DiceBox {
 
     // player and enemy action differentiated so i can only have to pass in player or enemy, not both
     // otherwise, if i wanted them in the same one, id make them take in an Option<&mut T> of both, which is just noisy
-    pub fn player_action(&self, power: i64, enemy: &mut Enemy, player_health: &mut i64) {
+    pub fn player_action(&self, power: f64, enemy: &mut Enemy, player_health: &mut f64) {
         match self {
             Self::BroadSwordBox { .. } => Self::player_basic_attack(power, enemy),
             Self::HealBox { .. } => *player_health += power,
@@ -117,7 +117,7 @@ impl DiceBox {
         }
     }
 
-    pub fn enemy_action(&self, power: i64, player: &mut Player) {
+    pub fn enemy_action(&self, power: f64, player: &mut Player) {
         match self {
             Self::SnakeEyes { .. } => Self::enemy_basic_attack(power, player),
             Self::HealBox { .. } => unimplemented!(),
@@ -127,11 +127,11 @@ impl DiceBox {
 
     // free method to use for dice boxes whos only gimmick is higher power, and no special abilities
     // otherwise, dice box structs are free to implement their own actions and act accordingly
-    pub fn player_basic_attack(power: i64, enemy: &mut Enemy) {
+    pub fn player_basic_attack(power: f64, enemy: &mut Enemy) {
         enemy.take_hit(power);
     }
 
-    pub fn enemy_basic_attack(power: i64, player: &mut Player) {
+    pub fn enemy_basic_attack(power: f64, player: &mut Player) {
         player.take_hit(power);
     }
 
