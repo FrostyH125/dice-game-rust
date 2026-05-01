@@ -10,7 +10,7 @@ use crate::{
     EMPTY_SPRITE, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
-        dice_box::DiceBox, hand,
+        dice_box::{DiceBox, DiceBoxResult}, hand,
     },
     system::input_handler::MouseState,
 };
@@ -78,7 +78,6 @@ pub enum PlayerState {
 pub struct Player {
     pub dice_boxes: Vec<DiceBox>,
     pub hand: Hand,
-    power_of_current_action: f64,
     health: f64,
     current_box: usize,
     walk_anim: SpriteAnimationInstance,
@@ -114,7 +113,6 @@ impl Player {
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
             hit_delay_timer: Timer::new(HIT_DELAY_DURATION),
-            power_of_current_action: 0.0,
             is_player_dragging_dice: false,
             was_player_dragging_dice: false,
             current_box: 0,
@@ -258,10 +256,14 @@ impl Player {
             }
             PlayerState::Acting => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
+                
+                let box_result = self.dice_boxes[self.current_box].get_result();
 
-                self.power_of_current_action = self.dice_boxes[self.current_box].get_data().get_value();
-
-                self.dice_boxes[self.current_box].player_action(self.power_of_current_action, enemy, &mut self.health);
+                match box_result {
+                    DiceBoxResult::BasicAttack(damage) => enemy.take_hit(damage),
+                    DiceBoxResult::BasicHeal(heal_amount) => self.heal(heal_amount),
+                    DiceBoxResult::None => (),
+                }
 
                 self.current_box += 1;
 

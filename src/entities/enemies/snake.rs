@@ -1,6 +1,6 @@
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::{timer::Timer, sprite_particle_system::SpriteParticleSystem},
+    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer},
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
@@ -14,7 +14,8 @@ use crate::{
         hand::Hand,
         player::{Player, PlayerState},
     },
-    system::input_handler::InputState};
+    system::input_handler::InputState,
+};
 
 const BEFORE_ATTACKING_TIME: f32 = 2.0;
 const HIT_TIME: f32 = 1.0;
@@ -74,7 +75,7 @@ impl Snake {
                 pos: SNAKE_POS,
                 state: EnemyState::WaitingForPlayer,
                 width: 32.0,
-                height: 48.0
+                height: 48.0,
             },
             hand: Hand::new(
                 vec![
@@ -85,9 +86,7 @@ impl Snake {
                 ],
                 Vector2::new(ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD),
             ),
-            snake_eyes_box: DiceBox::SnakeEyes {
-                snake_eyes_box: SnakeEyes::new(font),
-            },
+            snake_eyes_box: DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(font) },
             dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
@@ -127,7 +126,6 @@ impl Snake {
                     } else {
                         should_move_on = false;
                     }
-
                 }
 
                 if should_move_on {
@@ -187,10 +185,10 @@ impl Snake {
 
             EnemyState::TallyingTotal => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
-                
+
                 // if it got to this stage, it will be 11.0
                 self.snake_eyes_box.tally(dt);
-                
+
                 self.idle_anim.reset();
                 self.data.state = EnemyState::BeforeActingDelay;
             }
@@ -205,8 +203,10 @@ impl Snake {
             }
             EnemyState::Acting => {
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
-                self.snake_eyes_box
-                    .enemy_action(self.snake_eyes_box.get_data().total_value_for_current_round, player);
+                
+                let result = self.snake_eyes_box.get_result();
+                
+                self.snake_eyes_box.enemy_action(self.snake_eyes_box.get_result(), player, &mut self.data.health);
                 self.data.state = EnemyState::EndTurnDelay;
                 self.attack_anim.reset();
             }

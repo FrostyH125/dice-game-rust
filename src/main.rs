@@ -41,9 +41,10 @@ pub enum GameState {
     GameOver,
 }
 
-// add heal box
-// change points to f64 so they can be divided (multiplied by a number less than 1, like
-// in heal box) without losing any information, also need to change heal box base multi to 0.25 after that
+// need to clean up visuals, maybe have a single spot for current box information, with a name slot of course, not only for clarity but also
+// so players can get familiar with the different boxes as they play more easily without needing to rely on the information hover
+// edit the box sprites to make the little emblems centered and then move that multi info to the new spot as well
+
 // maybe make the draw method on box actually not a match statement, instead making
 // color and sprite a field in the data struct instead, and then not having to repeat
 // code like in broadswordbox.draw and healbox.draw, since the only things that change are

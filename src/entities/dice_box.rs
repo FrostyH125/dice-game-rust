@@ -18,8 +18,13 @@ use raylib::{
 
 use crate::{
     entities::{
-        dice::Dice, dice_box_data::DiceBoxData, enemy::Enemy, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand,
-        player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
+        dice::Dice,
+        dice_box_data::DiceBoxData,
+        enemy::Enemy,
+        enemy_dice_boxes::snake_eyes::SnakeEyes,
+        hand::Hand,
+        player::Player,
+        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
     },
     system::input_handler::InputState,
 };
@@ -28,6 +33,12 @@ pub enum DiceBox {
     BroadSwordBox { broadsword_box: BroadSwordBox },
     HealBox { heal_box: HealBox },
     SnakeEyes { snake_eyes_box: SnakeEyes },
+}
+
+pub enum DiceBoxResult {
+    BasicAttack(f64),
+    BasicHeal(f64),
+    None,
 }
 
 impl DiceBox {
@@ -59,13 +70,13 @@ impl DiceBox {
         data.update_dice_for_enemy(dt);
         data.info_hover.update(input_state, dt);
     }
-    
+
     pub fn adjust_collect_rect_pos_for_current_pos(&mut self) {
         let data = self.get_mut_data();
         data.dice_collect_rect.x = data.pos.x + data.collect_rect_offset_x;
         data.dice_collect_rect.y = data.pos.y + data.collect_rect_offset_y;
     }
-    
+
     pub fn adjust_info_hover_pos_for_current_pos(&mut self) {
         let data = self.get_mut_data();
         data.info_hover.activation_rect.x = data.pos.x;
@@ -80,6 +91,22 @@ impl DiceBox {
         }
     }
 
+    pub fn get_result(&self) -> DiceBoxResult {
+        match self {
+            DiceBox::BroadSwordBox { broadsword_box } => DiceBoxResult::BasicAttack(broadsword_box.data.get_value()),
+            DiceBox::HealBox { heal_box } => DiceBoxResult::BasicHeal(heal_box.data.get_value()),
+            DiceBox::SnakeEyes { snake_eyes_box } => {
+                if snake_eyes_box.data.dice_in_box.len() == 2 {
+                    DiceBoxResult::BasicAttack(11.0)
+                } else {
+                    // tbh because snake is pretty deterministic this is pretty unlikely, but if i ever decide to give player access
+                    // to snake eyes, then i need this to be a thing
+                    DiceBoxResult::None
+                }
+            }
+        }
+    }
+
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
         match self {
             Self::BroadSwordBox { broadsword_box } => broadsword_box.draw(d, texture, font),
@@ -91,7 +118,6 @@ impl DiceBox {
     }
 
     pub fn get_data(&self) -> &DiceBoxData {
-        
         match self {
             Self::BroadSwordBox { broadsword_box: dice_box } => &dice_box.data,
             Self::HealBox { heal_box: dice_box } => &dice_box.data,
@@ -107,28 +133,12 @@ impl DiceBox {
         }
     }
 
-    // player and enemy action differentiated so i can only have to pass in player or enemy, not both
-    // otherwise, if i wanted them in the same one, id make them take in an Option<&mut T> of both, which is just noisy
-    pub fn player_action(&self, power: f64, enemy: &mut Enemy, player_health: &mut f64) {
-        match self {
-            Self::BroadSwordBox { .. } => Self::player_basic_attack(power, enemy),
-            Self::HealBox { .. } => *player_health += power,
-            Self::SnakeEyes { .. } => unimplemented!(),
+    pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut f64) {
+        match result {
+            DiceBoxResult::BasicAttack(damage) => Self::enemy_basic_attack(damage, player),
+            DiceBoxResult::BasicHeal(heal_amount) => *enemy_health += heal_amount,
+            DiceBoxResult::None => (),
         }
-    }
-
-    pub fn enemy_action(&self, power: f64, player: &mut Player) {
-        match self {
-            Self::SnakeEyes { .. } => Self::enemy_basic_attack(power, player),
-            Self::HealBox { .. } => unimplemented!(),
-            Self::BroadSwordBox { .. } => unimplemented!(),
-        }
-    }
-
-    // free method to use for dice boxes whos only gimmick is higher power, and no special abilities
-    // otherwise, dice box structs are free to implement their own actions and act accordingly
-    pub fn player_basic_attack(power: f64, enemy: &mut Enemy) {
-        enemy.take_hit(power);
     }
 
     pub fn enemy_basic_attack(power: f64, player: &mut Player) {
