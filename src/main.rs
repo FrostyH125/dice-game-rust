@@ -43,7 +43,8 @@ pub enum GameState {
 
 // need to clean up visuals, maybe have a single spot for current box information, with a name slot of course, not only for clarity but also
 // so players can get familiar with the different boxes as they play more easily without needing to rely on the information hover
-// edit the box sprites to make the little emblems centered and then move that multi info to the new spot as well
+// edit the base multi on the box too to be a certain number of pixels away from the right edge, at the same height as it is right now
+// all youd need to do is measure the string, and let str_pos_x = right_edge_x - string_x - margin, shouldnt be too hard
 
 // maybe make the draw method on box actually not a match statement, instead making
 // color and sprite a field in the data struct instead, and then not having to repeat

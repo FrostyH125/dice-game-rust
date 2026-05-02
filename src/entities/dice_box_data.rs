@@ -20,7 +20,7 @@ use crate::{
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2::new(0.0, 20.0);
 pub const TOTAL_VALUE_OFFSET: Vector2 = Vector2::new(60.0, -31.0);
-pub const BASE_MULTI_OFFSET: Vector2 = Vector2::new(20.0, 7.0);
+pub const BASE_MULTI_OFFSET: Vector2 = Vector2::new(30.0, 7.0);
 pub const DICE_CENTER_OF_SCREEN_POS: Vector2 =
     Vector2::new(VIRTUAL_WIDTH / 2.0 - DICE_WIDTH_HEIGHT / 2.0, VIRTUAL_HEIGHT / 2.0 - DICE_WIDTH_HEIGHT / 2.0);
 
@@ -309,7 +309,7 @@ impl DiceBoxData {
     pub fn draw_base_multi(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
         d.draw_text_ex(
             font,
-            &format!("base: x{}", self.base_multi_for_this_dice_box),
+            &format!("x{}", self.base_multi_for_this_dice_box),
             self.pos + BASE_MULTI_OFFSET,
             3.0,
             0.0,
