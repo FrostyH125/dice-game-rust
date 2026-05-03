@@ -20,7 +20,6 @@ use crate::{
     entities::{
         dice::Dice,
         dice_box_data::DiceBoxData,
-        enemy::Enemy,
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::Player,
@@ -69,6 +68,19 @@ impl DiceBox {
 
         data.update_dice_for_enemy(dt);
         data.info_hover.update(input_state, dt);
+    }
+    
+    // since player dice boxes are going to be fairly standard in size and shape, and enemy dice boxes dont depend on input 
+    // im going to keep the setting dice positions right here for them, in a convenient location
+    // please note that i should have put this method specifically in dice_box_data.rs right next to its buddy, dice_box_data.set_dice_positions
+    // for normal sized enemy boxes, ill simply use that method in this match statement, like if i had a cleave box, or something, it would look like
+    // DiceBox::CleaveBox { cleave_box } => cleave_box.data.set_dice_positions();
+    pub fn enemy_set_dice_positions(&mut self) {
+        match self {
+            DiceBox::BroadSwordBox { .. } => unimplemented!(),
+            DiceBox::HealBox { .. } => unimplemented!(),
+            DiceBox::SnakeEyes { snake_eyes_box } => snake_eyes_box.snake_eyes_set_dice_positions(),
+        }
     }
 
     pub fn adjust_collect_rect_pos_for_current_pos(&mut self) {

@@ -72,6 +72,9 @@ pub struct EnemyData {
     // added these to position things properly depending on enemy
     pub width: f32,
     pub height: f32,
+    
+    // added the boxs as official enemy data for the scoreboard to function
+    pub dice_boxes: Vec<DiceBox>
 }
 
 pub enum Enemy {
@@ -115,9 +118,7 @@ impl Enemy {
         let self_width = self.get_data().width;
         let self_pos = self.get_data().pos;
         
-        let mut boxes: Vec<&mut DiceBox> = match self {
-            Self::Snake { snake } => vec![&mut snake.snake_eyes_box],
-        };
+        let boxes = self.get_mut_data().dice_boxes.as_mut_slice();
         
         let num_of_boxes = boxes.len();
         
@@ -134,7 +135,7 @@ impl Enemy {
             _ => unimplemented!("place_boxes(enemy) not implemented for {} boxes", num_of_boxes)
         }
         
-        for dice_box in &mut boxes {
+        for dice_box in boxes {
             dice_box.adjust_info_hover_pos_for_current_pos();
             dice_box.adjust_collect_rect_pos_for_current_pos();
         }

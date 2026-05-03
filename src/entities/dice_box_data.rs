@@ -33,13 +33,13 @@ pub const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191.0, 15.0, 18.0, 18.0);
 pub const DICE_DRAW_START_OFFSET: Vector2 = Vector2::new(34.0, -15.0);
 pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 =
     Vector2::new(DICE_WIDTH_HEIGHT / 2.0, DICE_WIDTH_HEIGHT / 2.0);
-    
-    // let collect_rect_offset_x = 2.0;
-    // let collect_rect_offset_y = -31.0;
-    // let collect_rect_width = 48.0;
-    // let collect_rect_height = 32.0;
-    // let dice_box_width = 52.0;
-    // let dice_box_height = 16.0;
+
+pub const SCOREBOARD_SPRITE: Sprite = Sprite::new(245.0, 0.0, 145.0, 25.0);
+pub const BASE_CENTER_X_POS: f32 = SCOREBOARD_SPRITE.src_rect.x + 20.0;
+pub const TALLY_CENTER_X_POS: f32 = SCOREBOARD_SPRITE.src_rect.x + 55.0;
+pub const MULTI_CENTER_X_POS: f32 = SCOREBOARD_SPRITE.src_rect.x + 88.0;
+pub const TOTAL_CENTER_X_POS: f32 = SCOREBOARD_SPRITE.src_rect.x + 124.0;
+pub const VALUES_CENTER_Y_POS: f32 = SCOREBOARD_SPRITE.src_rect.y + 16.0;
 
 // standard measurements for the average box size (small boxes will have different measurements)
 pub const STANDARD_BOX_COLLECT_RECT_OFFSET_X: f32 = 2.0;
@@ -317,7 +317,7 @@ impl DiceBoxData {
         );
     }
 
-    pub fn draw_total_amounts(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
+    pub fn draw_info_sprite_and_information(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
         let no_dice_counted_yet = self.current_index_of_dice_just_tallied == None;
         if no_dice_counted_yet {
             return;

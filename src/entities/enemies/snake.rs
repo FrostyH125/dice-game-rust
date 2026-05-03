@@ -24,6 +24,8 @@ const SNAKE_WIDTH: f32 = 32.0;
 const SNAKE_HEIGHT: f32 = 48.0;
 const CENTER_OF_SNAKE: Vector2 = Vector2::new(SNAKE_POS.x + SNAKE_WIDTH / 2.0, SNAKE_POS.y + SNAKE_HEIGHT / 2.0);
 
+const SNAKE_EYES_INDEX: usize = 0;
+
 static SNAKE_IDLE_ANIM: AnimationData = AnimationData {
     frames: &[
         Sprite::new(144.0, 176.0, 32.0, 48.0),
@@ -55,7 +57,6 @@ static SNAKE_HIT_ANIM: AnimationData = AnimationData {
 pub struct Snake {
     pub data: EnemyData,
     pub hand: Hand,
-    pub snake_eyes_box: DiceBox,
     hit_timer: Timer,
     dice_add_timer: Timer,
     before_stopping_dice_timer: Timer,
@@ -76,6 +77,7 @@ impl Snake {
                 state: EnemyState::WaitingForPlayer,
                 width: 32.0,
                 height: 48.0,
+                dice_boxes: vec![DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(font) }]
             },
             hand: Hand::new(
                 vec![
@@ -86,7 +88,6 @@ impl Snake {
                 ],
                 Vector2::new(ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD),
             ),
-            snake_eyes_box: DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(font) },
             dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
@@ -106,8 +107,11 @@ impl Snake {
         particle_system: &mut SpriteParticleSystem,
         dt: f32,
     ) {
+        
+        
+        
         self.hand.update_for_enemy(dt);
-        self.snake_eyes_box.update_for_enemy(input_state, dt);
+        self.data.dice_boxes[SNAKE_EYES_INDEX].update_for_enemy(input_state, dt);
 
         match self.data.state {
             EnemyState::StartTurn => {
@@ -168,7 +172,7 @@ impl Snake {
 
                     self.add_one_die();
 
-                    if self.snake_eyes_box.get_data().dice_in_box.len() == 2 {
+                    if self.data.dice_boxes[SNAKE_EYES_INDEX].get_data().dice_in_box.len() == 2 {
                         self.data.state = EnemyState::BeforeTallyDelay;
                     }
                 }
@@ -187,7 +191,7 @@ impl Snake {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
 
                 // if it got to this stage, it will be 11.0
-                self.snake_eyes_box.tally(dt);
+                self.data.dice_boxes[SNAKE_EYES_INDEX].tally(dt);
 
                 self.idle_anim.reset();
                 self.data.state = EnemyState::BeforeActingDelay;
@@ -204,9 +208,9 @@ impl Snake {
             EnemyState::Acting => {
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
                 
-                let result = self.snake_eyes_box.get_result();
+                let result = self.data.dice_boxes[SNAKE_EYES_INDEX].get_result();
+                self.data.dice_boxes[SNAKE_EYES_INDEX].enemy_action(result, player, &mut self.data.health);
                 
-                self.snake_eyes_box.enemy_action(self.snake_eyes_box.get_result(), player, &mut self.data.health);
                 self.data.state = EnemyState::EndTurnDelay;
                 self.attack_anim.reset();
             }
@@ -217,9 +221,9 @@ impl Snake {
                 if self.turn_end_timer.is_done() {
                     self.turn_end_timer.reset();
                     self.data.state = EnemyState::WaitingForPlayer;
-                    self.snake_eyes_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
+                    self.data.dice_boxes[SNAKE_EYES_INDEX].get_mut_data().emit_smoke_at_each_dice(particle_system);
                     self.hand.emit_smoke_at_each_dice(particle_system);
-                    self.snake_eyes_box.reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
+                    self.data.dice_boxes[SNAKE_EYES_INDEX].reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
                 }
             }
             EnemyState::WaitingForPlayer => {
@@ -247,7 +251,7 @@ impl Snake {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        self.snake_eyes_box.draw(d, texture, font);
+        self.data.dice_boxes[0].draw(d, texture, font);
 
         match self.data.state {
             EnemyState::WaitingForPlayer => {
@@ -272,12 +276,9 @@ impl Snake {
         for i in (0..self.hand.dice.len()).rev() {
             if self.hand.dice[i].value == 1 {
                 let dice = self.hand.dice.remove(i);
-                self.snake_eyes_box.get_mut_data().dice_in_box.push(dice);
-
-                if let DiceBox::SnakeEyes { snake_eyes_box: dice_box } = &mut self.snake_eyes_box {
-                    dice_box.snake_eyes_set_dice_positions();
-                }
-
+                let snake_eyes_box = &mut self.data.dice_boxes[0];
+                snake_eyes_box.get_mut_data().dice_in_box.push(dice);
+                snake_eyes_box.enemy_set_dice_positions();
                 return;
             }
         }

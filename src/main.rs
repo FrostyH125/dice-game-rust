@@ -4,7 +4,7 @@ pub mod utilities;
 
 use basic_raylib_core::{
     graphics::sprite::Sprite,
-    system::{sprite_particle::SpriteParticle, sprite_particle_system::SpriteParticleSystem, timer::Timer},
+    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer},
 };
 use raylib::prelude::*;
 
@@ -19,7 +19,7 @@ use crate::{
     },
     system::{
         button::Button,
-        dialogue_system::{Dialogue, DialogueSystem},
+        dialogue_system::DialogueSystem,
         input_handler::InputState,
     },
 };

@@ -72,7 +72,7 @@ impl BroadSwordBox {
         self.data.draw_base_multi(d, font, RESULTS_TEXT_COLOR);
         self.data.draw_current_streak(d, font, RESULTS_TEXT_COLOR);
         self.data.draw_border_around_current_dice(d, texture);
-        self.data.draw_total_amounts(d, font, RESULTS_TEXT_COLOR);
+        self.data.draw_info_sprite_and_information(d, font, RESULTS_TEXT_COLOR);
     }
 
     pub fn player_draw_attack(
