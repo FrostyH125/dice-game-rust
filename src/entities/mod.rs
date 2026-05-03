@@ -7,3 +7,4 @@ pub mod enemy;
 pub mod enemies;
 pub mod enemy_dice_boxes;
 pub mod dice_box;
+pub mod scoreboard;
