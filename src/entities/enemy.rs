@@ -16,6 +16,7 @@ pub const ENEMY_HAND_X_CENTER_CORD: f32 = VIRTUAL_WIDTH - 100.0;
 pub const ENEMY_HAND_Y_CORD: f32 = 195.0;
 pub const ENEMY_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE: f32 = 6.0;
 
+#[derive(PartialEq, Eq)]
 pub enum EnemyState {
     ///reset hands and boxes
     StartTurn,

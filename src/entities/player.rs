@@ -54,6 +54,7 @@ static PLAYER_HIT_ANIM: AnimationData = AnimationData {
     should_loop: true,
 };
 
+#[derive(PartialEq, Eq)]
 pub enum PlayerState {
     Walking,
     StartTurn,
@@ -215,6 +216,16 @@ impl Player {
                     self.hand.emit_smoke_at_each_dice(particle_system);
                     confirm_button.deactivate();
                     reroll_button.deactivate();
+                    
+                    let mut all_boxes_empty = true;
+                    for dice_box in &self.dice_boxes {
+                        if dice_box.get_data().dice_in_box.len() > 0 {
+                            all_boxes_empty = false;
+                        }
+                    }
+                    if all_boxes_empty {
+                        self.state = PlayerState::EndTurn;
+                    }
                 }
             }
             PlayerState::RerollingDice => {
