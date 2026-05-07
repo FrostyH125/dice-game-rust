@@ -57,6 +57,8 @@ pub enum GameState {
 // healing box, make plus sign particles come out of player when healing with the wavy upward motion
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
+// 
+// thinking of renaming AnimData.can_play into something more intuitive
 
 // put away for the moment to test other things, will come back to this when desired
 // dialogue_system.add_dialogue(Dialogue::new(
