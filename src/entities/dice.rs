@@ -2,7 +2,7 @@ use crate::{
     entities::{
         dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRITE},
     },
-    system::input_handler::{InputState, MouseState},
+    system::input_handler::InputState,
 };
 
 use self::DiceState::*;
@@ -143,7 +143,6 @@ impl Dice {
                     return;
                 }
                 
-                let mouse_dragging = matches!(input_state.mouse_state, MouseState::Dragging);
                 let mouse_over_this = {
                     let rect = Rectangle {
                         x: self.pos.x,
@@ -154,7 +153,7 @@ impl Dice {
                     if rect.check_collision_point_rec(input_state.mouse_pos) { true } else { false }
                 };
 
-                if mouse_dragging && mouse_over_this && !*other_dice_dragged {
+                if input_state.dragging && mouse_over_this && !*other_dice_dragged {
                     *other_dice_dragged = true;
                     self.state = DiceState::Dragging;
                 }
@@ -184,7 +183,7 @@ impl Dice {
                 self.pos.y = smooth_lerp(old_pos.y, target_pos.y, current_time, total_duration)
             }
             DiceState::Dragging => {
-                if let MouseState::Dragging = input_state.mouse_state {
+                if input_state.dragging {
                     self.pos = input_state.mouse_pos
                         - Vector2 {
                             x: DICE_WIDTH_HEIGHT / 2.0,

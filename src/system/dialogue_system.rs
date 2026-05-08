@@ -1,7 +1,7 @@
 use basic_raylib_core::utils::string_utils::wrap_string;
 use raylib::{color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, text::Font};
 
-use crate::system::input_handler::{InputState, MouseState};
+use crate::system::input_handler::{InputState};
 
 // responsible for moving through current dialogue and managing whether its finished or not
 // responsible for displaying the dialogue
@@ -20,7 +20,7 @@ impl DialogueSystem {
     
     pub fn update(&mut self, input: &InputState) {
         if let Some(dialogue) = &self.current_dialogue {
-            if let MouseState::Clicked = input.mouse_state {
+            if input.clicked_once {
                 self.current_text_index += 1;
                 
                 let number_of_texts = dialogue.text_blocks.len();

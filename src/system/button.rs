@@ -1,4 +1,4 @@
-use super::input_handler::{InputState, MouseState::*};
+use super::input_handler::InputState;
 use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::prelude::*;
 
@@ -35,8 +35,7 @@ impl Button {
 
     pub fn is_pressed(&mut self, input_state: &InputState) -> bool {
         let is_clicked =
-            self.rect.check_collision_point_rec(input_state.mouse_pos) && matches!(input_state.mouse_state, Clicked);
-
+            self.rect.check_collision_point_rec(input_state.mouse_pos) && input_state.currently_pressed;
         return is_clicked;
     }
 

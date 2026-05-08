@@ -77,7 +77,8 @@ impl Snake {
                 state: EnemyState::WaitingForPlayer,
                 width: 32.0,
                 height: 48.0,
-                dice_boxes: vec![DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(font) }]
+                dice_boxes: vec![DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(font) }],
+                current_box: SNAKE_EYES_INDEX
             },
             hand: Hand::new(
                 vec![

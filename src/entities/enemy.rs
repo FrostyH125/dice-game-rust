@@ -75,7 +75,8 @@ pub struct EnemyData {
     pub height: f32,
     
     // added the boxs as official enemy data for the scoreboard to function
-    pub dice_boxes: Vec<DiceBox>
+    pub dice_boxes: Vec<DiceBox>,
+    pub current_box: usize
 }
 
 pub enum Enemy {

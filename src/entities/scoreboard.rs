@@ -1,8 +1,10 @@
-use basic_raylib_core::{graphics::{
-    animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance,
-}, system::timer::Timer, utils::string_utils};
+use basic_raylib_core::{
+    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
+    system::timer::Timer,
+    utils::string_utils,
+};
 use rand::{Rng, RngExt, random, rngs::ThreadRng};
-use raylib::{color::Color, math::Vector2, prelude::RaylibDrawHandle, texture::Texture2D};
+use raylib::{color::Color, math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
     VIRTUAL_WIDTH,
@@ -21,7 +23,6 @@ const BASE_CENTER_POS: Vector2 = Vector2::new(SCOREBOARD_POS.x + 20.0, VALUES_CE
 const TALLY_CENTER_POS: Vector2 = Vector2::new(SCOREBOARD_POS.x + 55.0, VALUES_CENTER_Y_POS);
 const MULTI_CENTER_POS: Vector2 = Vector2::new(SCOREBOARD_POS.x + 88.0, VALUES_CENTER_Y_POS);
 const TOTAL_CENTER_POS: Vector2 = Vector2::new(SCOREBOARD_POS.x + 124.0, VALUES_CENTER_Y_POS);
-
 
 const HALF_ANIM_WIDTH: f32 = 23.0 / 2.0;
 const BASE_ANIM_POS: Vector2 = Vector2::new(BASE_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS);
@@ -91,9 +92,8 @@ pub struct ScoreBoard<'a> {
 
 impl<'a> ScoreBoard<'a> {
     pub fn new() -> Self {
-
         let mut rng = rand::rng();
-        
+
         ScoreBoard {
             current_enemy: None,
             open_anim: SpriteAnimationInstance::new(),
@@ -143,14 +143,12 @@ impl<'a> ScoreBoard<'a> {
                 }
             }
             ScoreBoardState::Open => {
-                
                 match self.turn_identity {
                     TurnIdentity::Player => {
-
                         if player.state == PlayerState::ChoosingDice || player.state == PlayerState::RerollingDice {
                             self.handle_timer_and_random_numbers(dt);
                         }
-                        
+
                         if player.state == PlayerState::EndTurnDelay {
                             self.state = ScoreBoardState::Closing;
                         }
@@ -178,7 +176,14 @@ impl<'a> ScoreBoard<'a> {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, player: &mut Player, enemies: &[Enemy], texture: &Texture2D, font: &Font) {
+    pub fn draw(
+        &mut self,
+        d: &mut RaylibDrawHandle,
+        player: &mut Player,
+        enemies: &[Enemy],
+        texture: &Texture2D,
+        font: &Font,
+    ) {
         SCOREBOARD_SPRITE.draw(d, SCOREBOARD_POS, texture);
 
         match self.state {
@@ -189,23 +194,146 @@ impl<'a> ScoreBoard<'a> {
                 OPEN_ANIM.draw(&self.open_anim, d, TOTAL_ANIM_POS, texture);
             }
             ScoreBoardState::Opening => {
+                string_utils::draw_string_centered_on_pos(
+                    d,
+                    BASE_CENTER_POS,
+                    &self.random_base_num_str,
+                    font,
+                    self.font_size,
+                    self.font_spacing,
+                    Color::BLACK,
+                );
+                string_utils::draw_string_centered_on_pos(
+                    d,
+                    TALLY_CENTER_POS,
+                    &self.random_tally_num_str,
+                    font,
+                    self.font_size,
+                    self.font_spacing,
+                    Color::BLACK,
+                );
+                string_utils::draw_string_centered_on_pos(
+                    d,
+                    MULTI_CENTER_POS,
+                    &self.random_multi_num_str,
+                    font,
+                    self.font_size,
+                    self.font_spacing,
+                    Color::BLACK,
+                );
+                string_utils::draw_string_centered_on_pos(
+                    d,
+                    TOTAL_CENTER_POS,
+                    &self.random_total_num_str,
+                    font,
+                    self.font_size,
+                    self.font_spacing,
+                    Color::BLACK,
+                );
 
-                string_utils::draw_string_centered_on_pos(d, BASE_CENTER_POS, &self.random_base_num_str, font, self.font_size, self.font_spacing, Color::BLACK);
-                string_utils::draw_string_centered_on_pos(d, TALLY_CENTER_POS, &self.random_tally_num_str, font, self.font_size, self.font_spacing, Color::BLACK);
-                string_utils::draw_string_centered_on_pos(d, MULTI_CENTER_POS, &self.random_multi_num_str, font, self.font_size, self.font_spacing, Color::BLACK);
-                string_utils::draw_string_centered_on_pos(d, TOTAL_CENTER_POS, &self.random_total_num_str, font, self.font_size, self.font_spacing, Color::BLACK);
-                
                 OPEN_ANIM.draw(&self.open_anim, d, BASE_ANIM_POS, texture);
                 OPEN_ANIM.draw(&self.open_anim, d, TALLY_ANIM_POS, texture);
                 OPEN_ANIM.draw(&self.open_anim, d, MULTI_ANIM_POS, texture);
                 OPEN_ANIM.draw(&self.open_anim, d, TOTAL_ANIM_POS, texture);
             }
-            ScoreBoardState::Open => todo!(
-                "Dont need to draw any anims, match turn identity,
+            ScoreBoardState::Open => {
+                match self.turn_identity {
+                    TurnIdentity::Player => {
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            BASE_CENTER_POS,
+                            &player.dice_boxes[player.current_box].get_data().base_multi_for_this_dice_box.to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            TALLY_CENTER_POS,
+                            &player.dice_boxes[player.current_box].get_data().total_tally.to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            MULTI_CENTER_POS,
+                            &player.dice_boxes[player.current_box].get_data().total_multi_for_this_tally.to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            TOTAL_CENTER_POS,
+                            &player.dice_boxes[player.current_box].get_data().get_value().to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+                    }
+                    TurnIdentity::Enemy => {
+
+                        let enemy_data = &self.current_enemy.unwrap().get_data();
+                        let enemy_current_box_index = enemy_data.current_box;
+                        
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            BASE_CENTER_POS,
+                            &enemy_data.dice_boxes[enemy_current_box_index].get_data().base_multi_for_this_dice_box.to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            TALLY_CENTER_POS,
+                            &enemy_data.dice_boxes[enemy_current_box_index].get_data().total_tally.to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            MULTI_CENTER_POS,
+                            &enemy_data.dice_boxes[enemy_current_box_index].get_data().total_multi_for_this_tally.to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+
+                        string_utils::draw_string_centered_on_pos(
+                            d,
+                            TOTAL_CENTER_POS,
+                            &enemy_data.dice_boxes[enemy_current_box_index].get_data().get_value().to_string(),
+                            font,
+                            self.font_size,
+                            self.font_spacing,
+                            Color::WHITE,
+                        );
+                    },
+                    TurnIdentity::None => todo!(),
+                }
+
+                todo!(
+                    "Dont need to draw any anims, match turn identity,
                 if player turn and player state is tallying acting etc then draw player stats,
                 if enemy turn and enemy state is tallying acting etc then draw enemy stats,
                 if the one whos turn it is isnt at tallying state yet, then draw random numbers"
-            ),
+                )
+            }
             ScoreBoardState::Closing => todo!("draw closing anim"),
         }
     }

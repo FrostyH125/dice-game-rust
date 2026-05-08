@@ -12,7 +12,6 @@ use crate::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::{DiceBox, DiceBoxResult}
     },
-    system::input_handler::MouseState,
 };
 use crate::{
     entities::{
@@ -80,7 +79,7 @@ pub struct Player {
     pub dice_boxes: Vec<DiceBox>,
     pub hand: Hand,
     health: f64,
-    current_box: usize,
+    pub current_box: usize,
     walk_anim: SpriteAnimationInstance,
     thinking_anim: SpriteAnimationInstance,
     waiting_anim: SpriteAnimationInstance,
@@ -130,7 +129,7 @@ impl Player {
         enemy: &mut Enemy,
         dt: f32,
     ) {
-        if let MouseState::Inactive = input_state.mouse_state {
+        if !input_state.dragging {
             self.is_player_dragging_dice = false;
         }
 
