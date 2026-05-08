@@ -3,7 +3,7 @@ use basic_raylib_core::{
     system::timer::Timer,
     utils::string_utils,
 };
-use rand::{Rng, RngExt, random, rngs::ThreadRng};
+use rand::{RngExt, rngs::ThreadRng};
 use raylib::{color::Color, math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
 use crate::{
@@ -180,7 +180,6 @@ impl<'a> ScoreBoard<'a> {
         &mut self,
         d: &mut RaylibDrawHandle,
         player: &mut Player,
-        enemies: &[Enemy],
         texture: &Texture2D,
         font: &Font,
     ) {
