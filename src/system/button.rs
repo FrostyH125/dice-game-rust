@@ -1,5 +1,5 @@
-use super::input_handler::InputState;
-use basic_raylib_core::graphics::sprite::Sprite;
+
+use basic_raylib_core::{graphics::sprite::Sprite, system::input_handler::InputState};
 use raylib::prelude::*;
 
 pub struct Button {

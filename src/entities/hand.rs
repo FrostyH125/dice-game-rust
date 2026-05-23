@@ -1,7 +1,7 @@
 use super::dice::{DICE_WIDTH_HEIGHT, Dice};
-use basic_raylib_core::system::{timer::Timer, sprite_particle_system::SpriteParticleSystem};
+use basic_raylib_core::system::{timer::Timer, sprite_particle_system::SpriteParticleSystem, input_handler::InputState};
 use raylib::prelude::*;
-use crate::{LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::dice::DiceState, system::input_handler::InputState};
+use crate::{LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, entities::dice::DiceState};
 
 const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
 

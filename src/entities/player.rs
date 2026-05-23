@@ -1,6 +1,6 @@
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::{timer::Timer, sprite_particle_system::SpriteParticleSystem},
+    system::{timer::Timer, sprite_particle_system::SpriteParticleSystem, input_handler::InputState},
 };
 use raylib::{
     color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D
@@ -19,7 +19,7 @@ use crate::{
         enemy::{Enemy, EnemyState},
         hand::Hand,
     },
-    system::{button::Button, input_handler::InputState},
+    system::button::Button
 };
 
 const HIT_DELAY_DURATION: f32 = 1.0;

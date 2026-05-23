@@ -1,14 +1,9 @@
-use crate::{
-    entities::{
-        dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRITE},
-    },
-    system::input_handler::InputState,
-};
+use crate::entities::dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRITE};
 
 use self::DiceState::*;
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::timer::Timer,
+    system::{timer::Timer, input_handler::InputState},
     utils::math_utils::smooth_lerp,
 };
 use rand::random_range;
@@ -43,7 +38,11 @@ pub static D4_ROLL_ANIM: AnimationData = AnimationData {
 
 pub enum DiceState {
     Stopped,
-    Rearranging { old_pos: Vector2, target_pos: Vector2, should_roll_after: bool },
+    Rearranging {
+        old_pos: Vector2,
+        target_pos: Vector2,
+        should_roll_after: bool,
+    },
     Rolling,
     Dragging,
 }
@@ -102,16 +101,15 @@ impl Dice {
     pub fn update_for_enemy(&mut self, dt: f32) {
         match self.state {
             DiceState::Rolling => self.update_roll_anim_random(dt),
-            Rearranging { old_pos, target_pos , should_roll_after } => {
+            Rearranging { old_pos, target_pos, should_roll_after } => {
                 self.rearranging_timer.track(dt);
 
                 if self.rearranging_timer.is_done() {
-                    
                     let next_state = match should_roll_after {
                         true => DiceState::Rolling,
                         false => DiceState::Stopped,
                     };
-                    
+
                     self.state = next_state;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();
@@ -142,7 +140,7 @@ impl Dice {
                 if !hand_stopped {
                     return;
                 }
-                
+
                 let mouse_over_this = {
                     let rect = Rectangle {
                         x: self.pos.x,
@@ -158,16 +156,15 @@ impl Dice {
                     self.state = DiceState::Dragging;
                 }
             }
-            Rearranging { old_pos, target_pos , should_roll_after } => {
+            Rearranging { old_pos, target_pos, should_roll_after } => {
                 self.rearranging_timer.track(dt);
 
                 if self.rearranging_timer.is_done() {
-                    
                     let next_state = match should_roll_after {
                         true => DiceState::Rolling,
                         false => DiceState::Stopped,
                     };
-                    
+
                     self.state = next_state;
                     self.pos = target_pos;
                     self.rearranging_timer.reset();

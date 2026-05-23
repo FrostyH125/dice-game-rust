@@ -1,6 +1,6 @@
 use std::{i8, usize};
 
-use basic_raylib_core::{graphics::sprite::Sprite, system::{timer::Timer, sprite_particle_system::SpriteParticleSystem}};
+use basic_raylib_core::{graphics::sprite::Sprite, system::{timer::Timer, sprite_particle_system::SpriteParticleSystem, input_handler::InputState}};
 use raylib::{
     color::Color,
     math::{Rectangle, Vector2},
@@ -18,7 +18,7 @@ use crate::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         hand::Hand,
     },
-    system::{info_hover::InfoHover, input_handler::InputState},
+    system::info_hover::InfoHover,
 };
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2::new(0.0, 20.0);

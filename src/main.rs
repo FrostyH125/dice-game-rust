@@ -2,11 +2,12 @@ pub mod entities;
 pub mod system;
 pub mod utilities;
 
+use raylib::prelude::*;
+
 use basic_raylib_core::{
     graphics::sprite::Sprite,
-    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer},
+    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer, input_handler::InputState},
 };
-use raylib::prelude::*;
 
 use crate::{
     entities::{
@@ -20,13 +21,14 @@ use crate::{
     system::{
         button::Button,
         dialogue_system::DialogueSystem,
-        input_handler::InputState,
     },
 };
 use rand::random_range;
 
 pub static SMALL_DUST_SPRITE: Sprite = Sprite::new(0.0, 32.0, 1.0, 1.0);
 pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1.0, 32.0, 3.0, 3.0);
+
+static MOUSE_SPRITE: Sprite = Sprite::new(0.0, 16.0, 16.0, 16.0);
 
 pub const EMPTY_SPRITE: Sprite = Sprite::new(0.0, 0.0, 0.0, 0.0);
 
@@ -136,7 +138,7 @@ fn main() {
 
     let mut current_enemy = get_random_enemy(&font);
 
-    let mut particle_system = SpriteParticleSystem::new();
+    let mut particle_system = SpriteParticleSystem::new(1000);
 
     let mut dialogue_system = DialogueSystem::new();
 
@@ -245,7 +247,7 @@ fn main() {
 
         particle_system.draw(&mut cam_handle, &sprite_sheet);
         dialogue_system.draw(&mut cam_handle, &font);
-        input_state.draw_mouse(&mut cam_handle, &sprite_sheet);
+        draw_mouse(&mut cam_handle, &sprite_sheet, &input_state);
     }
 }
 
@@ -261,4 +263,8 @@ fn get_random_enemy(font: &Font) -> Enemy {
     enemy.place_boxes();
 
     return enemy;
+}
+
+pub fn draw_mouse(d: &mut RaylibDrawHandle, sprite_sheet: &Texture2D, input_handler: &InputState) {
+    MOUSE_SPRITE.draw(d, input_handler.mouse_pos, sprite_sheet);
 }

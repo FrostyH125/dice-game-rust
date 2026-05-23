@@ -1,6 +1,6 @@
 use basic_raylib_core::{
     graphics::sprite::Sprite,
-    system::timer::Timer,
+    system::{input_handler::InputState, timer::Timer},
     utils::string_utils::wrap_string,
 };
 use raylib::{
@@ -10,8 +10,6 @@ use raylib::{
     text::{Font, RaylibFont},
     texture::Texture2D,
 };
-
-use crate::system::input_handler::InputState;
 
 const CONSTANT_EDGE_SIZE: f32 = 4.0;
 const VARYING_EDGE_DEFAULT_SIZE: f32 = 1.0;

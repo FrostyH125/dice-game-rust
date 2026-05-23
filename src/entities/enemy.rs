@@ -1,9 +1,8 @@
 use crate::{
     VIRTUAL_WIDTH,
     entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player},
-    system::input_handler::InputState,
 };
-use basic_raylib_core::system::sprite_particle_system::SpriteParticleSystem;
+use basic_raylib_core::system::{sprite_particle_system::SpriteParticleSystem, input_handler::InputState};
 use raylib::{
     color::Color,
     math::Vector2,
@@ -42,13 +41,13 @@ pub enum EnemyState {
 
     ///some transition time between choosing the final die, and tallying
     BeforeTallyDelay,
-    
+
     /// can either be tallying on by one like in the player boxes or tally all at once based on a condition like snake eyes
     TallyingTotal,
-    
+
     ///for the animation of the action
     BeforeActingDelay,
-    
+
     ///handles the actual acting logic (should only be one frame long)
     Acting,
 
@@ -61,7 +60,7 @@ pub enum EnemyState {
     ///should be a simple check to see if player is waiting for enemy, and then
     ///if so, start turn
     WaitingForPlayer,
-    
+
     Dead,
 }
 
@@ -73,10 +72,10 @@ pub struct EnemyData {
     // added these to position things properly depending on enemy
     pub width: f32,
     pub height: f32,
-    
+
     // added the boxs as official enemy data for the scoreboard to function
     pub dice_boxes: Vec<DiceBox>,
-    pub current_box: usize
+    pub current_box: usize,
 }
 
 pub enum Enemy {
@@ -112,31 +111,30 @@ impl Enemy {
             Self::Snake { snake } => snake.update(input_state, player, particle_system, dt),
         }
     }
-    
+
     pub fn place_boxes(&mut self) {
-        
         let margin = 5.0;
         let dice_box_height = 16.0;
         let self_width = self.get_data().width;
         let self_pos = self.get_data().pos;
-        
+
         let boxes = self.get_mut_data().dice_boxes.as_mut_slice();
-        
+
         let num_of_boxes = boxes.len();
-        
+
         match num_of_boxes {
             1 => {
                 let self_half_width = self_width / 2.0;
-                
+
                 let box_data = boxes[0].get_mut_data();
                 let half_dice_box_width = box_data.width / 2.0;
                 let box_x_pos = self_pos.x + self_half_width - half_dice_box_width;
                 let box_y_pos = self_pos.y - margin - dice_box_height;
                 box_data.pos = Vector2::new(box_x_pos, box_y_pos);
             }
-            _ => unimplemented!("place_boxes(enemy) not implemented for {} boxes", num_of_boxes)
+            _ => unimplemented!("place_boxes(enemy) not implemented for {} boxes", num_of_boxes),
         }
-        
+
         for dice_box in boxes {
             dice_box.adjust_info_hover_pos_for_current_pos();
             dice_box.adjust_collect_rect_pos_for_current_pos();
@@ -144,11 +142,10 @@ impl Enemy {
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        
         match self {
             Self::Snake { snake } => snake.draw(d, texture, font),
         }
-        
+
         let pos = self.get_data().pos;
         let font_size = 10.0;
         let spacing = 0.5;

@@ -1,6 +1,6 @@
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer},
+    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer, input_handler::InputState},
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
 
@@ -14,7 +14,6 @@ use crate::{
         hand::Hand,
         player::{Player, PlayerState},
     },
-    system::input_handler::InputState,
 };
 
 const BEFORE_ATTACKING_TIME: f32 = 2.0;
@@ -78,7 +77,7 @@ impl Snake {
                 width: 32.0,
                 height: 48.0,
                 dice_boxes: vec![DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(font) }],
-                current_box: SNAKE_EYES_INDEX
+                current_box: SNAKE_EYES_INDEX,
             },
             hand: Hand::new(
                 vec![
@@ -108,9 +107,6 @@ impl Snake {
         particle_system: &mut SpriteParticleSystem,
         dt: f32,
     ) {
-        
-        
-        
         self.hand.update_for_enemy(dt);
         self.data.dice_boxes[SNAKE_EYES_INDEX].update_for_enemy(input_state, dt);
 
@@ -208,10 +204,10 @@ impl Snake {
             }
             EnemyState::Acting => {
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
-                
+
                 let result = self.data.dice_boxes[SNAKE_EYES_INDEX].get_result();
                 self.data.dice_boxes[SNAKE_EYES_INDEX].enemy_action(result, player, &mut self.data.health);
-                
+
                 self.data.state = EnemyState::EndTurnDelay;
                 self.attack_anim.reset();
             }
@@ -224,7 +220,8 @@ impl Snake {
                     self.data.state = EnemyState::WaitingForPlayer;
                     self.data.dice_boxes[SNAKE_EYES_INDEX].get_mut_data().emit_smoke_at_each_dice(particle_system);
                     self.hand.emit_smoke_at_each_dice(particle_system);
-                    self.data.dice_boxes[SNAKE_EYES_INDEX].reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
+                    self.data.dice_boxes[SNAKE_EYES_INDEX]
+                        .reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
                 }
             }
             EnemyState::WaitingForPlayer => {

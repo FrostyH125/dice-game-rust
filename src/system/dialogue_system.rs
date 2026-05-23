@@ -1,7 +1,5 @@
-use basic_raylib_core::utils::string_utils::wrap_string;
+use basic_raylib_core::{system::input_handler::InputState, utils::string_utils::wrap_string};
 use raylib::{color::Color, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}, text::Font};
-
-use crate::system::input_handler::{InputState};
 
 // responsible for moving through current dialogue and managing whether its finished or not
 // responsible for displaying the dialogue

@@ -1,11 +1,3 @@
-use basic_raylib_core::graphics::sprite_animation::SpriteAnimationInstance;
-use raylib::{
-    math::{Rectangle, Vector2},
-    prelude::RaylibDrawHandle,
-    text::Font,
-    texture::Texture2D,
-};
-
 // ok heres the deal for anyone reading this code
 // this could absolutely be done in a more explicit, cleaner, less error prone way
 // however, i figured this was still a decent way to have dice boxes that can be
@@ -16,6 +8,16 @@ use raylib::{
 // its just used slightly differently (updating to check for dice being picked up and
 // dice boxes having different animations for player and enemy being the main differences)
 
+
+use basic_raylib_core::{graphics::sprite_animation::SpriteAnimationInstance, system::input_handler::InputState};
+use raylib::{
+    math::{Rectangle, Vector2},
+    prelude::RaylibDrawHandle,
+    text::Font,
+    texture::Texture2D,
+};
+
+
 use crate::{
     entities::{
         dice::Dice,
@@ -24,8 +26,7 @@ use crate::{
         hand::Hand,
         player::Player,
         player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
-    },
-    system::input_handler::InputState,
+    }
 };
 
 pub enum DiceBox {
