@@ -8,11 +8,10 @@ use raylib::{
 };
 
 use crate::{
-    entities::{
+    GameContext, entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box_data::{DICE_BORDER_OFFSET, DiceBoxData},
-    },
-    system::{info_hover::InfoHover},
+    }, system::info_hover::InfoHover
 };
 
 static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80.0, 160.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT);
@@ -60,17 +59,17 @@ impl SnakeEyes {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        SNAKE_EYES_DICE_BOX_SPRITE.draw(d, self.data.pos, texture);
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+        SNAKE_EYES_DICE_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
 
         if self.data.total_value_for_current_round != 0.0f64.floor() {
-            self.draw_snake_eyes_text(d, font);
-            self.draw_damage(d, font);
-            self.draw_dice_outlines(d, texture);
+            self.draw_snake_eyes_text(d, &game_context.font);
+            self.draw_damage(d, &game_context.font);
+            self.draw_dice_outlines(d, &game_context.texture);
         }
 
-        self.snake_eyes_draw_dice(d, texture);
-        self.draw_placeholder_dice(d, texture);
+        self.snake_eyes_draw_dice(d, &game_context.texture);
+        self.draw_placeholder_dice(d, &game_context.texture);
     }
 
     pub fn check_if_two_ones(&mut self) -> bool {

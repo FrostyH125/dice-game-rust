@@ -13,13 +13,12 @@ use basic_raylib_core::{graphics::sprite_animation::SpriteAnimationInstance, sys
 use raylib::{
     math::{Rectangle, Vector2},
     prelude::RaylibDrawHandle,
-    text::Font,
     texture::Texture2D,
 };
 
 
 use crate::{
-    entities::{
+    GameContext, entities::{
         dice::Dice,
         dice_box_data::DiceBoxData,
         enemy_dice_boxes::snake_eyes::SnakeEyes,
@@ -120,14 +119,14 @@ impl DiceBox {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         match self {
-            Self::BroadSwordBox { broadsword_box } => broadsword_box.draw(d, texture, font),
-            Self::HealBox { heal_box } => heal_box.draw(d, texture, font),
-            Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, texture, font),
+            Self::BroadSwordBox { broadsword_box } => broadsword_box.draw(d, game_context),
+            Self::HealBox { heal_box } => heal_box.draw(d, game_context),
+            Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, game_context),
         }
 
-        self.get_data().info_hover.draw(d, font, texture);
+        self.get_data().info_hover.draw(d, game_context);
     }
 
     pub fn get_data(&self) -> &DiceBoxData {

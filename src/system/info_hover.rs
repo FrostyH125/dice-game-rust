@@ -8,8 +8,9 @@ use raylib::{
     math::{Rectangle, Vector2},
     prelude::{RaylibDraw, RaylibDrawHandle},
     text::{Font, RaylibFont},
-    texture::Texture2D,
 };
+
+use crate::GameContext;
 
 const CONSTANT_EDGE_SIZE: f32 = 4.0;
 const VARYING_EDGE_DEFAULT_SIZE: f32 = 1.0;
@@ -79,14 +80,14 @@ impl InfoHover {
         self.inner_rect.y = start_pos_y.round();
     }
 
-    pub fn draw(&self, d: &mut RaylibDrawHandle, font: &Font, texture: &Texture2D) {
+    pub fn draw(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         if !self.activation_timer.is_done() {
             return;
         }
 
         let zero_v = Vector2 { x: 0.0, y: 0.0 };
 
-        INNER_RECT_SPRITE.draw_pro(d, self.inner_rect, zero_v, 0.0, texture);
+        INNER_RECT_SPRITE.draw_pro(d, self.inner_rect, zero_v, 0.0, &game_context.texture);
 
         // draw the sides
         LEFT_EDGE_SPRITE.draw_pro(
@@ -99,7 +100,7 @@ impl InfoHover {
             },
             zero_v,
             0.0,
-            texture,
+            &game_context.texture,
         );
 
         RIGHT_EDGE_SPRITE.draw_pro(
@@ -112,7 +113,7 @@ impl InfoHover {
             },
             zero_v,
             0.0,
-            texture,
+            &game_context.texture,
         );
 
         // draw the top and bottom
@@ -126,7 +127,7 @@ impl InfoHover {
             },
             zero_v,
             0.0,
-            texture,
+            &game_context.texture,
         );
 
         BOTTOM_EDGE_SPRITE.draw_pro(
@@ -139,7 +140,7 @@ impl InfoHover {
             },
             zero_v,
             0.0,
-            texture,
+            &game_context.texture,
         );
 
         //top left corner
@@ -149,7 +150,7 @@ impl InfoHover {
                 x: self.inner_rect.x - CONSTANT_EDGE_SIZE,
                 y: self.inner_rect.y - CONSTANT_EDGE_SIZE,
             },
-            texture,
+            &game_context.texture,
         );
 
         //top right corner
@@ -159,7 +160,7 @@ impl InfoHover {
                 x: self.inner_rect.x + self.inner_rect.width,
                 y: self.inner_rect.y - CONSTANT_EDGE_SIZE,
             },
-            texture,
+            &game_context.texture,
         );
         //bottom left corner
         BOTTOM_LEFT_CORNER_SPRITE.draw(
@@ -168,7 +169,7 @@ impl InfoHover {
                 x: self.inner_rect.x - CONSTANT_EDGE_SIZE,
                 y: self.inner_rect.y + self.inner_rect.height,
             },
-            texture,
+            &game_context.texture,
         );
         //bottom right corner
         BOTTOM_RIGHT_CORNER_SPRITE.draw(
@@ -177,11 +178,11 @@ impl InfoHover {
                 x: self.inner_rect.x + self.inner_rect.width,
                 y: self.inner_rect.y + self.inner_rect.height,
             },
-            texture,
+            &game_context.texture,
         );
 
         d.draw_text_ex(
-            font,
+            &game_context.font,
             &self.text,
             Vector2 {
                 x: self.inner_rect.x,

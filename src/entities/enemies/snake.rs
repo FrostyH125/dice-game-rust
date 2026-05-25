@@ -1,19 +1,18 @@
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer, input_handler::InputState},
+    system::timer::Timer,
 };
-use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
+use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font};
 
 use crate::{
-    EMPTY_SPRITE, VIRTUAL_WIDTH,
-    entities::{
+    EMPTY_SPRITE, GameContext, VIRTUAL_WIDTH, entities::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         dice_box::DiceBox,
         enemy::{ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData, EnemyState},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::{Player, PlayerState},
-    },
+    }
 };
 
 const BEFORE_ATTACKING_TIME: f32 = 2.0;
@@ -102,13 +101,12 @@ impl Snake {
 
     pub fn update(
         &mut self,
-        input_state: &InputState,
         player: &mut Player,
-        particle_system: &mut SpriteParticleSystem,
+        game_context: &mut GameContext,
         dt: f32,
     ) {
         self.hand.update_for_enemy(dt);
-        self.data.dice_boxes[SNAKE_EYES_INDEX].update_for_enemy(input_state, dt);
+        self.data.dice_boxes[SNAKE_EYES_INDEX].update_for_enemy(&game_context.input_state, dt);
 
         match self.data.state {
             EnemyState::StartTurn => {
@@ -218,8 +216,8 @@ impl Snake {
                 if self.turn_end_timer.is_done() {
                     self.turn_end_timer.reset();
                     self.data.state = EnemyState::WaitingForPlayer;
-                    self.data.dice_boxes[SNAKE_EYES_INDEX].get_mut_data().emit_smoke_at_each_dice(particle_system);
-                    self.hand.emit_smoke_at_each_dice(particle_system);
+                    self.data.dice_boxes[SNAKE_EYES_INDEX].get_mut_data().emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                    self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
                     self.data.dice_boxes[SNAKE_EYES_INDEX]
                         .reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
                 }
@@ -248,24 +246,24 @@ impl Snake {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        self.data.dice_boxes[0].draw(d, texture, font);
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+        self.data.dice_boxes[0].draw(d, game_context);
 
         match self.data.state {
             EnemyState::WaitingForPlayer => {
-                SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, texture);
+                SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, &game_context.texture);
                 // hand not supposed to be drawn here, so thats why this exists
             }
             EnemyState::HitDelay => {
-                SNAKE_HIT_ANIM.draw(&mut self.hit_anim, d, self.data.pos, texture);
+                SNAKE_HIT_ANIM.draw(&mut self.hit_anim, d, self.data.pos, &game_context.texture);
             }
             EnemyState::BeforeActingDelay | EnemyState::Acting => {
-                SNAKE_ATTACK_ANIM.draw(&mut self.attack_anim, d, self.data.pos, texture);
-                self.hand.draw(d, texture);
+                SNAKE_ATTACK_ANIM.draw(&mut self.attack_anim, d, self.data.pos, &game_context.texture);
+                self.hand.draw(d, &game_context.texture);
             }
             _ => {
-                SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, texture);
-                self.hand.draw(d, texture);
+                SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, &game_context.texture);
+                self.hand.draw(d, &game_context.texture);
             }
         }
     }

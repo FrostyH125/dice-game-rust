@@ -1,14 +1,11 @@
 use crate::{
-    VIRTUAL_WIDTH,
-    entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player},
+    GameContext, VIRTUAL_WIDTH, entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player}
 };
-use basic_raylib_core::system::{sprite_particle_system::SpriteParticleSystem, input_handler::InputState};
 use raylib::{
     color::Color,
     math::Vector2,
     prelude::{RaylibDraw, RaylibDrawHandle},
-    text::{Font, RaylibFont},
-    texture::Texture2D,
+    text::RaylibFont
 };
 
 pub const ENEMY_HAND_X_CENTER_CORD: f32 = VIRTUAL_WIDTH - 100.0;
@@ -73,7 +70,7 @@ pub struct EnemyData {
     pub width: f32,
     pub height: f32,
 
-    // added the boxs as official enemy data for the scoreboard to function
+    // added the boxes as official enemy data for the scoreboard to function
     pub dice_boxes: Vec<DiceBox>,
     pub current_box: usize,
 }
@@ -102,13 +99,12 @@ impl Enemy {
 
     pub fn update(
         &mut self,
-        input_state: &InputState,
         player: &mut Player,
-        particle_system: &mut SpriteParticleSystem,
+        game_context: &mut GameContext,
         dt: f32,
     ) {
         match self {
-            Self::Snake { snake } => snake.update(input_state, player, particle_system, dt),
+            Self::Snake { snake } => snake.update(player, game_context, dt),
         }
     }
 
@@ -141,19 +137,19 @@ impl Enemy {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         match self {
-            Self::Snake { snake } => snake.draw(d, texture, font),
+            Self::Snake { snake } => snake.draw(d, game_context),
         }
 
         let pos = self.get_data().pos;
         let font_size = 10.0;
         let spacing = 0.5;
         let health_str = &format!("HP: {}", self.get_data().health);
-        let size_of_health_str = font.measure_text(health_str, font_size, spacing);
+        let size_of_health_str = game_context.font.measure_text(health_str, font_size, spacing);
 
         d.draw_text_ex(
-            font,
+            &game_context.font,
             health_str,
             pos + Vector2::new(
                 self.get_data().width / 2.0 - size_of_health_str.x / 2.0,

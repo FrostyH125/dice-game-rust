@@ -2,6 +2,8 @@
 use basic_raylib_core::{graphics::sprite::Sprite, system::input_handler::InputState};
 use raylib::prelude::*;
 
+use crate::GameContext;
+
 pub struct Button {
     rect: Rectangle,
     sprite: Sprite,
@@ -40,32 +42,32 @@ impl Button {
     }
 
 
-    pub fn draw_with_text(&mut self, d: &mut RaylibDrawHandle, sprite_sheet: &Texture2D, font: &Font, input_state: &InputState) {
+    pub fn draw_with_text(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         let pos = Vector2::new(self.rect.x, self.rect.y);
 
         match self.inactive {
-            true => match self.is_pressed(input_state) {
-                true => self.down_clicked_sprite.draw(d, pos, sprite_sheet),
-                false => self.down_sprite.draw(d, pos, sprite_sheet),
+            true => match self.is_pressed(&game_context.input_state) {
+                true => self.down_clicked_sprite.draw(d, pos, &game_context.texture),
+                false => self.down_sprite.draw(d, pos, &game_context.texture),
             },
-            false => self.sprite.draw(d, pos, sprite_sheet)
+            false => self.sprite.draw(d, pos, &game_context.texture)
         }
 
         if let Some(text) = self.text {
             let offset = self.text_draw_offset.unwrap();
-            d.draw_text_ex(font, text, pos + offset, 9.0, 0.5, Color::WHITE);
+            d.draw_text_ex(&game_context.font, text, pos + offset, 9.0, 0.5, Color::WHITE);
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, sprite_sheet: &Texture2D, input_state: &InputState) {
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         let pos = Vector2::new(self.rect.x, self.rect.y);
         
         match self.inactive {
-            true => match self.is_pressed(input_state) {
-                true => self.down_clicked_sprite.draw(d, pos, sprite_sheet),
-                false => self.down_sprite.draw(d, pos, sprite_sheet),
+            true => match self.is_pressed(&game_context.input_state) {
+                true => self.down_clicked_sprite.draw(d, pos, &game_context.texture),
+                false => self.down_sprite.draw(d, pos, &game_context.texture),
             },
-            false => self.sprite.draw(d, pos, sprite_sheet)
+            false => self.sprite.draw(d, pos, &game_context.texture)
         }
     }
     

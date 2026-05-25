@@ -9,7 +9,7 @@ use raylib::{
     texture::Texture2D,
 };
 
-use crate::{entities::dice_box_data::{DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X, STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH}, system::info_hover::InfoHover};
+use crate::{GameContext, entities::dice_box_data::{DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X, STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH}, system::info_hover::InfoHover};
 
 const RESULTS_TEXT_COLOR: Color = Color::new(208, 184, 184, 255);
 static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
@@ -59,8 +59,8 @@ impl BroadSwordBox {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
-        BROADSWORD_BOX_SPRITE.draw(d, self.data.pos, texture);
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+        BROADSWORD_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
         d.draw_rectangle_lines(
             self.data.dice_collect_rect.x as i32,
             self.data.dice_collect_rect.y as i32,
@@ -68,11 +68,11 @@ impl BroadSwordBox {
             self.data.dice_collect_rect.height as i32,
             Color::WHITE,
         );
-        self.data.draw_dice(d, texture);
-        self.data.draw_base_multi(d, font, RESULTS_TEXT_COLOR);
-        self.data.draw_current_streak(d, font, RESULTS_TEXT_COLOR);
-        self.data.draw_border_around_current_dice(d, texture);
-        self.data.draw_info_sprite_and_information(d, font, RESULTS_TEXT_COLOR);
+        self.data.draw_dice(d, &game_context.texture);
+        self.data.draw_base_multi(d, &game_context.font, RESULTS_TEXT_COLOR);
+        self.data.draw_current_streak(d, &game_context.font, RESULTS_TEXT_COLOR);
+        self.data.draw_border_around_current_dice(d, &game_context.texture);
+        self.data.draw_info_sprite_and_information(d, &game_context.font, RESULTS_TEXT_COLOR);
     }
 
     pub fn player_draw_attack(

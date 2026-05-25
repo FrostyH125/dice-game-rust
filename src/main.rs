@@ -6,7 +6,7 @@ use raylib::prelude::*;
 
 use basic_raylib_core::{
     graphics::sprite::Sprite,
-    system::{sprite_particle_system::SpriteParticleSystem, timer::Timer, input_handler::InputState},
+    system::{input_handler::InputState, sprite_particle_system::SpriteParticleSystem, timer::Timer},
 };
 
 use crate::{
@@ -18,10 +18,7 @@ use crate::{
         player::{Player, PlayerState},
         player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
     },
-    system::{
-        button::Button,
-        dialogue_system::DialogueSystem,
-    },
+    system::{button::Button, dialogue_system::DialogueSystem},
 };
 use rand::random_range;
 
@@ -43,23 +40,12 @@ pub enum GameState {
     GameOver,
 }
 
-// need to clean up visuals, maybe have a single spot for current box information, with a name slot of course, not only for clarity but also
-// so players can get familiar with the different boxes as they play more easily without needing to rely on the information hover
-// edit the base multi on the box too to be a certain number of pixels away from the right edge, at the same height as it is right now
-// all youd need to do is measure the string, and let str_pos_x = right_edge_x - string_x - margin, shouldnt be too hard
-
-// maybe make the draw method on box actually not a match statement, instead making
-// color and sprite a field in the data struct instead, and then not having to repeat
-// code like in broadswordbox.draw and healbox.draw, since the only things that change are
-// the sprite and color
-//
 // impl gameover state (still need to add quit and retry buttons)
-// combine dialogue system, particle system, and input state as a GlobalState struct
 // disable input if the dialogue is running
 // healing box, make plus sign particles come out of player when healing with the wavy upward motion
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
-// 
+//
 // thinking of renaming AnimData.can_play into something more intuitive
 
 // put away for the moment to test other things, will come back to this when desired
@@ -73,33 +59,54 @@ pub enum GameState {
 //     &font,
 // ));
 
+
+
+// if a function needs one of these fields, pass the field itself by reference
+// if a function needs more than one of these fields, pass the struct itself by reference
+// this might seem like a questionable decision to have one of these structs at all, but as 
+// more systems are added to the game, i noticed the amount of parameters passed reaching
+// uncomfortable amounts
+pub struct GameContext {
+    sprite_particle_system: SpriteParticleSystem,
+    input_state: InputState,
+    texture: Texture2D,
+    dialogue_system: DialogueSystem,
+    font: Font,
+}
+
 fn main() {
     let (mut rl, thread) =
         raylib::init().size(VIRTUAL_WIDTH as i32 * 3, VIRTUAL_HEIGHT as i32 * 3).title("Dice Game").build();
 
-    let font = rl.load_font(&thread, "PublicPixel.ttf").unwrap();
-
-    let mut state = GameState::Travelling;
-
-    let mut next_enemy_timer = Timer::new(2.0);
-
+    let sprite_particle_system = SpriteParticleSystem::new(1000);
     let camera = Camera2D {
         offset: Default::default(),
         target: Default::default(),
         rotation: Default::default(),
         zoom: 3.0,
     };
+    let input_state = InputState::new();
+    let texture = rl.load_texture(&thread, "SpriteSheet.png").unwrap();
+    let font = rl.load_font(&thread, "PublicPixel.ttf").unwrap();
+    let dialogue_system = DialogueSystem::new();
 
-    let mut input_state = InputState::new();
+    let mut game_context = GameContext {
+        sprite_particle_system,
+        input_state,
+        texture,
+        dialogue_system,
+        font,
+    };
+    
+    let mut state = GameState::Travelling;
 
-    let sprite_sheet = rl.load_texture(&thread, "SpriteSheet.png").unwrap();
-    sprite_sheet.set_texture_filter(&thread, TextureFilter::TEXTURE_FILTER_POINT);
+    let mut next_enemy_timer = Timer::new(2.0);
 
     let mut player = Player::new();
     player.add_box(DiceBox::BroadSwordBox {
-        broadsword_box: BroadSwordBox::new(&font),
+        broadsword_box: BroadSwordBox::new(&game_context.font),
     });
-    player.add_box(DiceBox::HealBox { heal_box: HealBox::new(&font) });
+    player.add_box(DiceBox::HealBox { heal_box: HealBox::new(&game_context.font) });
 
     let mut confirm_button = Button::new(
         Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
@@ -136,27 +143,23 @@ fn main() {
         Some(Vector2::new(2.0, 10.0)),
     );
 
-    let mut current_enemy = get_random_enemy(&font);
+    let mut current_enemy = get_random_enemy(&game_context.font);
 
-    let mut particle_system = SpriteParticleSystem::new(1000);
-
-    let mut dialogue_system = DialogueSystem::new();
 
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
-        input_state.update(&mut rl, camera.zoom);
+        game_context.input_state.update(&mut rl, camera.zoom);
         player.update(
-            &input_state,
             &mut confirm_button,
             &mut stop_button,
             &mut reroll_button,
-            &mut particle_system,
             &mut current_enemy,
+            &mut game_context,
             dt,
         );
-        particle_system.update(dt);
-        dialogue_system.update(&input_state);
+        game_context.sprite_particle_system.update(dt);
+        game_context.dialogue_system.update(&game_context.input_state);
 
         match state {
             GameState::Travelling => {
@@ -164,7 +167,7 @@ fn main() {
 
                 if next_enemy_timer.is_done() {
                     if current_enemy.get_data().health <= 0.0 {
-                        current_enemy = get_random_enemy(&font);
+                        current_enemy = get_random_enemy(&game_context.font);
                     }
 
                     state = GameState::Combat;
@@ -173,7 +176,7 @@ fn main() {
                 }
             }
             GameState::Combat => {
-                current_enemy.update(&input_state, &mut player, &mut particle_system, dt);
+                current_enemy.update(&mut player, &mut game_context, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
                     player.take_hit(100.0);
@@ -198,21 +201,21 @@ fn main() {
         let mut cam_handle = handle.begin_mode2D(&camera);
 
         // so far player is always drawn regardless of state, that will eventually change but it doesnt need to at the moment
-        player.draw(&mut cam_handle, &sprite_sheet, &font);
+        player.draw(&mut cam_handle, &game_context);
 
         match state {
             GameState::Combat => {
-                current_enemy.draw(&mut cam_handle, &sprite_sheet, &font);
+                current_enemy.draw(&mut cam_handle, &game_context);
             }
             GameState::GameOver => {
                 // Draw game over text here, add a replay button, and a quit button
 
                 let game_over_string = "Game Over!";
-                let game_over_string_length = font.measure_text(game_over_string, 10.0, 0.5);
+                let game_over_string_length = game_context.font.measure_text(game_over_string, 10.0, 0.5);
                 let game_over_string_y = VIRTUAL_HEIGHT / 2.0 - game_over_string_length.y / 2.0;
                 let game_over_string_x = VIRTUAL_WIDTH / 2.0 - game_over_string_length.x / 2.0;
                 cam_handle.draw_text_pro(
-                    &font,
+                    &game_context.font,
                     game_over_string,
                     Vector2::new(game_over_string_x, game_over_string_y),
                     Vector2::zero(),
@@ -228,7 +231,7 @@ fn main() {
         // handle buttons specifically
         match player.state {
             PlayerState::RollingDice | PlayerState::StoppingDice => {
-                stop_button.draw(&mut cam_handle, &sprite_sheet, &input_state);
+                stop_button.draw(&mut cam_handle, &game_context);
             }
             PlayerState::WaitingForEnemy
             | PlayerState::StartTurn
@@ -237,17 +240,17 @@ fn main() {
             | PlayerState::Dead
             | PlayerState::Walking => (),
             _ => {
-                confirm_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
+                confirm_button.draw_with_text(&mut cam_handle, &game_context);
 
                 if player.hand.dice.len() > 0 {
-                    reroll_button.draw_with_text(&mut cam_handle, &sprite_sheet, &font, &input_state);
+                    reroll_button.draw_with_text(&mut cam_handle, &game_context);
                 }
             }
         }
 
-        particle_system.draw(&mut cam_handle, &sprite_sheet);
-        dialogue_system.draw(&mut cam_handle, &font);
-        draw_mouse(&mut cam_handle, &sprite_sheet, &input_state);
+        game_context.sprite_particle_system.draw(&mut cam_handle, &game_context.texture);
+        game_context.dialogue_system.draw(&mut cam_handle, &game_context.font);
+        draw_mouse(&mut cam_handle, &game_context);
     }
 }
 
@@ -265,6 +268,10 @@ fn get_random_enemy(font: &Font) -> Enemy {
     return enemy;
 }
 
-pub fn draw_mouse(d: &mut RaylibDrawHandle, sprite_sheet: &Texture2D, input_handler: &InputState) {
-    MOUSE_SPRITE.draw(d, input_handler.mouse_pos, sprite_sheet);
+pub fn draw_mouse(d: &mut RaylibDrawHandle, game_context: &GameContext) {
+
+    // here, yes, i pass 2 arguments needing the game info, 
+    // this is a rare case and im not changing sprite::draw() just
+    // to accomodate the one instance where i need 2 fields from the struct
+    MOUSE_SPRITE.draw(d, game_context.input_state.mouse_pos, &game_context.texture);
 }

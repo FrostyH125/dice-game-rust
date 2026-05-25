@@ -1,17 +1,16 @@
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::{timer::Timer, sprite_particle_system::SpriteParticleSystem, input_handler::InputState},
+    system::timer::Timer,
 };
 use raylib::{
-    color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::{Font, RaylibFont}, texture::Texture2D
+    color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::RaylibFont
 };
 
 use crate::{
-    EMPTY_SPRITE, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
-    entities::{
+    EMPTY_SPRITE, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::{DiceBox, DiceBoxResult}
-    },
+    }
 };
 use crate::{
     entities::{
@@ -121,26 +120,25 @@ impl Player {
 
     pub fn update(
         &mut self,
-        input_state: &InputState,
         confirm_button: &mut Button,
         stop_button: &mut Button,
         reroll_button: &mut Button,
-        particle_system: &mut SpriteParticleSystem,
         enemy: &mut Enemy,
+        game_context: &mut GameContext,
         dt: f32,
     ) {
-        if !input_state.dragging {
+        if !game_context.input_state.dragging {
             self.is_player_dragging_dice = false;
         }
 
-        self.hand.update_for_player(&mut self.is_player_dragging_dice, input_state, dt);
+        self.hand.update_for_player(&mut self.is_player_dragging_dice, &game_context.input_state, dt);
 
         for dice_box in &mut self.dice_boxes {
             dice_box.update_for_player(
                 &mut self.is_player_dragging_dice,
                 self.was_player_dragging_dice,
                 &mut self.hand,
-                input_state,
+                &game_context.input_state,
                 dt,
             );
         }
@@ -180,7 +178,7 @@ impl Player {
             }
             PlayerState::RollingDice => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                if stop_button.is_pressed(input_state) {
+                if stop_button.is_pressed(&game_context.input_state) {
                     self.hand.begin_dice_stop();
                     self.state = PlayerState::StoppingDice;
                     stop_button.deactivate();
@@ -199,7 +197,7 @@ impl Player {
             PlayerState::ChoosingDice => {
                 PLAYER_THINKING_ANIM.update(&mut self.thinking_anim, dt);
 
-                if self.hand.dice.len() > 0 && reroll_button.is_pressed(input_state) {
+                if self.hand.dice.len() > 0 && reroll_button.is_pressed(&game_context.input_state) {
                     self.hand.reset_hand();
                     self.hand.begin_dice_stop();
 
@@ -209,10 +207,10 @@ impl Player {
                     self.state = PlayerState::RerollingDice;
                 }
 
-                if confirm_button.is_pressed(input_state) {
+                if confirm_button.is_pressed(&game_context.input_state) {
                     self.thinking_anim.reset();
                     self.state = PlayerState::TallyingCurrentBox;
-                    self.hand.emit_smoke_at_each_dice(particle_system);
+                    self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
                     confirm_button.deactivate();
                     reroll_button.deactivate();
                     
@@ -296,7 +294,7 @@ impl Player {
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.get_mut_data().emit_smoke_at_each_dice(particle_system);
+                    dice_box.get_mut_data().emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
                     dice_box.reset(&mut self.hand.dice, PLAYER_CENTER + DICE_WIDTH_HEIGHT / 2.0);
                 }
                 self.state = PlayerState::WaitingForEnemy;
@@ -336,53 +334,53 @@ impl Player {
         self.current_box = 0;
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D, font: &Font) {
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         match self.state {
             PlayerState::Walking => {
-                PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, texture);
+                PLAYER_WALK_ANIM.draw(&self.walk_anim, d, self.pos, &game_context.texture);
             }
             PlayerState::WaitingForEnemy => {
-                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
+                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.draw(d, texture, font);
+                    dice_box.draw(d, game_context);
                 }
             }
             PlayerState::HitDelay => {
-                PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, texture);
+                PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.draw(d, texture, font);
+                    dice_box.draw(d, game_context);
                 }
             }
             PlayerState::ChoosingDice => {
-                PLAYER_THINKING_ANIM.draw(&self.thinking_anim, d, self.pos, texture);
+                PLAYER_THINKING_ANIM.draw(&self.thinking_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.draw(d, texture, font);
+                    dice_box.draw(d, game_context);
                 }
-                self.hand.draw(d, texture);
+                self.hand.draw(d, &game_context.texture);
             }
             PlayerState::RerollingDice
             | PlayerState::RollingDice
             | PlayerState::StoppingDice
             | PlayerState::WaitingForDiceToMoveToHand => {
-                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
+                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.draw(d, texture, font);
+                    dice_box.draw(d, game_context);
                 }
-                self.hand.draw(d, texture);
+                self.hand.draw(d, &game_context.texture);
             }
             PlayerState::BeforeActionVisual => {
-                self.dice_boxes[self.current_box].player_draw_action(&mut self.acting_anim, d, self.pos, texture);
+                self.dice_boxes[self.current_box].player_draw_action(&mut self.acting_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.draw(d, texture, font);
+                    dice_box.draw(d, game_context);
                 }
             }
             PlayerState::Dead => {
                 
             }
             _ => {
-                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, texture);
+                PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.draw(d, texture, font);
+                    dice_box.draw(d, game_context);
                 }
             }
         }
@@ -395,12 +393,12 @@ impl Player {
         let health_str = &format!("HP: {}", self.health);
         let font_size = 10.0;
         let spacing = 0.5;
-        let size_of_str = font.measure_text(health_str, font_size, spacing);
+        let size_of_str = game_context.font.measure_text(health_str, font_size, spacing);
         let self_width = 32.0;
         let self_height = 48.0;
 
         d.draw_text_ex(
-            font,
+            &game_context.font,
             health_str,
             self.pos
                 + Vector2::new(
