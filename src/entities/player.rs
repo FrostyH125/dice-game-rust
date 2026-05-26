@@ -240,6 +240,10 @@ impl Player {
                 if self.dice_boxes[self.current_box].get_data().dice_in_box.is_empty() {
                     self.current_box += 1;
                     if self.current_box > self.dice_boxes.len() - 1 {
+
+                        // even though this value isnt read here, it causes problems
+                        // in places like scoreboard that rely on this data
+                        self.current_box = self.dice_boxes.len() - 1;
                         self.state = PlayerState::EndTurn;
                     }
                 } else if self.dice_boxes[self.current_box].tally(dt) {
@@ -276,6 +280,12 @@ impl Player {
                 self.current_box += 1;
 
                 if self.current_box > self.dice_boxes.len() - 1 {
+                    // even though this value isnt read here, it causes problems
+                    // in places like scoreboard that rely on this data
+                     
+                    // note that this correction exists in tallying current box as well
+                    // in the event that the current box is empty 
+                    self.current_box = self.dice_boxes.len() - 1;
                     self.state = PlayerState::EndTurnDelay;
                 } else {
                     self.state = PlayerState::TallyingCurrentBox;

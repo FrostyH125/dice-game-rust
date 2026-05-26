@@ -54,6 +54,9 @@ pub enum EnemyState {
     ///the delay before fully ending turn for seamless, sensible transitions
     EndTurnDelay,
 
+    ///everything that needs to happen before going into the waiting state
+    EndTurn,
+
     ///should be a simple check to see if player is waiting for enemy, and then
     ///if so, start turn
     WaitingForPlayer,

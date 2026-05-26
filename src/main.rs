@@ -16,7 +16,7 @@ use crate::{
         enemies::snake::Snake,
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
-        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
+        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox}, scoreboard::ScoreBoard,
     },
     system::{button::Button, dialogue_system::DialogueSystem},
 };
@@ -108,6 +108,8 @@ fn main() {
     });
     player.add_box(DiceBox::HealBox { heal_box: HealBox::new(&game_context.font) });
 
+    let mut scoreboard = ScoreBoard::new();
+
     let mut confirm_button = Button::new(
         Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
         Sprite::new(80.0, 16.0, 64.0, 32.0),
@@ -160,6 +162,7 @@ fn main() {
         );
         game_context.sprite_particle_system.update(dt);
         game_context.dialogue_system.update(&game_context.input_state);
+        scoreboard.update(&mut player, &current_enemy, dt);
 
         match state {
             GameState::Travelling => {
@@ -250,6 +253,7 @@ fn main() {
 
         game_context.sprite_particle_system.draw(&mut cam_handle, &game_context.texture);
         game_context.dialogue_system.draw(&mut cam_handle, &game_context.font);
+        scoreboard.draw(&mut cam_handle, &mut player, &current_enemy, &game_context);
         draw_mouse(&mut cam_handle, &game_context);
     }
 }

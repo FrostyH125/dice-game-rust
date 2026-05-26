@@ -8,7 +8,7 @@ use crate::{
     EMPTY_SPRITE, GameContext, VIRTUAL_WIDTH, entities::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         dice_box::DiceBox,
-        enemy::{ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData, EnemyState},
+        enemy::{ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData, EnemyState::{self, StartTurn}},
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::{Player, PlayerState},
@@ -214,13 +214,16 @@ impl Snake {
                 self.turn_end_timer.track(dt);
 
                 if self.turn_end_timer.is_done() {
+                    self.data.state = EnemyState::EndTurn;
                     self.turn_end_timer.reset();
-                    self.data.state = EnemyState::WaitingForPlayer;
-                    self.data.dice_boxes[SNAKE_EYES_INDEX].get_mut_data().emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
-                    self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
-                    self.data.dice_boxes[SNAKE_EYES_INDEX]
-                        .reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
                 }
+            }
+            EnemyState::EndTurn => {
+                self.data.state = EnemyState::WaitingForPlayer;
+                self.data.dice_boxes[SNAKE_EYES_INDEX].get_mut_data().emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                self.data.dice_boxes[SNAKE_EYES_INDEX]
+                    .reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
             }
             EnemyState::WaitingForPlayer => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
@@ -236,7 +239,25 @@ impl Snake {
                     if self.data.health <= 0.0 {
                         self.data.state = EnemyState::Dead;
                     } else {
-                        self.data.state = EnemyState::WaitingForPlayer;
+
+                        // needed to add this if else statement because 
+                        // when the player would hit the enemy, making them go to 
+                        // hit delay, when they came out of hit delay, they would 
+                        // originally automatically go to waiting for player
+                        // which was a problem, because the player by that time had
+                        // already gone to waiting for enemy, and in that one frame
+                        // of being in waiting for player, the player would, who updated next
+                        // would naturally start their turn because they saw that the 
+                        // enemy was waiting for them
+                        // this if clause means that if the player is waiting instead,
+                        // meaning their turn is over, to just go straight to starting
+                        // the turn
+                        if player.state == PlayerState::WaitingForEnemy {
+                            self.data.state = StartTurn;
+                        } else {
+                            self.data.state = EnemyState::WaitingForPlayer;       
+                        }
+                        
                     }
                     self.hit_anim.reset();
                     self.hit_timer.reset();

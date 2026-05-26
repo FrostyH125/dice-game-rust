@@ -1,8 +1,7 @@
 use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::{
-    color::Color,
     math::{Rectangle, Vector2},
-    prelude::{RaylibDraw, RaylibDrawHandle},
+    prelude::RaylibDrawHandle,
     text::Font,
     texture::Texture2D,
 };
@@ -17,8 +16,6 @@ use crate::{
 static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80.0, 160.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT);
 static SNAKE_EYES_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 160.0, 36.0, 16.0);
 const SNAKE_EYES_DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 2.0 + DICE_WIDTH_HEIGHT, y: -15.0 };
-const SNAKE_EYES_TEXT_OFFSET: Vector2 = Vector2 { x: 40.0, y: -15.0 };
-const SNAKE_EYES_DAMAGE_DRAW_OFFSET: Vector2 = Vector2 { x: 40.0, y: -5.0 };
 
 pub struct SnakeEyes {
     pub data: DiceBoxData,
@@ -63,8 +60,6 @@ impl SnakeEyes {
         SNAKE_EYES_DICE_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
 
         if self.data.total_value_for_current_round != 0.0f64.floor() {
-            self.draw_snake_eyes_text(d, &game_context.font);
-            self.draw_damage(d, &game_context.font);
             self.draw_dice_outlines(d, &game_context.texture);
         }
 
@@ -82,10 +77,10 @@ impl SnakeEyes {
         }
 
         if num_of_ones >= 2 {
-            self.data.total_value_for_current_round = 11.0;
+            self.data.total_tally = 11.0;
             return true;
         } else {
-            self.data.total_value_for_current_round = 0.0f64.floor();
+            self.data.total_tally = 0.0f64.floor();
             return false;
         }
     }
@@ -119,21 +114,6 @@ impl SnakeEyes {
             PLACEHOLDER_DICE_SPRITE.draw(d, start_pos, texture);
             start_pos.x += DICE_WIDTH_HEIGHT;
         }
-    }
-
-    fn draw_snake_eyes_text(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        d.draw_text_ex(font, "Snake Eyes!", self.data.pos + SNAKE_EYES_TEXT_OFFSET, 5.0, 0.0, Color::FORESTGREEN);
-    }
-
-    fn draw_damage(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        d.draw_text_ex(
-            font,
-            &format!("{} damage!", self.data.total_value_for_current_round),
-            self.data.pos + SNAKE_EYES_DAMAGE_DRAW_OFFSET,
-            5.0,
-            0.0,
-            Color::FORESTGREEN,
-        );
     }
 
     fn draw_dice_outlines(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {

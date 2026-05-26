@@ -1,16 +1,19 @@
+// next make the colors of the boxes (which will be a new field in dice box data) the info disp color
+
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
     utils::string_utils,
 };
 use rand::{RngExt, rngs::ThreadRng};
-use raylib::{color::Color, math::Vector2, prelude::RaylibDrawHandle, text::Font, texture::Texture2D};
+use raylib::{color::Color, drawing::RaylibDraw, math::Vector2, prelude::RaylibDrawHandle, text::Font};
 
 use crate::{
-    VIRTUAL_WIDTH,
+    GameContext, VIRTUAL_WIDTH,
     entities::{
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
+        scoreboard::ScoreBoardState::Closing,
     },
 };
 
@@ -24,11 +27,19 @@ const TALLY_CENTER_POS: Vector2 = Vector2::new(SCOREBOARD_POS.x + 55.0, VALUES_C
 const MULTI_CENTER_POS: Vector2 = Vector2::new(SCOREBOARD_POS.x + 88.0, VALUES_CENTER_Y_POS);
 const TOTAL_CENTER_POS: Vector2 = Vector2::new(SCOREBOARD_POS.x + 124.0, VALUES_CENTER_Y_POS);
 
-const HALF_ANIM_WIDTH: f32 = 23.0 / 2.0;
-const BASE_ANIM_POS: Vector2 = Vector2::new(BASE_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS);
-const TALLY_ANIM_POS: Vector2 = Vector2::new(TALLY_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS);
-const MULTI_ANIM_POS: Vector2 = Vector2::new(MULTI_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS);
-const TOTAL_ANIM_POS: Vector2 = Vector2::new(TOTAL_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS);
+const HALF_ANIM_WIDTH: f32 = 23.0 / 2.0 - 0.25;
+const HALF_ANIM_HEIGHT: f32 = 5.0;
+
+const BASE_ANIM_POS: Vector2 =
+    Vector2::new(BASE_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS - HALF_ANIM_HEIGHT);
+const TALLY_ANIM_POS: Vector2 =
+    Vector2::new(TALLY_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS - HALF_ANIM_HEIGHT);
+const MULTI_ANIM_POS: Vector2 =
+    Vector2::new(MULTI_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS - HALF_ANIM_HEIGHT);
+const TOTAL_ANIM_POS: Vector2 =
+    Vector2::new(TOTAL_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS - HALF_ANIM_HEIGHT);
+
+static COVER_SPRITE: Sprite = Sprite::new(254.0, 25.0, 23.0, 11.0);
 
 static OPEN_ANIM: AnimationData = AnimationData {
     frames: &[
@@ -39,7 +50,7 @@ static OPEN_ANIM: AnimationData = AnimationData {
         Sprite::new(351.0, 25.0, 23.0, 11.0),
         Sprite::new(375.0, 25.0, 23.0, 11.0),
     ],
-    frame_duration: 0.25,
+    frame_duration: 0.1,
     should_loop: false,
 };
 
@@ -52,11 +63,11 @@ static CLOSE_ANIM: AnimationData = AnimationData {
         Sprite::new(279.0, 25.0, 23.0, 11.0),
         Sprite::new(254.0, 25.0, 23.0, 11.0),
     ],
-    frame_duration: 0.25,
+    frame_duration: 0.1,
     should_loop: false,
 };
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 enum ScoreBoardState {
     Closed,
     Opening,
@@ -64,6 +75,7 @@ enum ScoreBoardState {
     Closing,
 }
 
+#[derive(PartialEq, Eq, Debug)]
 enum TurnIdentity {
     Player,
     Enemy,
@@ -73,8 +85,7 @@ enum TurnIdentity {
 // unfortunately i dont wanna determine the enemy every single frame, so im forced
 // to save a reference to it in the struct, meaning this is the first lifetime of
 // the project so far :(, if you have any ideas, hit me up
-pub struct ScoreBoard<'a> {
-    current_enemy: Option<&'a Enemy>,
+pub struct ScoreBoard {
     rng: ThreadRng,
     open_anim: SpriteAnimationInstance,
     close_anim: SpriteAnimationInstance,
@@ -87,20 +98,17 @@ pub struct ScoreBoard<'a> {
     new_num_timer: Timer,
     state: ScoreBoardState,
     turn_identity: TurnIdentity,
-    is_player_rolling: bool,
 }
 
-impl<'a> ScoreBoard<'a> {
+impl ScoreBoard {
     pub fn new() -> Self {
         let mut rng = rand::rng();
 
         ScoreBoard {
-            current_enemy: None,
             open_anim: SpriteAnimationInstance::new(),
             close_anim: SpriteAnimationInstance::new(),
             state: ScoreBoardState::Closed,
             turn_identity: TurnIdentity::None,
-            is_player_rolling: false,
             random_base_num_str: (rng.random::<u16>() % 1000).to_string(),
             random_tally_num_str: (rng.random::<u16>() % 1000).to_string(),
             random_multi_num_str: (rng.random::<u16>() % 1000).to_string(),
@@ -112,25 +120,25 @@ impl<'a> ScoreBoard<'a> {
         }
     }
 
-    pub fn update(&mut self, player: &mut Player, enemies: &'a [Enemy], dt: f32) {
-        // find an enemy or player that is currently requiring the scoreboard
-        if !self.current_enemy.is_none() && !self.is_player_rolling {
-            self.is_player_rolling = player.state == PlayerState::ChoosingDice;
-            self.current_enemy = enemies.iter().find(|enemy| enemy.get_data().state == EnemyState::StartTurn);
-
-            if self.is_player_rolling {
-                self.turn_identity = TurnIdentity::Player;
-            } else if self.current_enemy.is_some() {
-                self.turn_identity = TurnIdentity::Enemy;
-            }
-        }
-
+    pub fn update(&mut self, player: &mut Player, enemy: &Enemy, dt: f32) {
         match self.state {
             ScoreBoardState::Closed => {
-                let should_start_opening = self.is_player_rolling || self.current_enemy.is_some();
+                let is_player_turn =
+                    player.state != PlayerState::WaitingForEnemy && player.state != PlayerState::Walking;
+                let is_enemy_turn = enemy.get_data().state != EnemyState::WaitingForPlayer;
+
+                let should_start_opening = is_player_turn || is_enemy_turn;
 
                 if should_start_opening {
-                    self.state = ScoreBoardState::Opening
+                    // assign proper turn
+                    if is_player_turn {
+                        self.turn_identity = TurnIdentity::Player;
+                    } else if is_enemy_turn {
+                        self.turn_identity = TurnIdentity::Enemy;
+                    }
+
+                    self.state = ScoreBoardState::Opening;
+                    self.open_anim.reset();
                 }
             }
             ScoreBoardState::Opening => {
@@ -142,41 +150,48 @@ impl<'a> ScoreBoard<'a> {
                     self.open_anim.reset();
                 }
             }
-            ScoreBoardState::Open => {
-                match self.turn_identity {
-                    TurnIdentity::Player => {
-                        if player.state == PlayerState::ChoosingDice || player.state == PlayerState::RerollingDice {
+            ScoreBoardState::Open => match self.turn_identity {
+                TurnIdentity::Player => match player.state {
+                    PlayerState::ChoosingDice
+                    | PlayerState::RollingDice
+                    | PlayerState::RerollingDice
+                    | PlayerState::StoppingDice => self.handle_timer_and_random_numbers(dt),
+
+                    PlayerState::EndTurn => {
+                        self.state = ScoreBoardState::Closing;
+                        self.close_anim.reset();
+                    }
+                    PlayerState::Dead => self.turn_identity = TurnIdentity::None,
+                    _ => (),
+                },
+                TurnIdentity::Enemy => {
+                    let enemy_state = &enemy.get_data().state;
+
+                    match enemy_state {
+                        EnemyState::StoppingDice
+                        | EnemyState::ChoosingDice
+                        | EnemyState::WaitingForDiceToReturnToHand
+                        | EnemyState::StartDiceStopDelayTime
+                        | EnemyState::StartTurn => {
                             self.handle_timer_and_random_numbers(dt);
                         }
-
-                        if player.state == PlayerState::EndTurnDelay {
+                        EnemyState::EndTurn => {
                             self.state = ScoreBoardState::Closing;
+                            self.close_anim.reset();
                         }
-
-                        // if player dies, might just disable scoreboard entirely, probably will be handled in main.rs
-                    }
-                    TurnIdentity::Enemy => {
-                        let enemy_state = &self.current_enemy.unwrap().get_data().state;
-
-                        match enemy_state {
-                            EnemyState::StoppingDice | EnemyState::ChoosingDice => {
-                                self.handle_timer_and_random_numbers(dt);
-                            }
-                            EnemyState::EndTurnDelay => {
-                                self.state = ScoreBoardState::Closing;
-                            }
-                            EnemyState::Dead => {
-                                self.state = ScoreBoardState::Closing;
-                                self.turn_identity = TurnIdentity::None;
-                            }
-                            _ => ()
+                        EnemyState::Dead => {
+                            self.state = ScoreBoardState::Closing;
+                            self.close_anim.reset();
+                            self.turn_identity = TurnIdentity::None;
                         }
+                        _ => (),
                     }
-                    TurnIdentity::None => panic!("the scoreboard shouldnt be open with no ones turn"),
                 }
-            }
+                TurnIdentity::None => self.state = ScoreBoardState::Closing,
+            },
             ScoreBoardState::Closing => {
                 CLOSE_ANIM.update(&mut self.close_anim, dt);
+
                 if !self.close_anim.can_play {
                     self.state = ScoreBoardState::Closed;
                     self.close_anim.reset();
@@ -185,71 +200,67 @@ impl<'a> ScoreBoard<'a> {
         }
     }
 
-    pub fn draw(
-        &mut self,
-        d: &mut RaylibDrawHandle,
-        player: &mut Player,
-        texture: &Texture2D,
-        font: &Font,
-    ) {
+    pub fn draw(&mut self, d: &mut RaylibDrawHandle, player: &mut Player, enemy: &Enemy, game_context: &GameContext) {
         if player.state == PlayerState::Walking {
             return;
         }
-        
-        SCOREBOARD_SPRITE.draw(d, SCOREBOARD_POS, texture);
+
+        SCOREBOARD_SPRITE.draw(d, SCOREBOARD_POS, &game_context.texture);
 
         match self.state {
             ScoreBoardState::Closed => {
-                OPEN_ANIM.draw(&self.open_anim, d, BASE_ANIM_POS, texture);
-                OPEN_ANIM.draw(&self.open_anim, d, TALLY_ANIM_POS, texture);
-                OPEN_ANIM.draw(&self.open_anim, d, MULTI_ANIM_POS, texture);
-                OPEN_ANIM.draw(&self.open_anim, d, TOTAL_ANIM_POS, texture);
+                COVER_SPRITE.draw(d, BASE_ANIM_POS, &game_context.texture);
+                COVER_SPRITE.draw(d, TALLY_ANIM_POS, &game_context.texture);
+                COVER_SPRITE.draw(d, MULTI_ANIM_POS, &game_context.texture);
+                COVER_SPRITE.draw(d, TOTAL_ANIM_POS, &game_context.texture);
             }
             ScoreBoardState::Opening => {
-                
-                self.draw_random_numbers(d, font);
+                self.draw_random_numbers(d, &game_context.font);
 
-                OPEN_ANIM.draw(&self.open_anim, d, BASE_ANIM_POS, texture);
-                OPEN_ANIM.draw(&self.open_anim, d, TALLY_ANIM_POS, texture);
-                OPEN_ANIM.draw(&self.open_anim, d, MULTI_ANIM_POS, texture);
-                OPEN_ANIM.draw(&self.open_anim, d, TOTAL_ANIM_POS, texture);
+                OPEN_ANIM.draw(&self.open_anim, d, BASE_ANIM_POS, &game_context.texture);
+                OPEN_ANIM.draw(&self.open_anim, d, TALLY_ANIM_POS, &game_context.texture);
+                OPEN_ANIM.draw(&self.open_anim, d, MULTI_ANIM_POS, &game_context.texture);
+                OPEN_ANIM.draw(&self.open_anim, d, TOTAL_ANIM_POS, &game_context.texture);
             }
-            ScoreBoardState::Open => {
-                match self.turn_identity {
-                    TurnIdentity::Player => {
-                        match player.state {
-                            PlayerState::RollingDice | PlayerState::RerollingDice | PlayerState::ChoosingDice | PlayerState::StartTurn | PlayerState::StoppingDice => {
-                                self.draw_random_numbers(d, font);
-                            }
-                            PlayerState::Walking => panic!("why would it be player turn in scoreboard while walking"),
-                            _ => self.draw_player_data(d, font, player),
+            ScoreBoardState::Open => match self.turn_identity {
+                TurnIdentity::Player => {
+                    match player.state {
+                        PlayerState::RollingDice
+                        | PlayerState::RerollingDice
+                        | PlayerState::ChoosingDice
+                        | PlayerState::StartTurn
+                        | PlayerState::StoppingDice => {
+                            self.draw_random_numbers(d, &game_context.font);
                         }
-
-                        if self.current_enemy.unwrap().get_data().state == EnemyState::Dead {
-                            self.state = ScoreBoardState::Closing;
-                        }
+                        _ => self.draw_player_data(d, &game_context.font, player),
                     }
-                    TurnIdentity::Enemy => {
-                        let enemy_state = &self.current_enemy.unwrap().get_data().state;
 
-                        match enemy_state {
-                            EnemyState::StartTurn | EnemyState::StoppingDice | EnemyState::ChoosingDice => {
-                                self.draw_random_numbers(d, font);
-                            }
-                            _ => self.draw_enemy_data(d, font),
-                        }
-                    },
-                    TurnIdentity::None => {
-
-                    },
+                    if enemy.get_data().state == EnemyState::Dead {
+                        self.state = ScoreBoardState::Closing;
+                    }
                 }
-            }
-            ScoreBoardState::Closing => {
-                CLOSE_ANIM.draw(&self.open_anim, d, BASE_ANIM_POS, texture);
-                CLOSE_ANIM.draw(&self.open_anim, d, TALLY_ANIM_POS, texture);
-                CLOSE_ANIM.draw(&self.open_anim, d, MULTI_ANIM_POS, texture);
-                CLOSE_ANIM.draw(&self.open_anim, d, TOTAL_ANIM_POS, texture);
+                TurnIdentity::Enemy => {
+                    let enemy_state = &enemy.get_data().state;
+
+                    match enemy_state {
+                        EnemyState::StartTurn
+                        | EnemyState::StoppingDice
+                        | EnemyState::ChoosingDice
+                        | EnemyState::StartDiceStopDelayTime
+                        | EnemyState::WaitingForDiceToReturnToHand => {
+                            self.draw_random_numbers(d, &game_context.font);
+                        }
+                        _ => self.draw_enemy_data(d, &game_context.font, enemy),
+                    }
+                }
+                TurnIdentity::None => {}
             },
+            ScoreBoardState::Closing => {
+                CLOSE_ANIM.draw(&self.close_anim, d, BASE_ANIM_POS, &game_context.texture);
+                CLOSE_ANIM.draw(&self.close_anim, d, TALLY_ANIM_POS, &game_context.texture);
+                CLOSE_ANIM.draw(&self.close_anim, d, MULTI_ANIM_POS, &game_context.texture);
+                CLOSE_ANIM.draw(&self.close_anim, d, TOTAL_ANIM_POS, &game_context.texture);
+            }
         }
     }
 
@@ -313,7 +324,7 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
 
         string_utils::draw_string_centered_on_pos(
@@ -323,7 +334,7 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
 
         string_utils::draw_string_centered_on_pos(
@@ -333,7 +344,7 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
 
         string_utils::draw_string_centered_on_pos(
@@ -343,12 +354,12 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
     }
 
-    pub fn draw_enemy_data(&self, d: &mut RaylibDrawHandle, font: &Font) {
-        let enemy_data = &self.current_enemy.unwrap().get_data();
+    pub fn draw_enemy_data(&self, d: &mut RaylibDrawHandle, font: &Font, enemy: &Enemy) {
+        let enemy_data = &enemy.get_data();
         let enemy_current_box_index = enemy_data.current_box;
 
         string_utils::draw_string_centered_on_pos(
@@ -358,7 +369,7 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
 
         string_utils::draw_string_centered_on_pos(
@@ -368,7 +379,7 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
 
         string_utils::draw_string_centered_on_pos(
@@ -378,7 +389,7 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
 
         string_utils::draw_string_centered_on_pos(
@@ -388,7 +399,7 @@ impl<'a> ScoreBoard<'a> {
             font,
             self.font_size,
             self.font_spacing,
-            Color::WHITE,
+            Color::BLACK,
         );
     }
 }
