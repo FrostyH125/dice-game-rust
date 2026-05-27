@@ -45,19 +45,21 @@ pub const STANDARD_BOX_COLLECT_RECT_HEIGHT: f32 = 32.0;
 pub const STANDARD_BOX_WIDTH: f32 = 52.0;
 pub const STANDARD_BOX_HEIGHT: f32 = 16.0;
 
+const NO_DICE_COUNTED_INDEX: usize = usize::MAX;
+
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
     pub info_hover: InfoHover,
-    pub current_index_of_dice_just_tallied: Option<usize>,
-    pub total_tally: f64,
-    pub total_multi_for_this_tally: f64,
-    pub base_multi_for_this_dice_box: f64,
-    pub total_value_for_current_round: f64,
+    pub current_dice_index: usize,
+    pub tally: f64,
+    pub multi: f64,
+    pub base_multi: f64,
+    pub total_points: f64,
     pub pos: Vector2,
     pub width: f32,
     pub height: f32,
     pub dice_collect_rect: Rectangle,
-    pub timer_for_tallying_dice: Timer,
+    pub dice_tally_timer: Timer,
     pub previous_dice_value: i8,
     pub current_streak: i8,
     pub collect_rect_offset_x: f32,
@@ -70,18 +72,18 @@ impl DiceBoxData {
         DiceBoxData {
             dice_in_box: Vec::new(),
             info_hover,
-            current_index_of_dice_just_tallied: None,
-            total_tally: 0.0,
-            total_multi_for_this_tally: 1.0,
-            base_multi_for_this_dice_box: 1.0,
+            current_dice_index: NO_DICE_COUNTED_INDEX,
+            tally: 0.0,
+            multi: 1.0,
+            base_multi: 1.0,
             
             // some boxes use this value in equality, im making sure it is actually equal no matter what, since floats are weird
-            total_value_for_current_round: 0.0f64.floor(),
+            total_points: 0.0f64.floor(),
             pos: Vector2::zero(),
             dice_collect_rect: Rectangle::new(collect_rect_offset_x, collect_rect_offset_y, collect_rect_width, collect_rect_height),
             width: dice_box_width,
             height: dice_box_height,
-            timer_for_tallying_dice: Timer::new(1.5),
+            dice_tally_timer: Timer::new(1.5),
             previous_dice_value: i8::MAX,
             current_streak: 1,
             collect_rect_offset_x,
@@ -129,27 +131,31 @@ impl DiceBoxData {
 
     //dice box being empty handled by call site
     pub fn tally_points(&mut self, dt: f32) -> bool {
-        let is_first = self.current_index_of_dice_just_tallied == None;
-        self.timer_for_tallying_dice.track(dt);
+        self.dice_tally_timer.track(dt);
 
-        if self.timer_for_tallying_dice.is_done() || is_first {
-            match &mut self.current_index_of_dice_just_tallied {
-                None => self.current_index_of_dice_just_tallied = Some(0),
-                Some(index) => *index += 1,
-            };
+        let is_first = self.current_dice_index == NO_DICE_COUNTED_INDEX;
 
-            self.timer_for_tallying_dice.reset();
-            let current_dice = &self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()];
+        if self.dice_tally_timer.is_done() || is_first {
+            
+            self.dice_tally_timer.reset();
+
+            if self.current_dice_index == NO_DICE_COUNTED_INDEX {
+                self.current_dice_index = 0;
+            } else {
+                self.current_dice_index += 1;
+            }
+
+            let current_dice = &self.dice_in_box[self.current_dice_index];
 
             let continue_streak = self.previous_dice_value == current_dice.value;
 
             let should_reset_streak = !is_first && !continue_streak;
 
-            self.total_tally += current_dice.value as f64;
+            self.tally += current_dice.value as f64;
 
             if continue_streak {
                 self.current_streak += 1;
-                self.total_multi_for_this_tally += 1.0;
+                self.multi += 1.0;
             }
 
             if should_reset_streak {
@@ -158,10 +164,10 @@ impl DiceBoxData {
 
             println!(
                 "Current tally: {}, Current Multi: {}, Current Streak: {}, value of the dice just tallied: {}",
-                self.total_tally, self.total_multi_for_this_tally, self.current_streak, current_dice.value
+                self.tally, self.multi, self.current_streak, current_dice.value
             );
 
-            if self.current_index_of_dice_just_tallied.unwrap() == self.dice_in_box.len() - 1 {
+            if self.current_dice_index == self.dice_in_box.len() - 1 {
                 return true;
             }
 
@@ -180,13 +186,13 @@ impl DiceBoxData {
             hand_dice.push(dice);
         }
 
-        self.total_value_for_current_round = 0.0f64.floor();
-        self.current_index_of_dice_just_tallied = None;
+        self.total_points = 0.0f64.floor();
+        self.current_dice_index = NO_DICE_COUNTED_INDEX;
         self.current_streak = 1;
         self.previous_dice_value = i8::MAX;
-        self.timer_for_tallying_dice.reset();
-        self.total_multi_for_this_tally = 1.0;
-        self.total_tally = 0.0;
+        self.dice_tally_timer.reset();
+        self.multi = 1.0;
+        self.tally = 0.0;
     }
 
     pub fn set_dice_positions(&mut self) {
@@ -219,7 +225,7 @@ impl DiceBoxData {
     }
 
     pub fn get_value(&self) -> f64 {
-        return self.total_tally * self.base_multi_for_this_dice_box * self.total_multi_for_this_tally;
+        return self.tally * self.base_multi * self.multi;
     }
 
     pub fn draw_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
@@ -241,16 +247,16 @@ impl DiceBoxData {
     }
 
     pub fn draw_border_around_current_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        if self.current_index_of_dice_just_tallied == None {
+        if self.current_dice_index == NO_DICE_COUNTED_INDEX {
             return;
         }
 
-        let sprite = match self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()].kind {
+        let sprite = match self.dice_in_box[self.current_dice_index].kind {
             DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
             DiceKind::D6 => &D6_DICE_BORDER_SPRITE,
         };
 
-        let pos = self.dice_in_box[self.current_index_of_dice_just_tallied.unwrap()].pos + DICE_BORDER_OFFSET;
+        let pos = self.dice_in_box[self.current_dice_index].pos + DICE_BORDER_OFFSET;
 
         sprite.draw(d, pos, texture);
     }
@@ -305,7 +311,7 @@ impl DiceBoxData {
     pub fn draw_base_multi(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
         d.draw_text_ex(
             font,
-            &format!("x{}", self.base_multi_for_this_dice_box),
+            &format!("x{}", self.base_multi),
             self.pos + BASE_MULTI_OFFSET,
             3.0,
             0.0,
@@ -314,14 +320,14 @@ impl DiceBoxData {
     }
 
     pub fn draw_info_sprite_and_information(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
-        let no_dice_counted_yet = self.current_index_of_dice_just_tallied == None;
+        let no_dice_counted_yet = self.current_dice_index == NO_DICE_COUNTED_INDEX;
         if no_dice_counted_yet {
             return;
         }
 
-        let base = self.base_multi_for_this_dice_box;
-        let tally = self.total_tally;
-        let multi = self.total_multi_for_this_tally;
+        let base = self.base_multi;
+        let tally = self.tally;
+        let multi = self.multi;
 
         d.draw_text_ex(
             font,

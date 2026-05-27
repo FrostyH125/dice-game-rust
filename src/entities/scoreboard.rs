@@ -6,14 +6,13 @@ use basic_raylib_core::{
     utils::string_utils,
 };
 use rand::{RngExt, rngs::ThreadRng};
-use raylib::{color::Color, drawing::RaylibDraw, math::Vector2, prelude::RaylibDrawHandle, text::Font};
+use raylib::{color::Color, math::Vector2, prelude::RaylibDrawHandle, text::Font};
 
 use crate::{
     GameContext, VIRTUAL_WIDTH,
     entities::{
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
-        scoreboard::ScoreBoardState::Closing,
     },
 };
 
@@ -320,7 +319,7 @@ impl ScoreBoard {
         string_utils::draw_string_centered_on_pos(
             d,
             BASE_CENTER_POS,
-            &player.dice_boxes[player.current_box].get_data().base_multi_for_this_dice_box.to_string(),
+            &player.dice_boxes[player.current_box].get_data().base_multi.to_string(),
             font,
             self.font_size,
             self.font_spacing,
@@ -330,7 +329,7 @@ impl ScoreBoard {
         string_utils::draw_string_centered_on_pos(
             d,
             TALLY_CENTER_POS,
-            &player.dice_boxes[player.current_box].get_data().total_tally.to_string(),
+            &player.dice_boxes[player.current_box].get_data().tally.to_string(),
             font,
             self.font_size,
             self.font_spacing,
@@ -340,7 +339,7 @@ impl ScoreBoard {
         string_utils::draw_string_centered_on_pos(
             d,
             MULTI_CENTER_POS,
-            &player.dice_boxes[player.current_box].get_data().total_multi_for_this_tally.to_string(),
+            &player.dice_boxes[player.current_box].get_data().multi.to_string(),
             font,
             self.font_size,
             self.font_spacing,
@@ -365,7 +364,7 @@ impl ScoreBoard {
         string_utils::draw_string_centered_on_pos(
             d,
             BASE_CENTER_POS,
-            &enemy_data.dice_boxes[enemy_current_box_index].get_data().base_multi_for_this_dice_box.to_string(),
+            &enemy_data.dice_boxes[enemy_current_box_index].get_data().base_multi.to_string(),
             font,
             self.font_size,
             self.font_spacing,
@@ -375,7 +374,7 @@ impl ScoreBoard {
         string_utils::draw_string_centered_on_pos(
             d,
             TALLY_CENTER_POS,
-            &enemy_data.dice_boxes[enemy_current_box_index].get_data().total_tally.to_string(),
+            &enemy_data.dice_boxes[enemy_current_box_index].get_data().tally.to_string(),
             font,
             self.font_size,
             self.font_spacing,
@@ -385,7 +384,7 @@ impl ScoreBoard {
         string_utils::draw_string_centered_on_pos(
             d,
             MULTI_CENTER_POS,
-            &enemy_data.dice_boxes[enemy_current_box_index].get_data().total_multi_for_this_tally.to_string(),
+            &enemy_data.dice_boxes[enemy_current_box_index].get_data().multi.to_string(),
             font,
             self.font_size,
             self.font_spacing,
