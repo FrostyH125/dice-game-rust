@@ -11,6 +11,8 @@ use raylib::{color::Color, math::Vector2, prelude::RaylibDrawHandle, text::Font}
 use crate::{
     GameContext, VIRTUAL_WIDTH,
     entities::{
+        dice_box::DiceBox,
+        dice_box_data::DiceBoxData,
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
     },
@@ -231,7 +233,7 @@ impl ScoreBoard {
                         | PlayerState::StoppingDice => {
                             self.draw_random_numbers(d, &game_context.font);
                         }
-                        _ => self.draw_player_data(d, &game_context.font, player),
+                        _ => self.draw_box_data(d, &game_context.font, &player.dice_boxes[player.current_box]),
                     }
 
                     if enemy.get_data().state == EnemyState::Dead {
@@ -249,7 +251,11 @@ impl ScoreBoard {
                         | EnemyState::WaitingForDiceToReturnToHand => {
                             self.draw_random_numbers(d, &game_context.font);
                         }
-                        _ => self.draw_enemy_data(d, &game_context.font, enemy),
+                        _ => {
+                            let enemy_data = enemy.get_data();
+
+                            self.draw_box_data(d, &game_context.font, &enemy_data.dice_boxes[enemy_data.current_box]);
+                        }
                     }
                 }
                 TurnIdentity::None => {}
@@ -315,90 +321,47 @@ impl ScoreBoard {
         );
     }
 
-    pub fn draw_player_data(&self, d: &mut RaylibDrawHandle, font: &Font, player: &Player) {
+    pub fn draw_box_data(&self, d: &mut RaylibDrawHandle, font: &Font, dice_box: &DiceBox) {
+        let data = dice_box.get_data();
+
         string_utils::draw_string_centered_on_pos(
             d,
             BASE_CENTER_POS,
-            &player.dice_boxes[player.current_box].get_data().base_multi.to_string(),
+            &data.base_multi.to_string(),
             font,
             self.font_size,
             self.font_spacing,
-            Color::BLACK,
+            data.scoreboard_info_color,
         );
 
         string_utils::draw_string_centered_on_pos(
             d,
             TALLY_CENTER_POS,
-            &player.dice_boxes[player.current_box].get_data().tally.to_string(),
+            &data.tally.to_string(),
             font,
             self.font_size,
             self.font_spacing,
-            Color::BLACK,
+            data.scoreboard_info_color,
         );
 
         string_utils::draw_string_centered_on_pos(
             d,
             MULTI_CENTER_POS,
-            &player.dice_boxes[player.current_box].get_data().multi.to_string(),
+            &data.multi.to_string(),
             font,
             self.font_size,
             self.font_spacing,
-            Color::BLACK,
+            data.scoreboard_info_color,
         );
 
         string_utils::draw_string_centered_on_pos(
             d,
             TOTAL_CENTER_POS,
-            &player.dice_boxes[player.current_box].get_data().get_value().to_string(),
+            &data.total_points.to_string(),
             font,
             self.font_size,
             self.font_spacing,
-            Color::BLACK,
-        );
-    }
-
-    pub fn draw_enemy_data(&self, d: &mut RaylibDrawHandle, font: &Font, enemy: &Enemy) {
-        let enemy_data = &enemy.get_data();
-        let enemy_current_box_index = enemy_data.current_box;
-
-        string_utils::draw_string_centered_on_pos(
-            d,
-            BASE_CENTER_POS,
-            &enemy_data.dice_boxes[enemy_current_box_index].get_data().base_multi.to_string(),
-            font,
-            self.font_size,
-            self.font_spacing,
-            Color::BLACK,
-        );
-
-        string_utils::draw_string_centered_on_pos(
-            d,
-            TALLY_CENTER_POS,
-            &enemy_data.dice_boxes[enemy_current_box_index].get_data().tally.to_string(),
-            font,
-            self.font_size,
-            self.font_spacing,
-            Color::BLACK,
-        );
-
-        string_utils::draw_string_centered_on_pos(
-            d,
-            MULTI_CENTER_POS,
-            &enemy_data.dice_boxes[enemy_current_box_index].get_data().multi.to_string(),
-            font,
-            self.font_size,
-            self.font_spacing,
-            Color::BLACK,
-        );
-
-        string_utils::draw_string_centered_on_pos(
-            d,
-            TOTAL_CENTER_POS,
-            &enemy_data.dice_boxes[enemy_current_box_index].get_data().get_value().to_string(),
-            font,
-            self.font_size,
-            self.font_spacing,
-            Color::BLACK,
+            data.scoreboard_info_color,
         );
     }
 }

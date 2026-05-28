@@ -61,6 +61,7 @@ impl HealBox {
                 5.0,
                 0.5,
             ),
+            Color::MEDIUMBLUE
         );
         
         data.base_multi = 0.25;

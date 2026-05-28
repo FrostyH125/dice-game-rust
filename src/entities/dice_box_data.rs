@@ -55,6 +55,7 @@ pub struct DiceBoxData {
     pub multi: f64,
     pub base_multi: f64,
     pub total_points: f64,
+    pub scoreboard_info_color: Color,
     pub pos: Vector2,
     pub width: f32,
     pub height: f32,
@@ -67,11 +68,12 @@ pub struct DiceBoxData {
 }
 
 impl DiceBoxData {
-    pub fn new(collect_rect_offset_x: f32, collect_rect_offset_y: f32, collect_rect_width: f32, collect_rect_height: f32, dice_box_width: f32, dice_box_height: f32, info_hover: InfoHover) -> Self {
+    pub fn new(collect_rect_offset_x: f32, collect_rect_offset_y: f32, collect_rect_width: f32, collect_rect_height: f32, dice_box_width: f32, dice_box_height: f32, info_hover: InfoHover, scoreboard_info_color: Color) -> Self {
         
         DiceBoxData {
             dice_in_box: Vec::new(),
             info_hover,
+            scoreboard_info_color,
             current_dice_index: NO_DICE_COUNTED_INDEX,
             tally: 0.0,
             multi: 1.0,

@@ -1,9 +1,6 @@
 use basic_raylib_core::graphics::sprite::Sprite;
 use raylib::{
-    math::{Rectangle, Vector2},
-    prelude::RaylibDrawHandle,
-    text::Font,
-    texture::Texture2D,
+    color::Color, math::{Rectangle, Vector2}, prelude::RaylibDrawHandle, text::Font, texture::Texture2D
 };
 
 use crate::{
@@ -52,6 +49,7 @@ impl SnakeEyes {
                     5.0,
                     0.5,
                 ),
+                Color::DARKOLIVEGREEN
             ),
         }
     }
