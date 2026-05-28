@@ -16,7 +16,8 @@ use crate::{
         enemies::snake::Snake,
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
-        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox}, scoreboard::ScoreBoard,
+        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
+        scoreboard::ScoreBoard,
     },
     system::{button::Button, dialogue_system::DialogueSystem},
 };
@@ -47,24 +48,13 @@ pub enum GameState {
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
 //
 // thinking of renaming AnimData.can_play into something more intuitive
-
-// put away for the moment to test other things, will come back to this when desired
-// dialogue_system.add_dialogue(Dialogue::new(
-//     vec![
-//         String::from("this is test dialogue"),
-//         String::from("I added a second one just to test"),
-//         String::from("blah blah blah"),
-//         String::from("heres a really long one just to test the text wrapping in this scenario. I want it to look right. I will also probably add a thing that auto splits text if its too long to prevent it going over the box")
-//     ],
-//     &font,
-// ));
-
-
+//
+// CombatEffectsManager that can add visuals to combat and takes enum variants for damage types in add effect
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference
-// this might seem like a questionable decision to have one of these structs at all, but as 
-// more systems are added to the game, i noticed the amount of parameters passed reaching
+// this might seem like a questionable decision to have one of these structs at all, but as
+// more systems are added to the game, i noticed the amount of parameters reaching
 // uncomfortable amounts
 pub struct GameContext {
     sprite_particle_system: SpriteParticleSystem,
@@ -97,7 +87,7 @@ fn main() {
         dialogue_system,
         font,
     };
-    
+
     let mut state = GameState::Travelling;
 
     let mut next_enemy_timer = Timer::new(2.0);
@@ -106,7 +96,9 @@ fn main() {
     player.add_box(DiceBox::BroadSwordBox {
         broadsword_box: BroadSwordBox::new(&game_context.font),
     });
-    player.add_box(DiceBox::HealBox { heal_box: HealBox::new(&game_context.font) });
+    player.add_box(DiceBox::HealBox {
+        heal_box: HealBox::new(&game_context.font),
+    });
 
     let mut scoreboard = ScoreBoard::new();
 
@@ -146,7 +138,6 @@ fn main() {
     );
 
     let mut current_enemy = get_random_enemy(&game_context.font);
-
 
     while !rl.window_should_close() {
         rl.hide_cursor();
@@ -214,18 +205,51 @@ fn main() {
                 // Draw game over text here, add a replay button, and a quit button
 
                 let game_over_string = "Game Over!";
+
+                let replay_string = "Press [R] to replay";
+                let quit_string = "Press [Q] to quit";
+
+                // handle the game over text first
                 let game_over_string_length = game_context.font.measure_text(game_over_string, 10.0, 0.5);
-                let game_over_string_y = VIRTUAL_HEIGHT / 2.0 - game_over_string_length.y / 2.0;
+                let game_over_string_y = (VIRTUAL_HEIGHT / 2.0) - 40.0 - game_over_string_length.y / 2.0;
                 let game_over_string_x = VIRTUAL_WIDTH / 2.0 - game_over_string_length.x / 2.0;
-                cam_handle.draw_text_pro(
+                cam_handle.draw_text_ex(
                     &game_context.font,
                     game_over_string,
                     Vector2::new(game_over_string_x, game_over_string_y),
-                    Vector2::zero(),
-                    0.0,
                     10.0,
                     0.5,
                     Color::PALEVIOLETRED,
+                );
+
+                // now handle the replay and quit texts
+
+                let replay_string_length = game_context.font.measure_text(replay_string, 8.0, 0.0);
+                let quit_string_length = game_context.font.measure_text(quit_string, 8.0, 0.0);
+                let margin_from_middle = 10.0;
+
+                let replay_and_quit_str_y = VIRTUAL_HEIGHT / 2.0;
+                let replay_and_quit_str_x_start = VIRTUAL_WIDTH / 2.0;
+
+                let replay_string_x = replay_and_quit_str_x_start - replay_string_length.x - margin_from_middle;
+                let quit_string_x = replay_and_quit_str_x_start + margin_from_middle;
+
+                cam_handle.draw_text_ex(
+                    &game_context.font,
+                    replay_string,
+                    Vector2::new(replay_string_x, replay_and_quit_str_y),
+                    8.0,
+                    0.0,
+                    Color::WHITE,
+                );
+
+                cam_handle.draw_text_ex(
+                    &game_context.font,
+                    quit_string,
+                    Vector2::new(quit_string_x, replay_and_quit_str_y),
+                    8.0,
+                    0.0,
+                    Color::WHITE,
                 );
             }
             _ => (),
@@ -253,7 +277,11 @@ fn main() {
 
         game_context.sprite_particle_system.draw(&mut cam_handle, &game_context.texture);
         game_context.dialogue_system.draw(&mut cam_handle, &game_context.font);
-        scoreboard.draw(&mut cam_handle, &mut player, &current_enemy, &game_context);
+
+        if player.state != PlayerState::Dead {
+            scoreboard.draw(&mut cam_handle, &mut player, &current_enemy, &game_context);
+        }
+
         draw_mouse(&mut cam_handle, &game_context);
     }
 }
@@ -273,8 +301,7 @@ fn get_random_enemy(font: &Font) -> Enemy {
 }
 
 pub fn draw_mouse(d: &mut RaylibDrawHandle, game_context: &GameContext) {
-
-    // here, yes, i pass 2 arguments needing the game info, 
+    // here, yes, i pass 2 arguments needing the game info,
     // this is a rare case and im not changing sprite::draw() just
     // to accomodate the one instance where i need 2 fields from the struct
     MOUSE_SPRITE.draw(d, game_context.input_state.mouse_pos, &game_context.texture);
