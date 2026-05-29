@@ -2,7 +2,10 @@ pub mod entities;
 pub mod system;
 pub mod utilities;
 
-use raylib::prelude::*;
+use raylib::{
+    ffi::{CloseWindow, WindowShouldClose},
+    prelude::*,
+};
 
 use basic_raylib_core::{
     graphics::sprite::Sprite,
@@ -41,15 +44,16 @@ pub enum GameState {
     GameOver,
 }
 
-// impl gameover state (still need to add quit and retry buttons)
-// disable input if the dialogue is running
 // healing box, make plus sign particles come out of player when healing with the wavy upward motion
+
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
-//
+
 // thinking of renaming AnimData.can_play into something more intuitive
-//
+
 // CombatEffectsManager that can add visuals to combat and takes enum variants for damage types in add effect
+
+// disable input if the dialogue is running
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference
@@ -142,6 +146,7 @@ fn main() {
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
+
         game_context.input_state.update(&mut rl, camera.zoom);
         player.update(
             &mut confirm_button,
@@ -151,6 +156,7 @@ fn main() {
             &mut game_context,
             dt,
         );
+
         game_context.sprite_particle_system.update(dt);
         game_context.dialogue_system.update(&game_context.input_state);
         scoreboard.update(&mut player, &current_enemy, dt);
@@ -184,6 +190,21 @@ fn main() {
 
                 if let PlayerState::Dead = player.state {
                     state = GameState::GameOver;
+                }
+            }
+            GameState::GameOver => {
+                let quit_pressed = rl.is_key_pressed(KeyboardKey::KEY_Q);
+                let restart_pressed = rl.is_key_pressed(KeyboardKey::KEY_R);
+
+                if quit_pressed {
+                    break;
+                }
+
+                if restart_pressed {
+                    state = GameState::Travelling;
+                    player.reset();
+                    player.state = PlayerState::Walking;
+                    current_enemy = get_random_enemy(&game_context.font);
                 }
             }
             _ => (),
