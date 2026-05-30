@@ -10,8 +10,8 @@ use crate::{
     }, system::info_hover::InfoHover
 };
 
-static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80.0, 160.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT);
-static SNAKE_EYES_DICE_BOX_SPRITE: Sprite = Sprite::new(14.0, 160.0, 36.0, 16.0);
+static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80, 160, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32);
+static SNAKE_EYES_DICE_BOX_SPRITE: Sprite = Sprite::new(14, 160, 36, 16);
 const SNAKE_EYES_DICE_DRAW_START_OFFSET: Vector2 = Vector2 { x: 2.0 + DICE_WIDTH_HEIGHT, y: -15.0 };
 
 pub struct SnakeEyes {

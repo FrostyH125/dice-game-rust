@@ -2,10 +2,7 @@ pub mod entities;
 pub mod system;
 pub mod utilities;
 
-use raylib::{
-    ffi::{CloseWindow, WindowShouldClose},
-    prelude::*,
-};
+use raylib::prelude::*;
 
 use basic_raylib_core::{
     graphics::sprite::Sprite,
@@ -26,12 +23,12 @@ use crate::{
 };
 use rand::random_range;
 
-pub static SMALL_DUST_SPRITE: Sprite = Sprite::new(0.0, 32.0, 1.0, 1.0);
-pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1.0, 32.0, 3.0, 3.0);
+pub static SMALL_DUST_SPRITE: Sprite = Sprite::new(0, 32, 1, 1);
+pub static LARGE_DUST_SPRITE: Sprite = Sprite::new(1, 32, 3, 3);
 
-static MOUSE_SPRITE: Sprite = Sprite::new(0.0, 16.0, 16.0, 16.0);
+static MOUSE_SPRITE: Sprite = Sprite::new(0, 16, 16, 16);
 
-pub const EMPTY_SPRITE: Sprite = Sprite::new(0.0, 0.0, 0.0, 0.0);
+pub const EMPTY_SPRITE: Sprite = Sprite::new(0, 0, 0, 0);
 
 const VIRTUAL_WIDTH: f32 = 480.0;
 const VIRTUAL_HEIGHT: f32 = 270.0;
@@ -108,9 +105,9 @@ fn main() {
 
     let mut confirm_button = Button::new(
         Rectangle::new(PLAYER_UI_X_CENTER_CORD + 2.0, PLAYER_UI_Y_BASE_CORD + DICE_WIDTH_HEIGHT + 8.0, 64.0, 32.0),
-        Sprite::new(80.0, 16.0, 64.0, 32.0),
-        Sprite::new(80.0, 48.0, 64.0, 32.0),
-        Sprite::new(80.0, 80.0, 64.0, 32.0),
+        Sprite::new(80, 16, 64, 32),
+        Sprite::new(80, 48, 64, 32),
+        Sprite::new(80, 80, 64, 32),
         Some("Tally"),
         Some(Vector2::new(5.0, 10.0)),
     );
@@ -121,9 +118,9 @@ fn main() {
             128.0,
             32.0,
         ),
-        Sprite::new(16.0, 176.0, 128.0, 32.0),
-        Sprite::new(16.0, 208.0, 128.0, 32.0),
-        Sprite::new(16.0, 240.0, 128.0, 32.0),
+        Sprite::new(16, 176, 128, 32),
+        Sprite::new(16, 208, 128, 32),
+        Sprite::new(16, 240, 128, 32),
         None,
         None,
     );
@@ -134,9 +131,9 @@ fn main() {
             64.0,
             32.0,
         ),
-        Sprite::new(16.0, 16.0, 64.0, 32.0),
-        Sprite::new(16.0, 48.0, 64.0, 32.0),
-        Sprite::new(16.0, 80.0, 64.0, 32.0),
+        Sprite::new(16, 16, 64, 32),
+        Sprite::new(16, 48, 64, 32),
+        Sprite::new(16, 80, 64, 32),
         Some("Reroll"),
         Some(Vector2::new(2.0, 10.0)),
     );
@@ -244,9 +241,7 @@ fn main() {
                 );
 
                 // now handle the replay and quit texts
-
                 let replay_string_length = game_context.font.measure_text(replay_string, 8.0, 0.0);
-                let quit_string_length = game_context.font.measure_text(quit_string, 8.0, 0.0);
                 let margin_from_middle = 10.0;
 
                 let replay_and_quit_str_y = VIRTUAL_HEIGHT / 2.0;

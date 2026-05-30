@@ -12,18 +12,18 @@ use raylib::{
 use crate::{GameContext, entities::dice_box_data::{DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X, STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH}, system::info_hover::InfoHover};
 
 const RESULTS_TEXT_COLOR: Color = Color::new(208, 184, 184, 255);
-static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14.0, 112.0, 52.0, 16.0);
+static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14, 112, 52, 16);
 static PLAYER_ATTACK_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(0.0, 272.0, 32.0, 48.0),
-        Sprite::new(32.0, 272.0, 32.0, 48.0),
-        Sprite::new(64.0, 272.0, 32.0, 48.0),
-        Sprite::new(96.0, 272.0, 32.0, 48.0),
-        Sprite::new(128.0, 272.0, 32.0, 48.0),
-        Sprite::new(160.0, 272.0, 32.0, 48.0),
-        Sprite::new(160.0, 272.0, 32.0, 48.0),
-        Sprite::new(192.0, 272.0, 32.0, 48.0),
-        Sprite::new(224.0, 272.0, 32.0, 48.0),
+        Sprite::new(0, 272, 32, 48),
+        Sprite::new(32, 272, 32, 48),
+        Sprite::new(64, 272, 32, 48),
+        Sprite::new(96, 272, 32, 48),
+        Sprite::new(128, 272, 32, 48),
+        Sprite::new(160, 272, 32, 48),
+        Sprite::new(160, 272, 32, 48),
+        Sprite::new(192, 272, 32, 48),
+        Sprite::new(224, 272, 32, 48),
     ],
     frame_duration: 0.075,
     should_loop: false

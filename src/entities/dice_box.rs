@@ -126,7 +126,7 @@ impl DiceBox {
             Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, game_context),
         }
 
-        //self.get_data().info_hover.draw(d, game_context);
+        self.get_data().info_hover.draw(d, game_context);
     }
 
     pub fn get_data(&self) -> &DiceBoxData {

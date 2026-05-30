@@ -12,14 +12,16 @@ use raylib::prelude::*;
 pub const DICE_WIDTH_HEIGHT: f32 = 16.0;
 pub const DICE_ROLL_FRAME_DURATION: f32 = 0.2;
 
+// since dice width height is mostly used as a positioning thing and not a sprite size thing in
+// the rest of the game, i'll just eat all of these conversions this time
 pub static D6_ROLL_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(0.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(16.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(32.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(48.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(64.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(80.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(0, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(16, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(32, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(48, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(64, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(80, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
     ],
     frame_duration: DICE_ROLL_FRAME_DURATION,
     should_loop: true,
@@ -27,10 +29,10 @@ pub static D6_ROLL_ANIM: AnimationData = AnimationData {
 
 pub static D4_ROLL_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(96.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(112.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(128.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
-        Sprite::new(144.0, 0.0, DICE_WIDTH_HEIGHT, DICE_WIDTH_HEIGHT),
+        Sprite::new(96, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(112, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(128, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
+        Sprite::new(144, 0, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32),
     ],
     frame_duration: DICE_ROLL_FRAME_DURATION,
     should_loop: true,

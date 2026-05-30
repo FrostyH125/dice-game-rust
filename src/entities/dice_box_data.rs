@@ -30,8 +30,8 @@ pub const DICE_CENTER_OF_SCREEN_POS: Vector2 =
 pub const DICE_BORDER_OFFSET: Vector2 = Vector2::new(-1.0, -1.0);
 pub const DICE_BORDER_SIZE: Vector2 = Vector2::new(DICE_WIDTH_HEIGHT + 2.0, DICE_WIDTH_HEIGHT + 2.0);
 
-pub const D6_DICE_BORDER_SPRITE: Sprite = Sprite::new(223.0, 15.0, 18.0, 18.0);
-pub const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191.0, 15.0, 18.0, 18.0);
+pub const D6_DICE_BORDER_SPRITE: Sprite = Sprite::new(223, 15, 18, 18);
+pub const D4_DICE_BORDER_SPRITE: Sprite = Sprite::new(191, 15, 18, 18);
 
 pub const DICE_DRAW_START_OFFSET: Vector2 = Vector2::new(34.0, -15.0);
 pub const DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX: Vector2 =

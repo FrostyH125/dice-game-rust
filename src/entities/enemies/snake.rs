@@ -18,18 +18,18 @@ use crate::{
 const BEFORE_ATTACKING_TIME: f32 = 2.0;
 const HIT_TIME: f32 = 1.0;
 const SNAKE_POS: Vector2 = Vector2::new(VIRTUAL_WIDTH - 116.0, 125.0);
-const SNAKE_WIDTH: f32 = 32.0;
-const SNAKE_HEIGHT: f32 = 48.0;
-const CENTER_OF_SNAKE: Vector2 = Vector2::new(SNAKE_POS.x + SNAKE_WIDTH / 2.0, SNAKE_POS.y + SNAKE_HEIGHT / 2.0);
+const SNAKE_WIDTH: u32 = 32;
+const SNAKE_HEIGHT: u32 = 48;
+const CENTER_OF_SNAKE: Vector2 = Vector2::new(SNAKE_POS.x + SNAKE_WIDTH as f32 / 2.0, SNAKE_POS.y + SNAKE_HEIGHT as f32 / 2.0);
 
 const SNAKE_EYES_INDEX: usize = 0;
 
 static SNAKE_IDLE_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(144.0, 176.0, 32.0, 48.0),
-        Sprite::new(176.0, 176.0, 32.0, 48.0),
-        Sprite::new(208.0, 176.0, 32.0, 48.0),
-        Sprite::new(240.0, 176.0, 32.0, 48.0),
+        Sprite::new(144, 176, 32, 48),
+        Sprite::new(176, 176, 32, 48),
+        Sprite::new(208, 176, 32, 48),
+        Sprite::new(240, 176, 32, 48),
     ],
     frame_duration: 0.5,
     should_loop: true,
@@ -37,17 +37,17 @@ static SNAKE_IDLE_ANIM: AnimationData = AnimationData {
 
 static SNAKE_ATTACK_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(144.0, 224.0, 32.0, 48.0),
-        Sprite::new(176.0, 224.0, 32.0, 48.0),
-        Sprite::new(208.0, 224.0, 32.0, 48.0),
-        Sprite::new(240.0, 224.0, 32.0, 48.0),
+        Sprite::new(144, 224, 32, 48),
+        Sprite::new(176, 224, 32, 48),
+        Sprite::new(208, 224, 32, 48),
+        Sprite::new(240, 224, 32, 48),
     ],
     frame_duration: BEFORE_ATTACKING_TIME / 8.0,
     should_loop: true,
 };
 
 static SNAKE_HIT_ANIM: AnimationData = AnimationData {
-    frames: &[EMPTY_SPRITE, Sprite::new(272.0, 176.0, SNAKE_WIDTH, SNAKE_HEIGHT)],
+    frames: &[EMPTY_SPRITE, Sprite::new(272, 176, SNAKE_WIDTH, SNAKE_HEIGHT)],
     frame_duration: HIT_TIME / 4.0,
     should_loop: true,
 };

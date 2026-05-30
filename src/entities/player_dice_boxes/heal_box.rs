@@ -20,26 +20,28 @@ use crate::{
 // probably will be a basic heal method for the actual logic just like the basic attack method
 
 const RESULTS_TEXT_COLOR: Color = Color::new(146, 215, 200, 255);
-static HEAL_BOX_SPRITE: Sprite = Sprite::new(14.0, 144.0, 52.0, 16.0);
+static HEAL_BOX_SPRITE: Sprite = Sprite::new(14, 144, 52, 16);
 static PLAYER_HEAL_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(0.0, 320.0, 32.0, 48.0),
-        Sprite::new(32.0, 320.0, 32.0, 48.0),
-        Sprite::new(64.0, 320.0, 32.0, 48.0),
-        Sprite::new(96.0, 320.0, 32.0, 48.0),
-        Sprite::new(128.0, 320.0, 32.0, 48.0),
-        Sprite::new(160.0, 320.0, 32.0, 48.0),
-        Sprite::new(192.0, 320.0, 32.0, 48.0),
-        Sprite::new(64.0, 320.0, 32.0, 48.0),
-        Sprite::new(96.0, 320.0, 32.0, 48.0),
-        Sprite::new(128.0, 320.0, 32.0, 48.0),
-        Sprite::new(160.0, 320.0, 32.0, 48.0),
-        Sprite::new(192.0, 320.0, 32.0, 48.0),
-        Sprite::new(224.0, 320.0, 32.0, 48.0),
+        Sprite::new(0, 320, 32, 48),
+        Sprite::new(32, 320, 32, 48),
+        Sprite::new(64, 320, 32, 48),
+        Sprite::new(96, 320, 32, 48),
+        Sprite::new(128, 320, 32, 48),
+        Sprite::new(160, 320, 32, 48),
+        Sprite::new(192, 320, 32, 48),
+        Sprite::new(64, 320, 32, 48),
+        Sprite::new(96, 320, 32, 48),
+        Sprite::new(128, 320, 32, 48),
+        Sprite::new(160, 320, 32, 48),
+        Sprite::new(192, 320, 32, 48),
+        Sprite::new(224, 320, 32, 48),
     ],
     frame_duration: 0.20,
     should_loop: false,
 };
+
+static HEAL_PARTICLE_SPRITE_SMALL: Sprite = Sprite::new(0, 144, 3, 3);
 
 pub struct HealBox {
     pub data: DiceBoxData,

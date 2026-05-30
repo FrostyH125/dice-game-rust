@@ -12,13 +12,12 @@ use crate::{
     GameContext, VIRTUAL_WIDTH,
     entities::{
         dice_box::DiceBox,
-        dice_box_data::DiceBoxData,
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
     },
 };
 
-const SCOREBOARD_SPRITE: Sprite = Sprite::new(245.0, 0.0, 145.0, 25.0);
+const SCOREBOARD_SPRITE: Sprite = Sprite::new(245, 0, 145, 25);
 const SCOREBOARD_POS: Vector2 = Vector2::new(VIRTUAL_WIDTH / 2.0 - SCOREBOARD_SPRITE.src_rect.width / 2.0, 0.0);
 
 const VALUES_CENTER_Y_POS: f32 = SCOREBOARD_POS.y + 16.0;
@@ -40,16 +39,16 @@ const MULTI_ANIM_POS: Vector2 =
 const TOTAL_ANIM_POS: Vector2 =
     Vector2::new(TOTAL_CENTER_POS.x - HALF_ANIM_WIDTH, VALUES_CENTER_Y_POS - HALF_ANIM_HEIGHT);
 
-static COVER_SPRITE: Sprite = Sprite::new(254.0, 25.0, 23.0, 11.0);
+static COVER_SPRITE: Sprite = Sprite::new(254, 25, 23, 11);
 
 static OPEN_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(254.0, 25.0, 23.0, 11.0),
-        Sprite::new(279.0, 25.0, 23.0, 11.0),
-        Sprite::new(303.0, 25.0, 23.0, 11.0),
-        Sprite::new(327.0, 25.0, 23.0, 11.0),
-        Sprite::new(351.0, 25.0, 23.0, 11.0),
-        Sprite::new(375.0, 25.0, 23.0, 11.0),
+        Sprite::new(254, 25, 23, 11),
+        Sprite::new(279, 25, 23, 11),
+        Sprite::new(303, 25, 23, 11),
+        Sprite::new(327, 25, 23, 11),
+        Sprite::new(351, 25, 23, 11),
+        Sprite::new(375, 25, 23, 11),
     ],
     frame_duration: 0.1,
     should_loop: false,
@@ -57,12 +56,12 @@ static OPEN_ANIM: AnimationData = AnimationData {
 
 static CLOSE_ANIM: AnimationData = AnimationData {
     frames: &[
-        Sprite::new(375.0, 25.0, 23.0, 11.0),
-        Sprite::new(351.0, 25.0, 23.0, 11.0),
-        Sprite::new(327.0, 25.0, 23.0, 11.0),
-        Sprite::new(303.0, 25.0, 23.0, 11.0),
-        Sprite::new(279.0, 25.0, 23.0, 11.0),
-        Sprite::new(254.0, 25.0, 23.0, 11.0),
+        Sprite::new(375, 25, 23, 11),
+        Sprite::new(351, 25, 23, 11),
+        Sprite::new(327, 25, 23, 11),
+        Sprite::new(303, 25, 23, 11),
+        Sprite::new(279, 25, 23, 11),
+        Sprite::new(254, 25, 23, 11),
     ],
     frame_duration: 0.1,
     should_loop: false,

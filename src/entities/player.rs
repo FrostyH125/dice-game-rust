@@ -29,25 +29,25 @@ const PLAYER_CENTER: Vector2 = Vector2::new(PLAYER_POS.x + PLAYER_WIDTH / 2.0, P
 const PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE: f32 = 6.0;
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
-    frames: &[Sprite::new(80.0, 112.0, 32.0, 48.0), Sprite::new(112.0, 112.0, 32.0, 48.0)],
+    frames: &[Sprite::new(80, 112, 32, 48), Sprite::new(112, 112, 32, 48)],
     frame_duration: 0.5,
     should_loop: true,
 };
 
 static PLAYER_THINKING_ANIM: AnimationData = AnimationData {
-    frames: &[Sprite::new(144.0, 80.0, 32.0, 48.0), Sprite::new(176.0, 80.0, 32.0, 48.0)],
+    frames: &[Sprite::new(144, 80, 32, 48), Sprite::new(176, 80, 32, 48)],
     frame_duration: 0.5,
     should_loop: true,
 };
 
 static PLAYER_WAITING_ANIM: AnimationData = AnimationData {
-    frames: &[Sprite::new(144.0, 128.0, 32.0, 48.0), Sprite::new(176.0, 128.0, 32.0, 48.0)],
+    frames: &[Sprite::new(144, 128, 32, 48), Sprite::new(176, 128, 32, 48)],
     frame_duration: 0.5,
     should_loop: true,
 };
 
 static PLAYER_HIT_ANIM: AnimationData = AnimationData {
-    frames: &[EMPTY_SPRITE, Sprite::new(240.0, 128.0, 32.0, 48.0)],
+    frames: &[EMPTY_SPRITE, Sprite::new(240, 128, 32, 48)],
     frame_duration: HIT_DELAY_DURATION / 4.0,
     should_loop: true,
 };
