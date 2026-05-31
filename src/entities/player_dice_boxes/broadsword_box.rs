@@ -60,7 +60,7 @@ impl BroadSwordBox {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+    pub fn draw(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         BROADSWORD_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
         d.draw_rectangle_lines(
             self.data.dice_collect_rect.x as i32,
@@ -88,10 +88,6 @@ impl BroadSwordBox {
     pub fn player_update_attack(anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
         PLAYER_ATTACK_ANIM.update(anim, dt);
 
-        if !anim.can_play {
-            return true;
-        } else {
-            return false;
-        }
+        return anim.finished_playing;
     }
 }

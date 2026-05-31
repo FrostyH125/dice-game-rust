@@ -22,8 +22,8 @@ use crate::{
 };
 
 const HIT_DELAY_DURATION: f32 = 1.0;
-const PLAYER_WIDTH: f32 = 32.0;
-const PLAYER_HEIGHT: f32 = 48.0;
+pub const PLAYER_WIDTH: f32 = 32.0;
+pub const PLAYER_HEIGHT: f32 = 48.0;
 const PLAYER_POS: Vector2 = Vector2::new(84.0, 125.0);
 const PLAYER_CENTER: Vector2 = Vector2::new(PLAYER_POS.x + PLAYER_WIDTH / 2.0, PLAYER_POS.y + PLAYER_HEIGHT / 2.0);
 const PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE: f32 = 6.0;
@@ -261,7 +261,7 @@ impl Player {
                 }
             }
             PlayerState::BeforeActionVisual => {
-                if self.dice_boxes[self.current_box].player_update_before_action_visuals(&mut self.acting_anim, dt) {
+                if self.dice_boxes[self.current_box].player_update_before_action_visuals(&mut self.acting_anim, game_context, self.pos, dt) {
                     self.acting_anim.reset();
                     self.state = PlayerState::Acting;
                 }

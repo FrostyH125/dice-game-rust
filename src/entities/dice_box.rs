@@ -175,10 +175,10 @@ impl DiceBox {
         }
     }
 
-    pub fn player_update_before_action_visuals(&self, anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
+    pub fn player_update_before_action_visuals(&mut self, anim: &mut SpriteAnimationInstance, game_context: &mut GameContext, player_pos: Vector2, dt: f32) -> bool {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
-            Self::HealBox { .. } => HealBox::player_update_heal(anim, dt),
+            Self::HealBox { heal_box } => HealBox::player_update_heal(heal_box, anim, game_context, player_pos, dt),
             Self::SnakeEyes { .. } => unimplemented!(),
         }
     }

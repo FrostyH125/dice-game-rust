@@ -78,9 +78,7 @@ impl DiceBoxData {
             tally: 0.0,
             multi: 1.0,
             base_multi: 1.0,
-            
-            // some boxes use this value in equality, im making sure it is actually equal no matter what, since floats are weird
-            total_points: 0.0f64.floor(),
+            total_points: 0.0f64,
             pos: Vector2::zero(),
             dice_collect_rect: Rectangle::new(collect_rect_offset_x, collect_rect_offset_y, collect_rect_width, collect_rect_height),
             width: dice_box_width,
@@ -188,7 +186,7 @@ impl DiceBoxData {
             hand_dice.push(dice);
         }
 
-        self.total_points = 0.0f64.floor();
+        self.total_points = 0.0f64;
         self.current_dice_index = NO_DICE_COUNTED_INDEX;
         self.current_streak = 1;
         self.previous_dice_value = i8::MAX;
@@ -230,10 +228,10 @@ impl DiceBoxData {
         return self.tally * self.base_multi * self.multi;
     }
 
-    pub fn draw_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
-        let mut dice_being_dragged: Option<&mut Dice> = None;
+    pub fn draw_dice(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+        let mut dice_being_dragged: Option<&Dice> = None;
 
-        for dice in &mut self.dice_in_box {
+        for dice in &self.dice_in_box {
             dice.draw(d, texture);
             match dice.state {
                 DiceState::Dragging => {
@@ -248,7 +246,7 @@ impl DiceBoxData {
         }
     }
 
-    pub fn draw_border_around_current_dice(&mut self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
+    pub fn draw_border_around_current_dice(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         if self.current_dice_index == NO_DICE_COUNTED_INDEX {
             return;
         }

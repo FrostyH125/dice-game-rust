@@ -1,6 +1,8 @@
-use basic_raylib_core::graphics::{
-    animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance,
+use basic_raylib_core::{
+    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
+    system::timer::Timer,
 };
+use rand::{RngExt, rngs::ThreadRng};
 use raylib::{
     color::Color,
     math::{Rectangle, Vector2},
@@ -10,10 +12,16 @@ use raylib::{
 };
 
 use crate::{
-    GameContext, entities::dice_box_data::{
-        DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
-        STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH,
-    }, system::info_hover::InfoHover
+    GameContext,
+    entities::{
+        dice_box_data::{
+            DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
+            STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT,
+            STANDARD_BOX_WIDTH,
+        },
+        player::{PLAYER_HEIGHT, PLAYER_WIDTH},
+    },
+    system::info_hover::InfoHover,
 };
 
 // need to add the draw method and the heal method,
@@ -42,9 +50,12 @@ static PLAYER_HEAL_ANIM: AnimationData = AnimationData {
 };
 
 static HEAL_PARTICLE_SPRITE_SMALL: Sprite = Sprite::new(0, 144, 3, 3);
+static HEAL_PARTICLE_SPRITE_LARGE: Sprite = Sprite::new(0, 148, 6, 6);
 
 pub struct HealBox {
     pub data: DiceBoxData,
+    particle_timer: Timer,
+    rng: ThreadRng,
 }
 
 impl HealBox {
@@ -63,12 +74,16 @@ impl HealBox {
                 5.0,
                 0.5,
             ),
-            Color::MEDIUMBLUE
+            Color::MEDIUMBLUE,
         );
-        
+
         data.base_multi = 0.25;
 
-        HealBox { data }
+        HealBox {
+            data,
+            particle_timer: Timer::new(0.05),
+            rng: rand::rng(),
+        }
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
@@ -96,13 +111,55 @@ impl HealBox {
         PLAYER_HEAL_ANIM.draw(anim, d, pos, texture);
     }
 
-    pub fn player_update_heal(anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
+    pub fn player_update_heal(
+        &mut self,
+        anim: &mut SpriteAnimationInstance,
+        game_context: &mut GameContext,
+        player_pos: Vector2,
+        dt: f32,
+    ) -> bool {
+        // handle particles
+        self.particle_timer.track(dt);
+        if self.particle_timer.is_done() {
+            self.particle_timer.reset();
+            HealBox::emit_random_heal_particle(game_context, &mut self.rng, player_pos);
+        }
+
+        // handle anim
         PLAYER_HEAL_ANIM.update(anim, dt);
 
-        if !anim.can_play {
-            return true;
+        return anim.finished_playing;
+    }
+
+    fn emit_random_heal_particle(game_context: &mut GameContext, rng: &mut ThreadRng, player_pos: Vector2) {
+        let is_big = rng.random::<bool>();
+        let position_x: f32 = rng.random_range(player_pos.x..=player_pos.x + PLAYER_WIDTH);
+        let position_y: f32 = player_pos.y + PLAYER_HEIGHT;
+        let left_start = rng.random::<bool>();
+        let velocity_x = if left_start {
+            -20.0
         } else {
-            return false;
-        }
+            20.0
+        };
+        
+        let velocity_y = rng.random_range(-40.0..=-30.0);
+        let velocity: Vector2 = Vector2::new(velocity_x, velocity_y);
+        let acceleration_x = if left_start {
+            20.0
+        } else {
+            -20.0
+        };
+        
+        let acceleration: Vector2 = Vector2::new(acceleration_x, 0.0);
+        let lifetime: f32 = rng.random_range(1.5..=2.0);
+        let sprite = if is_big { &HEAL_PARTICLE_SPRITE_LARGE } else { &HEAL_PARTICLE_SPRITE_SMALL };
+
+        game_context.sprite_particle_system.emit(
+            sprite,
+            Vector2::new(position_x, position_y),
+            velocity,
+            acceleration,
+            lifetime,
+        );
     }
 }

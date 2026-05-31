@@ -20,7 +20,7 @@ checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 [[package]]
 name = "basic-raylib-core"
 version = "0.1.0"
-source = "git+https://github.com/FrostyH125/basic-raylib-core#1b2ad08fcc3bb9445e2edb599595b6df4e33ac44"
+source = "git+https://github.com/FrostyH125/basic-raylib-core#e16a418d5e07bc809c5167bdd8cd573efeab5529"
 dependencies = [
  "raylib",
 ]

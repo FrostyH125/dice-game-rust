@@ -145,7 +145,7 @@ impl ScoreBoard {
                 self.handle_timer_and_random_numbers(dt);
 
                 OPEN_ANIM.update(&mut self.open_anim, dt);
-                if !self.open_anim.can_play {
+                if self.open_anim.finished_playing {
                     self.state = ScoreBoardState::Open;
                     self.open_anim.reset();
                 }
@@ -192,7 +192,7 @@ impl ScoreBoard {
             ScoreBoardState::Closing => {
                 CLOSE_ANIM.update(&mut self.close_anim, dt);
 
-                if !self.close_anim.can_play {
+                if self.close_anim.finished_playing {
                     self.state = ScoreBoardState::Closed;
                     self.close_anim.reset();
                 }
