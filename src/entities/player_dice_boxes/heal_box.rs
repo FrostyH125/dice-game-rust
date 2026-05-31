@@ -86,7 +86,7 @@ impl HealBox {
         }
     }
 
-    pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+    pub fn draw_box_and_dice(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         HEAL_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
         d.draw_rectangle_lines(
             self.data.dice_collect_rect.x as i32,

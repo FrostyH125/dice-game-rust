@@ -121,8 +121,8 @@ impl DiceBox {
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         match self {
-            Self::BroadSwordBox { broadsword_box } => broadsword_box.draw(d, game_context),
-            Self::HealBox { heal_box } => heal_box.draw(d, game_context),
+            Self::BroadSwordBox { broadsword_box } => broadsword_box.draw_box_and_dice(d, game_context),
+            Self::HealBox { heal_box } => heal_box.draw_box_and_dice(d, game_context),
             Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, game_context),
         }
 
