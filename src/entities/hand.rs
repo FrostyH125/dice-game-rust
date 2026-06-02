@@ -33,7 +33,7 @@ impl Hand {
 
     pub fn update_for_player(
         &mut self,
-        player_dragging_any_dice: &mut bool,
+        player_dragging_any_dice: bool,
         input_state: &InputState,
         dt: f32,
     ) {
@@ -178,5 +178,14 @@ impl Hand {
                 particle_system.emit(sprite, position, velocity, acceleration, lifetime);
             }
         }
+    }
+
+    pub fn are_any_dice_being_dragged(&self) -> bool {
+        for dice in &self.dice {
+            if let DiceState::Dragging = dice.state {
+                return true;
+            }
+        }
+        return false;
     }
 }

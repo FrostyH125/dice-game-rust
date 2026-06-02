@@ -11,7 +11,7 @@ use raylib::{
 
 use crate::{GameContext, entities::dice_box_data::{DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X, STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH}, system::info_hover::InfoHover};
 
-const RESULTS_TEXT_COLOR: Color = Color::new(208, 184, 184, 255);
+const BASE_MULTI_TEXT_COLOR: Color = Color::new(208, 184, 184, 255);
 static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14, 112, 52, 16);
 static PLAYER_ATTACK_ANIM: AnimationData = AnimationData {
     frames: &[
@@ -55,7 +55,8 @@ impl BroadSwordBox {
                     5.0,
                     0.5,
                 ),
-                Color::DARKRED
+                Color::DARKRED,
+                1.0
             ),
         }
     }
@@ -70,10 +71,8 @@ impl BroadSwordBox {
             Color::WHITE,
         );
         self.data.draw_dice(d, &game_context.texture);
-        self.data.draw_base_multi(d, &game_context.font, RESULTS_TEXT_COLOR);
-        self.data.draw_current_streak(d, &game_context.font, RESULTS_TEXT_COLOR);
         self.data.draw_border_around_current_dice(d, &game_context.texture);
-        self.data.draw_info_sprite_and_information(d, &game_context.font, RESULTS_TEXT_COLOR);
+        self.data.draw_base_multi(d, &game_context.font, BASE_MULTI_TEXT_COLOR);
     }
 
     pub fn player_draw_attack(

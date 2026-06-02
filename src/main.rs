@@ -41,16 +41,12 @@ pub enum GameState {
     GameOver,
 }
 
-// healing box, make plus sign particles come out of player when healing with the wavy upward motion
-
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
-
 // thinking of renaming AnimData.can_play into something more intuitive
-
 // CombatEffectsManager that can add visuals to combat and takes enum variants for damage types in add effect
-
 // disable input if the dialogue is running
+
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference

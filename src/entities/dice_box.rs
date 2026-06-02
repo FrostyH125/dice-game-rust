@@ -43,7 +43,7 @@ pub enum DiceBoxResult {
 impl DiceBox {
     pub fn update_for_player(
         &mut self,
-        is_player_dragging_dice: &mut bool,
+        is_player_dragging_dice: bool,
         was_player_dragging_dice: bool,
         hand: &mut Hand,
         input_state: &InputState,
@@ -54,9 +54,9 @@ impl DiceBox {
 
         data.pull_in_dragged_dice(&mut hand.dice);
         data.update_dice_for_player(is_player_dragging_dice, hand_stopped, input_state, dt);
-        data.handle_dragging_dice(hand);
+        data.check_if_any_dice_need_to_go_back_to_hand(hand);
 
-        if !*is_player_dragging_dice && was_player_dragging_dice {
+        if !is_player_dragging_dice && was_player_dragging_dice {
             data.set_dice_positions();
         }
 

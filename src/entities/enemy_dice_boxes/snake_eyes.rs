@@ -49,7 +49,8 @@ impl SnakeEyes {
                     5.0,
                     0.5,
                 ),
-                Color::DARKOLIVEGREEN
+                Color::DARKOLIVEGREEN,
+                1.0
             ),
         }
     }

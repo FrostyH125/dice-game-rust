@@ -89,8 +89,8 @@ pub struct Player {
     end_turn_delay_timer: Timer,
     hit_delay_timer: Timer,
     pub state: PlayerState,
-    pub is_player_dragging_dice: bool,
-    pub was_player_dragging_dice: bool,
+    pub is_dragging_dice: bool,
+    pub was_dragging_dice: bool,
 }
 
 impl Player {
@@ -112,8 +112,8 @@ impl Player {
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
             hit_delay_timer: Timer::new(HIT_DELAY_DURATION),
-            is_player_dragging_dice: false,
-            was_player_dragging_dice: false,
+            is_dragging_dice: false,
+            was_dragging_dice: false,
             current_box: 0,
         }
     }
@@ -128,15 +128,17 @@ impl Player {
         dt: f32,
     ) {
         if !game_context.input_state.dragging {
-            self.is_player_dragging_dice = false;
+            self.is_dragging_dice = false;
         }
 
-        self.hand.update_for_player(&mut self.is_player_dragging_dice, &game_context.input_state, dt);
+        self.is_dragging_dice = self.are_any_dice_dragged_in_boxes() || self.hand.are_any_dice_being_dragged();
+
+        self.hand.update_for_player(self.is_dragging_dice, &game_context.input_state, dt);
 
         for dice_box in &mut self.dice_boxes {
             dice_box.update_for_player(
-                &mut self.is_player_dragging_dice,
-                self.was_player_dragging_dice,
+                self.is_dragging_dice,
+                self.was_dragging_dice,
                 &mut self.hand,
                 &game_context.input_state,
                 dt,
@@ -144,8 +146,7 @@ impl Player {
         }
         
         // this is here to run after all boxes have ran
-        // 
-        if !self.is_player_dragging_dice && self.was_player_dragging_dice {
+        if !self.is_dragging_dice && self.was_dragging_dice {
             self.hand.arrange_hand(false);
         }
 
@@ -332,7 +333,7 @@ impl Player {
             PlayerState::Dead => (),
         }
 
-        self.was_player_dragging_dice = self.is_player_dragging_dice;
+        self.was_dragging_dice = self.is_dragging_dice;
     }
 
     pub fn reset(&mut self) {
@@ -499,5 +500,15 @@ impl Player {
             dice_box.adjust_collect_rect_pos_for_current_pos();
             dice_box.adjust_info_hover_pos_for_current_pos();
         }
+    }
+
+    fn are_any_dice_dragged_in_boxes(&self) -> bool {
+        for db in &self.dice_boxes {
+            if db.get_data().are_any_dice_being_dragged() {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

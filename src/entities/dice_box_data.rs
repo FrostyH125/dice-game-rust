@@ -1,6 +1,9 @@
 use std::{i8, usize};
 
-use basic_raylib_core::{graphics::sprite::Sprite, system::{timer::Timer, sprite_particle_system::SpriteParticleSystem, input_handler::InputState}};
+use basic_raylib_core::{
+    graphics::sprite::Sprite,
+    system::{input_handler::InputState, sprite_particle_system::SpriteParticleSystem, timer::Timer},
+};
 use raylib::{
     color::Color,
     math::{Rectangle, Vector2},
@@ -68,8 +71,17 @@ pub struct DiceBoxData {
 }
 
 impl DiceBoxData {
-    pub fn new(collect_rect_offset_x: f32, collect_rect_offset_y: f32, collect_rect_width: f32, collect_rect_height: f32, dice_box_width: f32, dice_box_height: f32, info_hover: InfoHover, scoreboard_info_color: Color) -> Self {
-        
+    pub fn new(
+        collect_rect_offset_x: f32,
+        collect_rect_offset_y: f32,
+        collect_rect_width: f32,
+        collect_rect_height: f32,
+        dice_box_width: f32,
+        dice_box_height: f32,
+        info_hover: InfoHover,
+        scoreboard_info_color: Color,
+        base_multi: f64,
+    ) -> Self {
         DiceBoxData {
             dice_in_box: Vec::new(),
             info_hover,
@@ -77,10 +89,15 @@ impl DiceBoxData {
             current_dice_index: NO_DICE_COUNTED_INDEX,
             tally: 0.0,
             multi: 1.0,
-            base_multi: 1.0,
+            base_multi,
             total_points: 0.0f64,
             pos: Vector2::zero(),
-            dice_collect_rect: Rectangle::new(collect_rect_offset_x, collect_rect_offset_y, collect_rect_width, collect_rect_height),
+            dice_collect_rect: Rectangle::new(
+                collect_rect_offset_x,
+                collect_rect_offset_y,
+                collect_rect_width,
+                collect_rect_height,
+            ),
             width: dice_box_width,
             height: dice_box_height,
             dice_tally_timer: Timer::new(1.5),
@@ -119,7 +136,7 @@ impl DiceBoxData {
 
     pub fn update_dice_for_player(
         &mut self,
-        is_player_dragging_any_dice: &mut bool,
+        is_player_dragging_any_dice: bool,
         hand_stopped: bool,
         input_state: &InputState,
         dt: f32,
@@ -136,7 +153,6 @@ impl DiceBoxData {
         let is_first = self.current_dice_index == NO_DICE_COUNTED_INDEX;
 
         if self.dice_tally_timer.is_done() || is_first {
-            
             self.dice_tally_timer.reset();
 
             if self.current_dice_index == NO_DICE_COUNTED_INDEX {
@@ -261,7 +277,7 @@ impl DiceBoxData {
         sprite.draw(d, pos, texture);
     }
 
-    pub fn handle_dragging_dice(&mut self, hand: &mut Hand) {
+    pub fn check_if_any_dice_need_to_go_back_to_hand(&mut self, hand: &mut Hand) {
         for i in (0..self.dice_in_box.len()).rev() {
             if !self
                 .dice_collect_rect
@@ -309,49 +325,15 @@ impl DiceBoxData {
     // to use if the dice box doesnt deviate much and wants to use it
     // like the enemy and player attack methods in dice_box.rs
     pub fn draw_base_multi(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
-        d.draw_text_ex(
-            font,
-            &format!("x{}", self.base_multi),
-            self.pos + BASE_MULTI_OFFSET,
-            3.0,
-            0.0,
-            color,
-        );
+        d.draw_text_ex(font, &format!("x{}", self.base_multi), self.pos + BASE_MULTI_OFFSET, 3.0, 0.0, color);
     }
 
-    pub fn draw_info_sprite_and_information(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
-        let no_dice_counted_yet = self.current_dice_index == NO_DICE_COUNTED_INDEX;
-        if no_dice_counted_yet {
-            return;
+    pub fn are_any_dice_being_dragged(&self) -> bool {
+        for dice in &self.dice_in_box {
+            if let DiceState::Dragging = dice.state {
+                return true;
+            }
         }
-
-        let base = self.base_multi;
-        let tally = self.tally;
-        let multi = self.multi;
-
-        d.draw_text_ex(
-            font,
-            &format!(
-                "total:\n{} tally\n* {} multi \n* {} base\n= {}!",
-                tally,
-                multi,
-                base,
-                tally * multi * base
-            ),
-            self.pos + TOTAL_VALUE_OFFSET,
-            8.0,
-            0.0,
-            color,
-        );
-    }
-
-    pub fn draw_current_streak(&self, d: &mut RaylibDrawHandle, font: &Font, color: Color) {
-        let streak = self.current_streak;
-
-        if streak <= 1 {
-            return;
-        }
-
-        d.draw_text_ex(font, &format!("Streak {} !", streak), self.pos + CURRENT_STREAK_OFFSET, 8.0, 0.0, color);
+        return false;
     }
 }

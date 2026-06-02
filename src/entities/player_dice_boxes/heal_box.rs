@@ -24,10 +24,7 @@ use crate::{
     system::info_hover::InfoHover,
 };
 
-// need to add the draw method and the heal method,
-// probably will be a basic heal method for the actual logic just like the basic attack method
-
-const RESULTS_TEXT_COLOR: Color = Color::new(146, 215, 200, 255);
+const BASE_MULTI_TEXT_COLOR: Color = Color::new(146, 215, 200, 255);
 static HEAL_BOX_SPRITE: Sprite = Sprite::new(14, 144, 52, 16);
 static PLAYER_HEAL_ANIM: AnimationData = AnimationData {
     frames: &[
@@ -60,7 +57,7 @@ pub struct HealBox {
 
 impl HealBox {
     pub fn new(font: &Font) -> Self {
-        let mut data = DiceBoxData::new(
+        let data = DiceBoxData::new(
             STANDARD_BOX_COLLECT_RECT_OFFSET_X,
             STANDARD_BOX_COLLECT_RECT_OFFSET_Y,
             STANDARD_BOX_COLLECT_RECT_WIDTH,
@@ -75,15 +72,14 @@ impl HealBox {
                 0.5,
             ),
             Color::MEDIUMBLUE,
+            0.25
         );
-
-        data.base_multi = 0.25;
-
-        HealBox {
+        
+        return HealBox {
             data,
             particle_timer: Timer::new(0.05),
             rng: rand::rng(),
-        }
+        };
     }
 
     pub fn draw_box_and_dice(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
@@ -96,10 +92,8 @@ impl HealBox {
             Color::WHITE,
         );
         self.data.draw_dice(d, &game_context.texture);
-        self.data.draw_base_multi(d, &game_context.font, RESULTS_TEXT_COLOR);
-        self.data.draw_current_streak(d, &game_context.font, RESULTS_TEXT_COLOR);
         self.data.draw_border_around_current_dice(d, &game_context.texture);
-        self.data.draw_info_sprite_and_information(d, &game_context.font, RESULTS_TEXT_COLOR);
+        self.data.draw_base_multi(d, &game_context.font, BASE_MULTI_TEXT_COLOR);
     }
 
     pub fn player_draw_heal(

@@ -23,7 +23,7 @@ impl Button {
         down_clicked_sprite: Sprite,
         text: Option<&'static str>,
         text_draw_offset: Option<Vector2>,
-    ) -> Self {
+        ) -> Self {
         Button {
             rect,
             sprite,
@@ -37,16 +37,21 @@ impl Button {
 
     pub fn is_pressed(&mut self, input_state: &InputState) -> bool {
         let is_clicked =
-            self.rect.check_collision_point_rec(input_state.mouse_pos) && input_state.currently_pressed;
+            self.rect.check_collision_point_rec(input_state.mouse_pos) && input_state.clicked_once;
         return is_clicked;
     }
 
+    pub fn is_held(&mut self, input_state: &InputState) -> bool {
+        let is_held =
+            self.rect.check_collision_point_rec(input_state.mouse_pos) && input_state.currently_pressed;
+        return is_held;
+    }
 
     pub fn draw_with_text(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
         let pos = Vector2::new(self.rect.x, self.rect.y);
 
         match self.inactive {
-            true => match self.is_pressed(&game_context.input_state) {
+            true => match self.is_held(&game_context.input_state) {
                 true => self.down_clicked_sprite.draw(d, pos, &game_context.texture),
                 false => self.down_sprite.draw(d, pos, &game_context.texture),
             },
@@ -63,7 +68,7 @@ impl Button {
         let pos = Vector2::new(self.rect.x, self.rect.y);
         
         match self.inactive {
-            true => match self.is_pressed(&game_context.input_state) {
+            true => match self.is_held(&game_context.input_state) {
                 true => self.down_clicked_sprite.draw(d, pos, &game_context.texture),
                 false => self.down_sprite.draw(d, pos, &game_context.texture),
             },

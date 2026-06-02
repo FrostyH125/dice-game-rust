@@ -132,7 +132,7 @@ impl Dice {
 
     pub fn update_for_player(
         &mut self,
-        other_dice_dragged: &mut bool,
+        other_dice_dragged: bool,
         hand_stopped: bool,
         input_state: &InputState,
         dt: f32,
@@ -153,8 +153,7 @@ impl Dice {
                     if rect.check_collision_point_rec(input_state.mouse_pos) { true } else { false }
                 };
 
-                if input_state.dragging && mouse_over_this && !*other_dice_dragged {
-                    *other_dice_dragged = true;
+                if input_state.dragging && mouse_over_this && !other_dice_dragged {
                     self.state = DiceState::Dragging;
                 }
             }
