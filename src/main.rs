@@ -70,6 +70,13 @@ pub struct GameContext {
     font: Font,
 }
 
+pub enum HitType {
+    Unblocked,
+    Blocked,
+    BlockedBroken,
+    PerfectBreak
+}
+
 fn main() {
     let (mut rl, thread) =
         raylib::init().size(VIRTUAL_WIDTH as i32 * 3, VIRTUAL_HEIGHT as i32 * 3).title("Dice Game").build();
@@ -169,7 +176,7 @@ fn main() {
                 next_enemy_timer.track(dt);
 
                 if next_enemy_timer.is_done() {
-                    if current_enemy.get_data().health <= 0.0 {
+                    if current_enemy.get_data().health <= 0 {
                         current_enemy = get_random_enemy(&game_context.font);
                     }
 
@@ -182,7 +189,7 @@ fn main() {
                 current_enemy.update(&mut player, &mut game_context, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
-                    player.take_hit(100.0);
+                    player.take_hit(100);
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {

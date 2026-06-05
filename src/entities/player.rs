@@ -77,8 +77,8 @@ pub enum PlayerState {
 pub struct Player {
     pub dice_boxes: Vec<DiceBox>,
     pub hand: Hand,
-    health: f64,
-    shield_power: f64,
+    health: i32,
+    shield_power: i32,
     pub current_box: usize,
     walk_anim: SpriteAnimationInstance,
     thinking_anim: SpriteAnimationInstance,
@@ -108,8 +108,8 @@ impl Player {
             hit_anim: SpriteAnimationInstance::new(),
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
-            health: 100.0,
-            shield_power: 0.0,
+            health: 100,
+            shield_power: 0,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
@@ -141,16 +141,18 @@ impl Player {
         for dice_box in &mut self.dice_boxes {
             dice_box.update_for_player(
                 self.is_dragging_dice,
-                self.was_dragging_dice,
                 &mut self.hand,
                 &game_context.input_state,
                 dt,
             );
         }
         
-        // this is here to run after all boxes have ran
+        // this is here to run after all boxes have updated
         if !self.is_dragging_dice && self.was_dragging_dice {
             self.hand.arrange_hand(false);
+            for dice_box in &mut self.dice_boxes {
+                dice_box.get_mut_data().arrange_dice();
+            }
         }
 
         
@@ -326,7 +328,7 @@ impl Player {
                 self.hit_delay_timer.track(dt);
                 PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
                 if self.hit_delay_timer.is_done() {
-                    if self.health <= 0.0 {
+                    if self.health <= 0 {
                         self.state = PlayerState::Dead
                     } else {
                         self.state = PlayerState::WaitingForEnemy;
@@ -426,12 +428,12 @@ impl Player {
         );
     }
 
-    pub fn take_hit(&mut self, damage: f64) {
+    pub fn take_hit(&mut self, damage: i32) {
         self.health -= damage;
         self.state = PlayerState::HitDelay;
     }
     
-    pub fn heal(&mut self, heal_amount: f64) {
+    pub fn heal(&mut self, heal_amount: i32) {
         self.health += heal_amount;
     }
     

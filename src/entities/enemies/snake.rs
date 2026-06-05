@@ -70,8 +70,8 @@ impl Snake {
     pub fn new(font: &Font) -> Self {
         Snake {
             data: EnemyData {
-                health: 100.0,
-                shield_power: 0.0,
+                health: 100,
+                shield_power: 0,
                 pos: SNAKE_POS,
                 state: EnemyState::WaitingForPlayer,
                 width: 32.0,
@@ -237,7 +237,7 @@ impl Snake {
                 SNAKE_HIT_ANIM.update(&mut self.hit_anim, dt);
                 self.hit_timer.track(dt);
                 if self.hit_timer.is_done() {
-                    if self.data.health <= 0.0 {
+                    if self.data.health <= 0 {
                         self.data.state = EnemyState::Dead;
                     } else {
 

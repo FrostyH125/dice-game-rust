@@ -12,9 +12,6 @@ use raylib::{
     texture::Texture2D,
 };
 
-// define the closing anim
-// have the anim play
-
 use crate::{
     LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, VIRTUAL_HEIGHT, VIRTUAL_WIDTH,
     entities::{
@@ -50,14 +47,20 @@ pub const STANDARD_BOX_HEIGHT: f32 = 16.0;
 
 const NO_DICE_COUNTED_INDEX: usize = usize::MAX;
 
+// the reason tally, multi, and total are i32 and not u32 or f32/f64 are the following
+//      I didn't make them floats because i wanted the perfect break for the shield to be intuitive, and having floats would
+//          make it really hard
+//      I didn't use u32 because the dice values will eventually be able to be negative
+//      I kept base multi as f64 and use it to halve or quarter or etc values, also, to add 0.25 to base multi
+//          in the future or something
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
     pub info_hover: InfoHover,
     pub current_dice_index: usize,
-    pub tally: f64,
-    pub multi: f64,
+    pub tally: i32,
+    pub multi: i32,
     pub base_multi: f64,
-    pub total_points: f64,
+    pub total_points: i32,
     pub scoreboard_info_color: Color,
     pub pos: Vector2,
     pub width: f32,
@@ -87,10 +90,10 @@ impl DiceBoxData {
             info_hover,
             scoreboard_info_color,
             current_dice_index: NO_DICE_COUNTED_INDEX,
-            tally: 0.0,
-            multi: 1.0,
+            tally: 0,
+            multi: 1,
             base_multi,
-            total_points: 0.0f64,
+            total_points: 0,
             pos: Vector2::zero(),
             dice_collect_rect: Rectangle::new(
                 collect_rect_offset_x,
@@ -168,11 +171,11 @@ impl DiceBoxData {
 
             let should_reset_streak = !is_first && !continue_streak;
 
-            self.tally += current_dice.value as f64;
+            self.tally += current_dice.value as i32;
 
             if continue_streak {
                 self.current_streak += 1;
-                self.multi += 1.0;
+                self.multi += 1;
             }
 
             if should_reset_streak {
@@ -205,13 +208,13 @@ impl DiceBoxData {
             hand_dice.push(dice);
         }
 
-        self.total_points = 0.0f64;
+        self.total_points = 0;
         self.current_dice_index = NO_DICE_COUNTED_INDEX;
         self.current_streak = 1;
         self.previous_dice_value = i8::MAX;
         self.dice_tally_timer.reset();
-        self.multi = 1.0;
-        self.tally = 0.0;
+        self.multi = 1;
+        self.tally = 0;
     }
 
 
@@ -247,8 +250,8 @@ impl DiceBoxData {
     }
 
     /// returns total points at the dice box data's current values
-    pub fn get_value(&self) -> f64 {
-        return self.tally * self.base_multi * self.multi;
+    pub fn get_value(&self) -> i32 {
+        return (self.tally as f64 * self.base_multi * self.multi as f64) as i32;
     }
 
     pub fn draw_dice(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
@@ -291,9 +294,8 @@ impl DiceBoxData {
                 .check_collision_point_rec(self.dice_in_box[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
                 && matches!(self.dice_in_box[i].state, DiceState::Stopped)
             {
-                let dice = self.dice_in_box.remove(i);
-                hand.dice.push(dice);
-                hand.arrange_hand(false);
+                let dice = self.remove_dice(i);
+                hand.add_dice(dice, false);
             }
         }
     }

@@ -31,9 +31,9 @@ pub enum DiceBox {
 }
 
 pub enum DiceBoxResult {
-    BasicAttack(f64),
-    BasicHeal(f64),
-    ChargeShield(f64),
+    BasicAttack(i32),
+    BasicHeal(i32),
+    ChargeShield(i32),
     None,
 }
 
@@ -44,7 +44,6 @@ impl DiceBox {
     pub fn update_for_player(
         &mut self,
         is_player_dragging_dice: bool,
-        was_player_dragging_dice: bool,
         hand: &mut Hand,
         input_state: &InputState,
         dt: f32,
@@ -55,10 +54,6 @@ impl DiceBox {
         data.pull_in_dragged_dice(hand);
         data.update_dice_for_player(is_player_dragging_dice, hand_stopped, input_state, dt);
         data.check_if_any_dice_need_to_go_back_to_hand(hand);
-
-        if !is_player_dragging_dice && was_player_dragging_dice {
-            data.arrange_dice();
-        }
 
         data.info_hover.update(input_state, dt);
     }
@@ -112,7 +107,7 @@ impl DiceBox {
             DiceBox::ShieldBox { shield_box } => DiceBoxResult::ChargeShield(shield_box.data.get_value()),
             DiceBox::SnakeEyes { snake_eyes_box } => {
                 if snake_eyes_box.data.dice_in_box.len() == 2 {
-                    DiceBoxResult::BasicAttack(11.0)
+                    DiceBoxResult::BasicAttack(11)
                 } else {
                     // tbh because snake is pretty deterministic this is pretty unlikely, but if i ever decide to give player access
                     // to snake eyes, then i need this to be a thing
@@ -151,7 +146,7 @@ impl DiceBox {
         }
     }
 
-    pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut f64, enemy_shield_power: &mut f64) {   
+    pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut i32, enemy_shield_power: &mut i32) {   
         match result {
             DiceBoxResult::BasicAttack(damage) => Self::enemy_basic_attack(damage, player),
             DiceBoxResult::BasicHeal(heal_amount) => *enemy_health += heal_amount,
@@ -160,7 +155,7 @@ impl DiceBox {
         }
     }
 
-    pub fn enemy_basic_attack(power: f64, player: &mut Player) {
+    pub fn enemy_basic_attack(power: i32, player: &mut Player) {
         player.take_hit(power);
     }
 
