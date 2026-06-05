@@ -188,4 +188,15 @@ impl Hand {
         }
         return false;
     }
+
+    pub fn add_dice(&mut self, dice: Dice, should_roll_after: bool) {
+        self.dice.push(dice);
+        self.arrange_hand(should_roll_after);
+    }
+
+    pub fn remove_dice(&mut self, index_to_remove: usize) -> Dice {
+        let dice = self.dice.remove(index_to_remove);
+        self.arrange_hand(false);
+        return dice;
+    }
 }

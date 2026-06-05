@@ -78,6 +78,7 @@ pub struct Player {
     pub dice_boxes: Vec<DiceBox>,
     pub hand: Hand,
     health: f64,
+    shield_power: f64,
     pub current_box: usize,
     walk_anim: SpriteAnimationInstance,
     thinking_anim: SpriteAnimationInstance,
@@ -108,6 +109,7 @@ impl Player {
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
             health: 100.0,
+            shield_power: 0.0,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
@@ -131,6 +133,7 @@ impl Player {
             self.is_dragging_dice = false;
         }
 
+        // so much cleaner than what i had before, now theres no mutable bool reference
         self.is_dragging_dice = self.are_any_dice_dragged_in_boxes() || self.hand.are_any_dice_being_dragged();
 
         self.hand.update_for_player(self.is_dragging_dice, &game_context.input_state, dt);
@@ -275,6 +278,7 @@ impl Player {
                 match box_result {
                     DiceBoxResult::BasicAttack(damage) => enemy.take_hit(damage),
                     DiceBoxResult::BasicHeal(heal_amount) => self.heal(heal_amount),
+                    DiceBoxResult::ChargeShield(shield_charge) => self.shield_power += shield_charge,
                     DiceBoxResult::None => (),
                 }
 
@@ -454,44 +458,70 @@ impl Player {
                 let half_dice_box_width = box_data.width / 2.0;
                 let pos_x = self.pos.x + half_player_width - half_dice_box_width;
                 let pos_y = bottom_layer_y;
-                box_data.pos = Vector2::new(pos_x, pos_y);
+                box_data.pos.x = pos_x;
+                box_data.pos.y = pos_y;
             }
             2 => {
                 let box_one_data = self.dice_boxes[0].get_mut_data();
-                let first_box_width = box_one_data.width;
-                box_one_data.pos = Vector2::new((self.pos.x - first_box_width) - margin, bottom_layer_y);
+                let box_one_width = box_one_data.width;
+                let box_one_pos_x = (self.pos.x - box_one_width) - margin;
+                let box_one_pos_y = bottom_layer_y;
+                box_one_data.pos.x = box_one_pos_x;
+                box_one_data.pos.y = box_one_pos_y;
 
                 let box_two_data = self.dice_boxes[1].get_mut_data();
-                box_two_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, bottom_layer_y);
+                let box_two_pos_x = self.pos.x + PLAYER_WIDTH + margin;
+                let box_two_pos_y = bottom_layer_y;
+                box_two_data.pos.x = box_two_pos_x;
+                box_two_data.pos.y = box_two_pos_y;
             } 
             3 => {
                 let box_one_data = self.dice_boxes[0].get_mut_data();
                 let first_box_width = box_one_data.width;
-                box_one_data.pos = Vector2::new((self.pos.x - first_box_width) - margin, top_layer_y);
+                let box_one_pos_x = (self.pos.x - first_box_width) - margin;
+                let box_one_pos_y = top_layer_y;
+                box_one_data.pos.x = box_one_pos_x;
+                box_one_data.pos.y = box_one_pos_y;
                 
                 let box_two_data = self.dice_boxes[1].get_mut_data();
-                box_two_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, top_layer_y);
+                let box_two_pos_x = self.pos.x + PLAYER_WIDTH + margin;
+                let box_two_pos_y = top_layer_y;
+                box_two_data.pos.x = box_two_pos_x;
+                box_two_data.pos.y = box_two_pos_y;
                 
                 let box_three_data = self.dice_boxes[2].get_mut_data();
                 let half_dice_box_width = box_three_data.width / 2.0;
                 let box_three_pos_x = self.pos.x + half_player_width - half_dice_box_width;
                 let box_three_pos_y = bottom_layer_y;
-                box_three_data.pos = Vector2::new(box_three_pos_x, box_three_pos_y);
+                box_three_data.pos.x = box_three_pos_x;
+                box_three_data.pos.y = box_three_pos_y;
             }
             4 => {
                 let box_one_data = self.dice_boxes[0].get_mut_data();
-                let first_box_width = box_one_data.width;
-                box_one_data.pos = Vector2::new((self.pos.x - first_box_width) - margin, top_layer_y);
+                let box_one_width = box_one_data.width;
+                let box_one_pos_x = (self.pos.x - box_one_width) - margin;
+                let box_one_pos_y = top_layer_y;
+                box_one_data.pos.x = box_one_pos_x;
+                box_one_data.pos.y = box_one_pos_y;
                 
                 let box_two_data = self.dice_boxes[1].get_mut_data();
-                box_two_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, top_layer_y);
+                let box_two_pos_x = self.pos.x + PLAYER_WIDTH + margin;
+                let box_two_pos_y = top_layer_y;
+                box_two_data.pos.x = box_two_pos_x;
+                box_two_data.pos.y = box_two_pos_y;
                 
                 let box_three_data = self.dice_boxes[2].get_mut_data();
-                let third_box_width = box_three_data.width;
-                box_three_data.pos = Vector2::new((self.pos.x - third_box_width) - margin, bottom_layer_y);
+                let box_three_width = box_three_data.width;
+                let box_three_pos_x = (self.pos.x - box_three_width) - margin;
+                let box_three_pos_y = bottom_layer_y;
+                box_three_data.pos.x = box_three_pos_x;
+                box_three_data.pos.y = box_three_pos_y;
                 
                 let box_four_data = self.dice_boxes[3].get_mut_data();
-                box_four_data.pos = Vector2::new(self.pos.x + PLAYER_WIDTH + margin, bottom_layer_y);
+                let box_four_pos_x = self.pos.x + PLAYER_WIDTH + margin;
+                let box_four_pos_y = bottom_layer_y;
+                box_four_data.pos.x = box_four_pos_x;
+                box_four_data.pos.y = box_four_pos_y;
             }
             _ => unimplemented!("place_boxes(player) not implemented for {} boxes", num_of_boxes)
         }

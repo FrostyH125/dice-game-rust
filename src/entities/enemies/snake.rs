@@ -71,6 +71,7 @@ impl Snake {
         Snake {
             data: EnemyData {
                 health: 100.0,
+                shield_power: 0.0,
                 pos: SNAKE_POS,
                 state: EnemyState::WaitingForPlayer,
                 width: 32.0,
@@ -204,7 +205,7 @@ impl Snake {
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
 
                 let result = self.data.dice_boxes[SNAKE_EYES_INDEX].get_result();
-                self.data.dice_boxes[SNAKE_EYES_INDEX].enemy_action(result, player, &mut self.data.health);
+                self.data.dice_boxes[SNAKE_EYES_INDEX].enemy_action(result, player, &mut self.data.health, &mut self.data.shield_power);
 
                 self.data.state = EnemyState::EndTurnDelay;
                 self.attack_anim.reset();
@@ -292,9 +293,9 @@ impl Snake {
     fn add_one_die(&mut self) {
         for i in (0..self.hand.dice.len()).rev() {
             if self.hand.dice[i].value == 1 {
-                let dice = self.hand.dice.remove(i);
+                let dice = self.hand.remove_dice(i);
                 let snake_eyes_box = &mut self.data.dice_boxes[0];
-                snake_eyes_box.get_mut_data().dice_in_box.push(dice);
+                snake_eyes_box.get_mut_data().add_dice(dice);
                 snake_eyes_box.enemy_set_dice_positions();
                 return;
             }

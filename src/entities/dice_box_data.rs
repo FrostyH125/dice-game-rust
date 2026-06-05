@@ -110,16 +110,17 @@ impl DiceBoxData {
 }
 
 impl DiceBoxData {
-    pub fn pull_in_dragged_dice(&mut self, dice_in_hand: &mut Vec<Dice>) {
-        for i in (0..dice_in_hand.len()).rev() {
-            match dice_in_hand[i].state {
+    pub fn pull_in_dragged_dice(&mut self, hand: &mut Hand) {
+        
+        for i in (0..hand.dice.len()).rev() {
+            match hand.dice[i].state {
                 DiceState::Stopped => {
                     if self
                         .dice_collect_rect
-                        .check_collision_point_rec(dice_in_hand[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
+                        .check_collision_point_rec(hand.dice[i].pos + DICE_POINT_OFFSET_FOR_DETECTING_IF_INSIDE_BOX)
                     {
-                        let dice_to_add = dice_in_hand.remove(i);
-                        self.dice_in_box.push(dice_to_add);
+                        let dice_to_add = hand.remove_dice(i);
+                        self.add_dice(dice_to_add);
                         self.dice_in_box.sort_by(|a, b| a.value.cmp(&b.value));
                     }
                 }
@@ -178,6 +179,8 @@ impl DiceBoxData {
                 self.current_streak = 1;
             }
 
+            self.total_points = self.get_value();
+            
             println!(
                 "Current tally: {}, Current Multi: {}, Current Streak: {}, value of the dice just tallied: {}",
                 self.tally, self.multi, self.current_streak, current_dice.value
@@ -211,7 +214,10 @@ impl DiceBoxData {
         self.tally = 0.0;
     }
 
-    pub fn set_dice_positions(&mut self) {
+
+    // this function may need to be altered in the future to allow for more specialize dice arrangements,
+    // that would be perfectly fine to do as long as you avoid messes
+    pub fn arrange_dice(&mut self) {
         let mut target_pos = self.pos + DICE_DRAW_START_OFFSET;
         let mut times_increased_x = 0;
 
@@ -240,6 +246,7 @@ impl DiceBoxData {
         }
     }
 
+    /// returns total points at the dice box data's current values
     pub fn get_value(&self) -> f64 {
         return self.tally * self.base_multi * self.multi;
     }
@@ -335,5 +342,31 @@ impl DiceBoxData {
             }
         }
         return false;
+    }
+
+    pub fn place(&mut self, pos: Vector2) {
+        let dice_collect_rect_offset_x = self.dice_collect_rect.x - pos.x;
+        let dice_collect_rect_offset_y = self.dice_collect_rect.y - pos.y;
+
+        self.pos = pos;
+        self.dice_collect_rect = Rectangle {
+            x: pos.x + dice_collect_rect_offset_x,
+            y: pos.y + dice_collect_rect_offset_y,
+            width: self.dice_collect_rect.width,
+            height: self.dice_collect_rect.height,
+        };
+        self.info_hover.activation_rect =
+            Rectangle::new(pos.x, pos.y, self.info_hover.activation_rect.width, self.info_hover.activation_rect.height);
+    }
+
+    pub fn add_dice(&mut self, dice: Dice) {
+        self.dice_in_box.push(dice);
+        self.arrange_dice();
+    }
+
+    pub fn remove_dice(&mut self, index_to_remove: usize) -> Dice {
+        let dice = self.dice_in_box.remove(index_to_remove);
+        self.arrange_dice();
+        return dice;
     }
 }

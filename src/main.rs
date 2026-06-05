@@ -16,7 +16,7 @@ use crate::{
         enemies::snake::Snake,
         enemy::{Enemy, EnemyState},
         player::{Player, PlayerState},
-        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
+        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox},
         scoreboard::ScoreBoard,
     },
     system::{button::Button, dialogue_system::DialogueSystem},
@@ -41,10 +41,19 @@ pub enum GameState {
     GameOver,
 }
 
+// look at all the places where arrange_hand and arrange_dice in dice box data are used, and modify those places to 
+// 1. remove the call to those functions
+// 2. use the new remove and add functions that include the call inside of them
+// 
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
-// thinking of renaming AnimData.can_play into something more intuitive
+// ACTUAL IMPLEMENTATION
+//  have a BlockType enum with { None, Blocked, Break, PerfectBreak } 
+//  in player.takehit() assign the enum
+//  then match it in Player::TakeHit to properly do the visual 
+
 // CombatEffectsManager that can add visuals to combat and takes enum variants for damage types in add effect
+// this combat manager will also be responsible for having damage numbers fly off of hits and blocks
 // disable input if the dialogue is running
 
 
@@ -96,6 +105,7 @@ fn main() {
     player.add_box(DiceBox::HealBox {
         heal_box: HealBox::new(&game_context.font),
     });
+    player.add_box(DiceBox::ShieldBox { shield_box: ShieldBox::new(&game_context.font) });
 
     let mut scoreboard = ScoreBoard::new();
 
@@ -200,7 +210,6 @@ fn main() {
                     current_enemy = get_random_enemy(&game_context.font);
                 }
             }
-            _ => (),
         }
 
         let mut handle = rl.begin_drawing(&thread);

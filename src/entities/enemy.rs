@@ -66,6 +66,7 @@ pub enum EnemyState {
 
 pub struct EnemyData {
     pub health: f64,
+    pub shield_power: f64,
     pub pos: Vector2,
     pub state: EnemyState,
 

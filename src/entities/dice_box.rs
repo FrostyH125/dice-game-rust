@@ -11,7 +11,7 @@
 
 use basic_raylib_core::{graphics::sprite_animation::SpriteAnimationInstance, system::input_handler::InputState};
 use raylib::{
-    math::{Rectangle, Vector2},
+    math::{Vector2},
     prelude::RaylibDrawHandle,
     texture::Texture2D,
 };
@@ -19,28 +19,28 @@ use raylib::{
 
 use crate::{
     GameContext, entities::{
-        dice::Dice,
-        dice_box_data::DiceBoxData,
-        enemy_dice_boxes::snake_eyes::SnakeEyes,
-        hand::Hand,
-        player::Player,
-        player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox},
+        dice::Dice, dice_box_data::DiceBoxData, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox}
     }
 };
 
 pub enum DiceBox {
     BroadSwordBox { broadsword_box: BroadSwordBox },
     HealBox { heal_box: HealBox },
+    ShieldBox { shield_box: ShieldBox},
     SnakeEyes { snake_eyes_box: SnakeEyes },
 }
 
 pub enum DiceBoxResult {
     BasicAttack(f64),
     BasicHeal(f64),
+    ChargeShield(f64),
     None,
 }
 
 impl DiceBox {
+
+    /// handles dice dragging, updating dice, and returning dice to hand
+    /// also sets dice positions and updates the info hover
     pub fn update_for_player(
         &mut self,
         is_player_dragging_dice: bool,
@@ -52,12 +52,12 @@ impl DiceBox {
         let data = self.get_mut_data();
         let hand_stopped = hand.all_dice_stopped_passive_check();
 
-        data.pull_in_dragged_dice(&mut hand.dice);
+        data.pull_in_dragged_dice(hand);
         data.update_dice_for_player(is_player_dragging_dice, hand_stopped, input_state, dt);
         data.check_if_any_dice_need_to_go_back_to_hand(hand);
 
         if !is_player_dragging_dice && was_player_dragging_dice {
-            data.set_dice_positions();
+            data.arrange_dice();
         }
 
         data.info_hover.update(input_state, dt);
@@ -79,6 +79,7 @@ impl DiceBox {
         match self {
             DiceBox::BroadSwordBox { .. } => unimplemented!(),
             DiceBox::HealBox { .. } => unimplemented!(),
+            DiceBox::ShieldBox { .. } => unimplemented!(),
             DiceBox::SnakeEyes { snake_eyes_box } => snake_eyes_box.snake_eyes_set_dice_positions(),
         }
     }
@@ -99,6 +100,7 @@ impl DiceBox {
         match self {
             Self::BroadSwordBox { broadsword_box } => broadsword_box.data.tally_points(dt),
             Self::HealBox { heal_box } => heal_box.data.tally_points(dt),
+            Self::ShieldBox { shield_box } => shield_box.data.tally_points(dt),
             Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.check_if_two_ones(),
         }
     }
@@ -107,6 +109,7 @@ impl DiceBox {
         match self {
             DiceBox::BroadSwordBox { broadsword_box } => DiceBoxResult::BasicAttack(broadsword_box.data.get_value()),
             DiceBox::HealBox { heal_box } => DiceBoxResult::BasicHeal(heal_box.data.get_value()),
+            DiceBox::ShieldBox { shield_box } => DiceBoxResult::ChargeShield(shield_box.data.get_value()),
             DiceBox::SnakeEyes { snake_eyes_box } => {
                 if snake_eyes_box.data.dice_in_box.len() == 2 {
                     DiceBoxResult::BasicAttack(11.0)
@@ -123,16 +126,18 @@ impl DiceBox {
         match self {
             Self::BroadSwordBox { broadsword_box } => broadsword_box.draw_box_and_dice(d, game_context),
             Self::HealBox { heal_box } => heal_box.draw_box_and_dice(d, game_context),
+            Self::ShieldBox { shield_box } => shield_box.draw_box_and_dice(d, game_context),
             Self::SnakeEyes { snake_eyes_box } => snake_eyes_box.draw(d, game_context),
         }
 
         self.get_data().info_hover.draw(d, game_context);
     }
 
-    pub fn get_data(&self) -> &DiceBoxData {
+    pub fn get_data(&self) -> &DiceBoxData {        
         match self {
             Self::BroadSwordBox { broadsword_box: dice_box } => &dice_box.data,
             Self::HealBox { heal_box: dice_box } => &dice_box.data,
+            Self::ShieldBox { shield_box: dice_box } => &dice_box.data,
             Self::SnakeEyes { snake_eyes_box: dice_box } => &dice_box.data,
         }
     }
@@ -141,14 +146,16 @@ impl DiceBox {
         match self {
             Self::BroadSwordBox { broadsword_box: dice_box } => &mut dice_box.data,
             Self::HealBox { heal_box: dice_box } => &mut dice_box.data,
+            Self::ShieldBox { shield_box: dice_box } => &mut dice_box.data,
             Self::SnakeEyes { snake_eyes_box: dice_box } => &mut dice_box.data,
         }
     }
 
-    pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut f64) {
+    pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut f64, enemy_shield_power: &mut f64) {   
         match result {
             DiceBoxResult::BasicAttack(damage) => Self::enemy_basic_attack(damage, player),
             DiceBoxResult::BasicHeal(heal_amount) => *enemy_health += heal_amount,
+            DiceBoxResult::ChargeShield(charge_amount) => *enemy_shield_power += charge_amount,
             DiceBoxResult::None => (),
         }
     }
@@ -171,6 +178,7 @@ impl DiceBox {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_draw_attack(d, anim, pos, texture),
             Self::HealBox { .. } => HealBox::player_draw_heal(d, anim, pos, texture),
+            Self::ShieldBox { .. } => ShieldBox::player_draw_put_shield_up(d, anim, pos, texture),
             Self::SnakeEyes { .. } => unimplemented!(),
         }
     }
@@ -178,24 +186,9 @@ impl DiceBox {
     pub fn player_update_before_action_visuals(&mut self, anim: &mut SpriteAnimationInstance, game_context: &mut GameContext, player_pos: Vector2, dt: f32) -> bool {
         match self {
             Self::BroadSwordBox { .. } => BroadSwordBox::player_update_attack(anim, dt),
-            Self::HealBox { heal_box } => HealBox::player_update_heal(heal_box, anim, game_context, player_pos, dt),
+            Self::HealBox { heal_box } => heal_box.player_update_heal(anim, game_context, player_pos, dt),
+            Self::ShieldBox { .. } => ShieldBox::player_update_put_shield_up(anim, dt),
             Self::SnakeEyes { .. } => unimplemented!(),
         }
-    }
-
-    pub fn place(&mut self, pos: Vector2) {
-        let data = self.get_mut_data();
-        let dice_collect_rect_offset_x = data.dice_collect_rect.x - pos.x;
-        let dice_collect_rect_offset_y = data.dice_collect_rect.y - pos.y;
-
-        data.pos = pos;
-        data.dice_collect_rect = Rectangle {
-            x: pos.x + dice_collect_rect_offset_x,
-            y: pos.y + dice_collect_rect_offset_y,
-            width: data.dice_collect_rect.width,
-            height: data.dice_collect_rect.height,
-        };
-        data.info_hover.activation_rect =
-            Rectangle::new(pos.x, pos.y, data.info_hover.activation_rect.width, data.info_hover.activation_rect.height);
     }
 }

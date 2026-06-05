@@ -1,21 +1,44 @@
-use basic_raylib_core::graphics::sprite::Sprite;
-use raylib::{color::Color, drawing::{RaylibDraw, RaylibDrawHandle}, math::Rectangle, text::Font};
-
-use crate::{
-    GameContext, entities::dice_box_data::{
-        DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
-        STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH,
-    }, system::info_hover::InfoHover
+use basic_raylib_core::graphics::{
+    animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance,
+};
+use raylib::{
+    color::Color,
+    drawing::{RaylibDraw, RaylibDrawHandle},
+    math::{Rectangle, Vector2},
+    text::Font,
+    texture::Texture2D,
 };
 
-const BASE_MULTI_TEXT_COLOR: Color = Color::new(161, 179, 174, 255);
-static SHIELD_BOX_SPRITE: Sprite = Sprite::new(14, 128, 52, 16);
+use crate::{
+    GameContext,
+    entities::dice_box_data::{
+        DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
+        STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH,
+    },
+    system::info_hover::InfoHover,
+};
 
-// need: putting shield up anim, block sprite, break sprite, perfect block sprite, shield down anim
- 
+const BASE_MULTI_TEXT_COLOR: Color = Color::new(180, 197, 209, 255);
+static SHIELD_BOX_SPRITE: Sprite = Sprite::new(14, 128, 52, 16);
+static PLAYER_SHIELD_UP_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(0, 368, 32, 48),
+        Sprite::new(32, 368, 32, 48),
+        Sprite::new(64, 368, 32, 48),
+        Sprite::new(64, 368, 32, 48),
+        Sprite::new(64, 368, 32, 48),
+        Sprite::new(64, 368, 32, 48),
+        Sprite::new(64, 368, 32, 48),
+        Sprite::new(64, 368, 32, 48),
+        Sprite::new(64, 368, 32, 48),
+    ],
+    frame_duration: 0.30,
+    should_loop: false,
+};
+
 // before action: shield up anim
 
-// block, break, perfect block, and sheild down will all be in player.rs, 
+// block, break, perfect block, and shield down will all be in player.rs,
 // these will all be handled within PlayerState::Hit as well
 
 pub struct ShieldBox {
@@ -39,7 +62,7 @@ impl ShieldBox {
                 0.5,
             ),
             Color::DARKGRAY,
-            0.5
+            0.5,
         );
 
         return ShieldBox { data };
@@ -59,5 +82,18 @@ impl ShieldBox {
         self.data.draw_base_multi(d, &game_context.font, BASE_MULTI_TEXT_COLOR);
     }
 
-    // fn player_draw_heal() and fn player_update_heal() need to be here once we have an animation for putting shield up
+    pub fn player_update_put_shield_up(anim: &mut SpriteAnimationInstance, dt: f32) -> bool {
+        PLAYER_SHIELD_UP_ANIM.update(anim, dt);
+
+        return anim.finished_playing;
+    }
+
+    pub fn player_draw_put_shield_up(
+        d: &mut RaylibDrawHandle,
+        anim: &SpriteAnimationInstance,
+        pos: Vector2,
+        texture: &Texture2D,
+    ) {
+        PLAYER_SHIELD_UP_ANIM.draw(anim, d, pos, texture);
+    }
 }

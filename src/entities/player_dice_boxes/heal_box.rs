@@ -98,7 +98,7 @@ impl HealBox {
 
     pub fn player_draw_heal(
         d: &mut RaylibDrawHandle,
-        anim: &mut SpriteAnimationInstance,
+        anim: &SpriteAnimationInstance,
         pos: Vector2,
         texture: &Texture2D,
     ) {
