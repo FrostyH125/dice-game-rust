@@ -1,6 +1,7 @@
 pub mod entities;
 pub mod system;
 pub mod utilities;
+pub mod game_effects;
 
 use raylib::prelude::*;
 
@@ -18,8 +19,7 @@ use crate::{
         player::{Player, PlayerState},
         player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox},
         scoreboard::ScoreBoard,
-    },
-    system::{button::Button, dialogue_system::DialogueSystem},
+    }, game_effects::battle_effects_manager::{self, BattleEffectsManager}, system::{button::Button, dialogue_system::DialogueSystem}
 };
 use rand::random_range;
 
@@ -41,10 +41,6 @@ pub enum GameState {
     GameOver,
 }
 
-// look at all the places where arrange_hand and arrange_dice in dice box data are used, and modify those places to 
-// 1. remove the call to those functions
-// 2. use the new remove and add functions that include the call inside of them
-// 
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
 // ACTUAL IMPLEMENTATION
@@ -64,9 +60,10 @@ pub enum GameState {
 // uncomfortable amounts
 pub struct GameContext {
     sprite_particle_system: SpriteParticleSystem,
+    dialogue_system: DialogueSystem,
+    battle_effect_manager: BattleEffectsManager,
     input_state: InputState,
     texture: Texture2D,
-    dialogue_system: DialogueSystem,
     font: Font,
 }
 
@@ -82,6 +79,8 @@ fn main() {
         raylib::init().size(VIRTUAL_WIDTH as i32 * 3, VIRTUAL_HEIGHT as i32 * 3).title("Dice Game").build();
 
     let sprite_particle_system = SpriteParticleSystem::new(1000);
+    let dialogue_system = DialogueSystem::new();
+    let battle_effect_manager = BattleEffectsManager::new();
     let camera = Camera2D {
         offset: Default::default(),
         target: Default::default(),
@@ -91,13 +90,13 @@ fn main() {
     let input_state = InputState::new();
     let texture = rl.load_texture(&thread, "SpriteSheet.png").unwrap();
     let font = rl.load_font(&thread, "PublicPixel.ttf").unwrap();
-    let dialogue_system = DialogueSystem::new();
 
     let mut game_context = GameContext {
         sprite_particle_system,
+        dialogue_system,
+        battle_effect_manager,
         input_state,
         texture,
-        dialogue_system,
         font,
     };
 
@@ -169,6 +168,8 @@ fn main() {
 
         game_context.sprite_particle_system.update(dt);
         game_context.dialogue_system.update(&game_context.input_state);
+        game_context.battle_effect_manager.update(dt);
+        
         scoreboard.update(&mut player, &current_enemy, dt);
 
         match state {
@@ -303,6 +304,7 @@ fn main() {
             }
         }
 
+        game_context.battle_effect_manager.draw(&mut cam_handle, &game_context.texture);
         game_context.sprite_particle_system.draw(&mut cam_handle, &game_context.texture);
         game_context.dialogue_system.draw(&mut cam_handle, &game_context.font);
 
