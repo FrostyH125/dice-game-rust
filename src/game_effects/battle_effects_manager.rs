@@ -10,7 +10,7 @@ impl BattleEffectsManager {
     pub fn new() -> Self {
         return BattleEffectsManager { battle_effects: Vec::new() };
     }
-    
+
     pub fn add_effect(&mut self, effect_type: BattleEffectType, target_pos_rect: Rectangle) {
         let effect = BattleEffect::new(effect_type, target_pos_rect);
         self.battle_effects.push(effect);
@@ -19,14 +19,11 @@ impl BattleEffectsManager {
     pub fn update(&mut self, dt: f32) {
         for i in (0..self.battle_effects.len()).rev() {
             let effect = &mut self.battle_effects[i];
-            
+
             effect.update(dt);
 
-            println!("I am definitely being updated");
-            
             if effect.is_done() {
                 self.battle_effects.remove(i);
-                println!("I am done");
             }
         }
     }
@@ -37,4 +34,3 @@ impl BattleEffectsManager {
         }
     }
 }
-

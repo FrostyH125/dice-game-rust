@@ -4,8 +4,13 @@ use basic_raylib_core::graphics::{
 use raylib::{drawing::RaylibDrawHandle, math::{Rectangle, Vector2}, texture::Texture2D};
 
 static SLASH_ANIM: AnimationData = AnimationData {
-    frames: &[Sprite::new(400, 0, 32, 16)],
-    frame_duration: 1.0,
+    frames: &[
+        Sprite::new(400, 0, 32, 16),
+        Sprite::new(432, 0, 32, 16),
+        Sprite::new(464, 0, 32, 16),
+        Sprite::new(496, 0, 32, 16),
+    ],
+    frame_duration: 0.15,
     should_loop: false,
 };
 
