@@ -2,6 +2,8 @@ use raylib::{drawing::RaylibDrawHandle, math::Rectangle, texture::Texture2D};
 
 use crate::game_effects::battle_effect::{BattleEffect, BattleEffectType};
 
+///Responsible for slashes and explosions before and after attacks.
+///Also responsible for damage, blocking, and healing numbers after an action
 pub struct BattleEffectsManager {
     battle_effects: Vec<BattleEffect>,
 }

@@ -8,7 +8,10 @@ const HAND_MARGIN_BETWEEN_DICE: f32 = 10.0;
 pub struct Hand {
     pub dice: Vec<Dice>,
     
-    // x pos represents center of hand, y pos represents top edge of hand
+    ///x pos represents center of hand, y pos represents top edge of hand.
+    ///this might seem weird, but as far as vertical alignment goes, the top
+    ///edge of the y pos is way more important than the center, and the center
+    ///of the x pos is way more important than either of the edges on that axis.
     pos: Vector2,
     current_index_of_dice_stopping: usize,
     dice_stop_timer: Timer,
@@ -44,7 +47,7 @@ impl Hand {
         }
     }
 
-    //rolling variable says whether the dice should go to rolling after moving to its new location or not
+    ///rolling variable says whether the dice should go to rolling after moving to its new location or not
     pub fn arrange_hand(&mut self, should_roll_after: bool) {
         
         if self.dice.is_empty() {

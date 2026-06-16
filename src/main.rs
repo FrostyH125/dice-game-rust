@@ -48,8 +48,7 @@ pub enum GameState {
 //  in player.takehit() assign the enum
 //  then match it in Player::TakeHit to properly do the visual 
 
-// CombatEffectsManager that can add visuals to combat and takes enum variants for damage types in add effect
-// this combat manager will also be responsible for having damage numbers fly off of hits and blocks
+// make CombatEffectManager also responsible for having damage numbers fly off of hits and blocks
 // disable input if the dialogue is running
 
 
