@@ -20,7 +20,7 @@ use raylib::{
 use crate::{
     GameContext, entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox}
-    }
+    }, game_effects::battle_effect::BattleEffectType
 };
 
 pub enum DiceBox {
@@ -184,6 +184,15 @@ impl DiceBox {
             Self::HealBox { heal_box } => heal_box.player_update_heal(anim, game_context, player_pos, dt),
             Self::ShieldBox { .. } => ShieldBox::player_update_put_shield_up(anim, dt),
             Self::SnakeEyes { .. } => unimplemented!(),
+        }
+    }
+
+    pub fn get_battle_effect_type(&self) -> Option<BattleEffectType> {
+        match self {
+            DiceBox::BroadSwordBox { .. } => Some(BattleEffectType::Slash),
+            DiceBox::HealBox { .. } => None,
+            DiceBox::ShieldBox { .. } => None,
+            DiceBox::SnakeEyes { .. } => todo!("add bite effect"), 
         }
     }
 }

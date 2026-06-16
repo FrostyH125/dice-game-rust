@@ -21,9 +21,12 @@ impl BattleEffectsManager {
             let effect = &mut self.battle_effects[i];
             
             effect.update(dt);
+
+            println!("I am definitely being updated");
             
             if effect.is_done() {
                 self.battle_effects.remove(i);
+                println!("I am done");
             }
         }
     }

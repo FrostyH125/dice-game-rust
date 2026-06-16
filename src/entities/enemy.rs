@@ -1,11 +1,12 @@
 use crate::{
-    GameContext, VIRTUAL_WIDTH, entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player}
+    GameContext, VIRTUAL_WIDTH,
+    entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player},
 };
 use raylib::{
     color::Color,
-    math::Vector2,
+    math::{Rectangle, Vector2},
     prelude::{RaylibDraw, RaylibDrawHandle},
-    text::RaylibFont
+    text::RaylibFont,
 };
 
 pub const ENEMY_HAND_X_CENTER_CORD: f32 = VIRTUAL_WIDTH - 100.0;
@@ -101,12 +102,7 @@ impl Enemy {
         self.get_mut_data().state = EnemyState::HitDelay;
     }
 
-    pub fn update(
-        &mut self,
-        player: &mut Player,
-        game_context: &mut GameContext,
-        dt: f32,
-    ) {
+    pub fn update(&mut self, player: &mut Player, game_context: &mut GameContext, dt: f32) {
         match self {
             Self::Snake { snake } => snake.update(player, game_context, dt),
         }
@@ -163,5 +159,11 @@ impl Enemy {
             spacing,
             Color::WHITE,
         );
+    }
+
+    pub fn get_rect(&self) -> Rectangle {
+        let data = self.get_data();
+        let rect = Rectangle::new(data.pos.x, data.pos.y, data.width, data.height);
+        return rect;
     }
 }

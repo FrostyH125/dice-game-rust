@@ -3,14 +3,18 @@ use basic_raylib_core::{
     system::timer::Timer,
 };
 use raylib::{
-    color::Color, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}, text::RaylibFont
+    color::Color,
+    math::Vector2,
+    prelude::{RaylibDraw, RaylibDrawHandle},
+    text::RaylibFont,
 };
 
 use crate::{
-    EMPTY_SPRITE, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
+    EMPTY_SPRITE, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
+    entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
-        dice_box::{DiceBox, DiceBoxResult}
-    }
+        dice_box::{DiceBox, DiceBoxResult},
+    },
 };
 use crate::{
     entities::{
@@ -18,7 +22,7 @@ use crate::{
         enemy::{Enemy, EnemyState},
         hand::Hand,
     },
-    system::button::Button
+    system::button::Button,
 };
 
 const HIT_DELAY_DURATION: f32 = 1.0;
@@ -63,8 +67,8 @@ pub enum PlayerState {
     ChoosingDice,
     TallyingCurrentBox,
     BeforeActingDelay,
-    BeforeActionVisual,
-    Acting,
+    PreActionVisual,
+    ActionResult,
     // when applicable, will add an after action visual, such as
     // explosions, particles, smoke, etc, theres a lot of potential for that
     EndTurnDelay,
@@ -139,14 +143,9 @@ impl Player {
         self.hand.update_for_player(self.is_dragging_dice, &game_context.input_state, dt);
 
         for dice_box in &mut self.dice_boxes {
-            dice_box.update_for_player(
-                self.is_dragging_dice,
-                &mut self.hand,
-                &game_context.input_state,
-                dt,
-            );
+            dice_box.update_for_player(self.is_dragging_dice, &mut self.hand, &game_context.input_state, dt);
         }
-        
+
         // this is here to run after all boxes have updated
         if !self.is_dragging_dice && self.was_dragging_dice {
             self.hand.arrange_hand(false);
@@ -155,7 +154,6 @@ impl Player {
             }
         }
 
-        
         match self.state {
             PlayerState::Walking => {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
@@ -219,7 +217,7 @@ impl Player {
                     self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
                     confirm_button.deactivate();
                     reroll_button.deactivate();
-                    
+
                     let mut all_boxes_empty = true;
                     for dice_box in &self.dice_boxes {
                         if dice_box.get_data().dice_in_box.len() > 0 {
@@ -246,7 +244,6 @@ impl Player {
                 if self.dice_boxes[self.current_box].get_data().dice_in_box.is_empty() {
                     self.current_box += 1;
                     if self.current_box > self.dice_boxes.len() - 1 {
-
                         // even though this value isnt read here, it causes problems
                         // in places like scoreboard that rely on this data
                         self.current_box = self.dice_boxes.len() - 1;
@@ -263,18 +260,32 @@ impl Player {
 
                 if self.acting_timer.is_done() {
                     self.acting_timer.reset();
-                    self.state = PlayerState::BeforeActionVisual;
+                    self.state = PlayerState::PreActionVisual;
+
+                    // add a battle effect to the game based on current box of applicable
+                    // this method can return none, in which case it'll be skipped
+                    
+                    // I put it in this state because it should only run once and it should
+                    // only run right at the same time the pre action visual would run
+                    if let Some(effect_type) = self.dice_boxes[self.current_box].get_battle_effect_type() {
+                        game_context.battle_effect_manager.add_effect(effect_type, enemy.get_rect());
+                    }
                 }
             }
-            PlayerState::BeforeActionVisual => {
-                if self.dice_boxes[self.current_box].player_update_before_action_visuals(&mut self.acting_anim, game_context, self.pos, dt) {
+            PlayerState::PreActionVisual => {
+                if self.dice_boxes[self.current_box].player_update_before_action_visuals(
+                    &mut self.acting_anim,
+                    game_context,
+                    self.pos,
+                    dt,
+                ) { 
                     self.acting_anim.reset();
-                    self.state = PlayerState::Acting;
+                    self.state = PlayerState::ActionResult;
                 }
             }
-            PlayerState::Acting => {
+            PlayerState::ActionResult => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                
+
                 let box_result = self.dice_boxes[self.current_box].get_result();
 
                 match box_result {
@@ -289,9 +300,9 @@ impl Player {
                 if self.current_box > self.dice_boxes.len() - 1 {
                     // even though this value isnt read here, it causes problems
                     // in places like scoreboard that rely on this data
-                     
+
                     // note that this correction exists in tallying current box as well
-                    // in the event that the current box is empty 
+                    // in the event that the current box is empty
                     self.current_box = self.dice_boxes.len() - 1;
                     self.state = PlayerState::EndTurnDelay;
                 } else {
@@ -385,15 +396,18 @@ impl Player {
                 }
                 self.hand.draw(d, &game_context.texture);
             }
-            PlayerState::BeforeActionVisual => {
-                self.dice_boxes[self.current_box].player_draw_action(&mut self.acting_anim, d, self.pos, &game_context.texture);
+            PlayerState::PreActionVisual => {
+                self.dice_boxes[self.current_box].player_draw_action(
+                    &mut self.acting_anim,
+                    d,
+                    self.pos,
+                    &game_context.texture,
+                );
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, game_context);
                 }
             }
-            PlayerState::Dead => {
-                
-            }
+            PlayerState::Dead => {}
             _ => {
                 PLAYER_WAITING_ANIM.draw(&self.waiting_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
@@ -432,11 +446,11 @@ impl Player {
         self.health -= damage;
         self.state = PlayerState::HitDelay;
     }
-    
+
     pub fn heal(&mut self, heal_amount: i32) {
         self.health += heal_amount;
     }
-    
+
     pub fn add_box(&mut self, dice_box: DiceBox) {
         self.dice_boxes.push(dice_box);
         self.place_boxes();
@@ -476,7 +490,7 @@ impl Player {
                 let box_two_pos_y = bottom_layer_y;
                 box_two_data.pos.x = box_two_pos_x;
                 box_two_data.pos.y = box_two_pos_y;
-            } 
+            }
             3 => {
                 let box_one_data = self.dice_boxes[0].get_mut_data();
                 let first_box_width = box_one_data.width;
@@ -484,13 +498,13 @@ impl Player {
                 let box_one_pos_y = top_layer_y;
                 box_one_data.pos.x = box_one_pos_x;
                 box_one_data.pos.y = box_one_pos_y;
-                
+
                 let box_two_data = self.dice_boxes[1].get_mut_data();
                 let box_two_pos_x = self.pos.x + PLAYER_WIDTH + margin;
                 let box_two_pos_y = top_layer_y;
                 box_two_data.pos.x = box_two_pos_x;
                 box_two_data.pos.y = box_two_pos_y;
-                
+
                 let box_three_data = self.dice_boxes[2].get_mut_data();
                 let half_dice_box_width = box_three_data.width / 2.0;
                 let box_three_pos_x = self.pos.x + half_player_width - half_dice_box_width;
@@ -505,29 +519,29 @@ impl Player {
                 let box_one_pos_y = top_layer_y;
                 box_one_data.pos.x = box_one_pos_x;
                 box_one_data.pos.y = box_one_pos_y;
-                
+
                 let box_two_data = self.dice_boxes[1].get_mut_data();
                 let box_two_pos_x = self.pos.x + PLAYER_WIDTH + margin;
                 let box_two_pos_y = top_layer_y;
                 box_two_data.pos.x = box_two_pos_x;
                 box_two_data.pos.y = box_two_pos_y;
-                
+
                 let box_three_data = self.dice_boxes[2].get_mut_data();
                 let box_three_width = box_three_data.width;
                 let box_three_pos_x = (self.pos.x - box_three_width) - margin;
                 let box_three_pos_y = bottom_layer_y;
                 box_three_data.pos.x = box_three_pos_x;
                 box_three_data.pos.y = box_three_pos_y;
-                
+
                 let box_four_data = self.dice_boxes[3].get_mut_data();
                 let box_four_pos_x = self.pos.x + PLAYER_WIDTH + margin;
                 let box_four_pos_y = bottom_layer_y;
                 box_four_data.pos.x = box_four_pos_x;
                 box_four_data.pos.y = box_four_pos_y;
             }
-            _ => unimplemented!("place_boxes(player) not implemented for {} boxes", num_of_boxes)
+            _ => unimplemented!("place_boxes(player) not implemented for {} boxes", num_of_boxes),
         }
-        
+
         for dice_box in &mut self.dice_boxes {
             dice_box.adjust_collect_rect_pos_for_current_pos();
             dice_box.adjust_info_hover_pos_for_current_pos();
