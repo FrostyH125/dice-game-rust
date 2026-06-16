@@ -187,7 +187,13 @@ impl DiceBox {
         }
     }
 
-    pub fn get_battle_effect_type(&self) -> Option<BattleEffectType> {
+    /// this function returns any battle effect type that should happen with the battle
+    /// action visual, not after it. there will be another function which will return
+    /// battle results that should happen after the battle action visual, hence, 
+    /// get_battle_effect_type_post_action_result(&self) (this will be used moreso
+    /// for things like spells where the explosion or whatever shouldnt happen until after
+    /// the action visual finishes, (which would involve some projectile hitting the enemy/player))
+    pub fn get_battle_effect_type_pre_action_result(&self) -> Option<BattleEffectType> {
         match self {
             DiceBox::BroadSwordBox { .. } => Some(BattleEffectType::Slash),
             DiceBox::HealBox { .. } => None,

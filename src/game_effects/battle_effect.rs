@@ -22,6 +22,10 @@ impl BattleEffectType {
     }
 }
 
+///battle effects are used for effects like slashes or fire bursts that should
+///be visually run simultaneous to the visual of the action it is related to
+///examples being a slash over the enemy being attacked, or fire being placed over
+///something just hit with a fireball
 pub struct BattleEffect {
     effect_type: BattleEffectType,
     pos: Vector2,

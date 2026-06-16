@@ -67,10 +67,22 @@ pub enum PlayerState {
     ChoosingDice,
     TallyingCurrentBox,
     BeforeActingDelay,
-    PreActionVisual,
+
+    ///the primary action visual will be the player (or enemy since this state
+    ///exists there) animation and any other effects coming from the player based
+    ///on the current box's player visual methods. In the transition to this state,
+    ///the secondary visual will be applied, which will be a battle effect applied over
+    ///the enemy like a slash or explosion or something. The reason these battle effects
+    ///are a part of a different system really boils down to usability, as the same effect
+    ///can be applied to multiple boxes, unlike player animations which are planned to be
+    ///mostly unique, or at the very least, if the player animation isnt unique, other effects
+    ///relating to the specific box's primary action visual will be unique, such as in magic 
+    ///boxes, different magic projectiles being part of the visual
+    ///will definitely need 2 different timings at least to be implemented for these action visuals
+    ///probably need to have a PostActionVisual state or something, or a ResultVisual maybe, that
+    ///only plays once the ActionResult state is reached (ideal solution if can make work)
+    ActionVisual,
     ActionResult,
-    // when applicable, will add an after action visual, such as
-    // explosions, particles, smoke, etc, theres a lot of potential for that
     EndTurnDelay,
     EndTurn,
     WaitingForEnemy,
@@ -260,19 +272,19 @@ impl Player {
 
                 if self.acting_timer.is_done() {
                     self.acting_timer.reset();
-                    self.state = PlayerState::PreActionVisual;
+                    self.state = PlayerState::ActionVisual;
 
                     // add a battle effect to the game based on current box of applicable
                     // this method can return none, in which case it'll be skipped
                     
                     // I put it in this state because it should only run once and it should
                     // only run right at the same time the pre action visual would run
-                    if let Some(effect_type) = self.dice_boxes[self.current_box].get_battle_effect_type() {
+                    if let Some(effect_type) = self.dice_boxes[self.current_box].get_battle_effect_type_pre_action_result() {
                         game_context.battle_effect_manager.add_effect(effect_type, enemy.get_rect());
                     }
                 }
             }
-            PlayerState::PreActionVisual => {
+            PlayerState::ActionVisual => {
                 if self.dice_boxes[self.current_box].player_update_before_action_visuals(
                     &mut self.acting_anim,
                     game_context,
@@ -396,7 +408,7 @@ impl Player {
                 }
                 self.hand.draw(d, &game_context.texture);
             }
-            PlayerState::PreActionVisual => {
+            PlayerState::ActionVisual => {
                 self.dice_boxes[self.current_box].player_draw_action(
                     &mut self.acting_anim,
                     d,
