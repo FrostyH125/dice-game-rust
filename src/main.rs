@@ -35,11 +35,15 @@ const VIRTUAL_HEIGHT: f32 = 270.0;
 const PLAYER_UI_Y_BASE_CORD: f32 = VIRTUAL_HEIGHT - 75.0;
 const PLAYER_UI_X_CENTER_CORD: f32 = 100.0;
 
+pub const GRAVITY: f32 = 10.0;
+
 pub enum GameState {
     Travelling,
     Combat,
     GameOver,
 }
+
+// update infohover to save font_size and font_spacing so you dont need to pass them in update/draw
 
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
