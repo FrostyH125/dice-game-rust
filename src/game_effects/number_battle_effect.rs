@@ -17,7 +17,7 @@ pub struct NumberEffect {
     value_as_str: String,
     pos: Vector2,
     velocity: Vector2,
-    Acceleration: Vector2,
+    acceleration: Vector2,
     font_size: f32,
     font_spacing: f32,
     color: Color,
@@ -43,11 +43,12 @@ impl NumberEffect {
         let text_size = font.measure_text(&value_as_str, font_size, font_spacing);
         let start_pos_y = pos_rect.y + pos_rect.width - text_size.y;
         let start_pos_x = pos_rect.x + (pos_rect.width / 2.0) - (text_size.x / 2.0);
+        let pos = Vector2::new(start_pos_x, start_pos_y);
 
         let effect = match num_effect_type {
             NumberEffectType::Damage => {
                 let vel_x: f32 = rng.random_range(-5.0..=5.0);
-                let vel_y: f32 = rng.random_range(-30.0..=-60.0);
+                let vel_y: f32 = rng.random_range(-60.0..=-30.0);
 
                 let acc_x: f32 = rng.random_range(-2.0..=2.0);
                 let acc_y: f32 = GRAVITY;
@@ -55,9 +56,9 @@ impl NumberEffect {
                 NumberEffect {
                     num_effect_type,
                     value_as_str,
-                    pos: Vector2::new(start_pos_x, start_pos_y),
+                    pos,
                     velocity: Vector2::new(vel_x, vel_y),
-                    Acceleration: Vector2::new(acc_x, acc_y),
+                    acceleration: Vector2::new(acc_x, acc_y),
                     color: Color::WHITE,
                     vertical_sine_wave: false,
                     font_size,
@@ -66,32 +67,48 @@ impl NumberEffect {
                     lifespan: 2.0,
                 }
             }
-            NumberEffectType::Heal => NumberEffect {
-                value_as_str,
-                pos: (),
-                velocity: (),
-                Acceleration: (),
-                font_size,
-                font_spacing,
-                color: (),
-                start_pos_y,
-                lifespan: (),
-                vertical_sine_wave: (),
-                num_effect_type,
-            },
-            NumberEffectType::Block => NumberEffect {
-                value_as_str,
-                pos: (),
-                velocity: (),
-                Acceleration: (),
-                font_size,
-                font_spacing,
-                color: (),
-                start_pos_y,
-                lifespan: (),
-                vertical_sine_wave: (),
-                num_effect_type,
-            },
+            NumberEffectType::Heal => {
+                let vel_x: f32 = 0.0;
+                let vel_y: f32 = -15.0;
+
+                let acc_x = 0.0;
+                let acc_y = 0.0;
+
+                NumberEffect {
+                    value_as_str,
+                    pos,
+                    velocity: Vector2::new(vel_x, vel_y),
+                    acceleration: Vector2::new(acc_x, acc_y),
+                    font_size,
+                    font_spacing,
+                    color: Color::LIGHTGREEN,
+                    start_pos_y,
+                    lifespan: 2.0,
+                    vertical_sine_wave: true,
+                    num_effect_type,
+                }
+            }
+            NumberEffectType::Block => {
+                let vel_x: f32 = rng.random_range(-5.0..=1.0);
+                let vel_y: f32 = rng.random_range(-30.0..=-15.0);
+
+                let acc_x: f32 = rng.random_range(-2.0..=1.0);
+                let acc_y: f32 = GRAVITY;
+
+                NumberEffect {
+                    value_as_str,
+                    pos,
+                    velocity: Vector2::new(vel_x, vel_y),
+                    acceleration: Vector2::new(acc_x, acc_y),
+                    font_size,
+                    font_spacing,
+                    color: Color::SANDYBROWN,
+                    start_pos_y,
+                    lifespan: 2.0,
+                    vertical_sine_wave: false,
+                    num_effect_type,
+                }
+            }
         };
 
         return effect;
