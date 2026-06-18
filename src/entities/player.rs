@@ -1,10 +1,12 @@
+use std::num;
+
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
 };
 use raylib::{
     color::Color,
-    math::Vector2,
+    math::{Rectangle, Vector2},
     prelude::{RaylibDraw, RaylibDrawHandle},
     text::RaylibFont,
 };
@@ -300,6 +302,18 @@ impl Player {
 
                 let box_result = self.dice_boxes[self.current_box].get_result();
 
+                let num_effect_rect: Option<Rectangle> = match box_result {
+                    DiceBoxResult::BasicAttack(_)  => Some(enemy.get_rect()),
+                    DiceBoxResult::BasicHeal(_) => Some(self.get_rect()),
+                    DiceBoxResult::ChargeShield(_) => None,
+                    DiceBoxResult::None => None,
+                };
+
+                if let Some(num_effect) = box_result.get_num_effect(num_effect_rect.unwrap(), &game_context.font) {
+                    game_context.battle_effect_manager.add_number_effect(num_effect);
+                    println!("I got added")
+                }
+
                 match box_result {
                     DiceBoxResult::BasicAttack(damage) => enemy.take_hit(damage),
                     DiceBoxResult::BasicHeal(heal_amount) => self.heal(heal_amount),
@@ -568,5 +582,10 @@ impl Player {
         }
 
         return false;
+    }
+
+    fn get_rect(&self) -> Rectangle {
+        let rect = Rectangle::new(self.pos.x, self.pos.y, PLAYER_WIDTH, PLAYER_HEIGHT);
+        return rect;
     }
 }

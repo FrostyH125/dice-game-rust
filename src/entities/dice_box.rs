@@ -11,16 +11,14 @@
 
 use basic_raylib_core::{graphics::sprite_animation::SpriteAnimationInstance, system::input_handler::InputState};
 use raylib::{
-    math::{Vector2},
-    prelude::RaylibDrawHandle,
-    texture::Texture2D,
+    math::{Rectangle, Vector2}, prelude::RaylibDrawHandle, text::Font, texture::Texture2D
 };
 
 
 use crate::{
     GameContext, entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox}
-    }, game_effects::battle_effect::BattleEffectType
+    }, game_effects::{battle_effect::BattleEffectType, number_battle_effect::{NumberEffect, NumberEffectType}}
 };
 
 pub enum DiceBox {
@@ -35,6 +33,21 @@ pub enum DiceBoxResult {
     BasicHeal(i32),
     ChargeShield(i32),
     None,
+}
+
+impl DiceBoxResult {
+    pub fn get_num_effect(&self, pos_rect: Rectangle, font: &Font) -> Option<NumberEffect> {
+
+        let (num_effect_type, value) = match self {
+            DiceBoxResult::BasicAttack(num) => (NumberEffectType::Damage, *num),
+            DiceBoxResult::BasicHeal(num) => (NumberEffectType::Heal, *num),
+            DiceBoxResult::ChargeShield(_) => return None,
+            DiceBoxResult::None => return None,
+        };
+
+        let num_effect = NumberEffect::new(num_effect_type, value, pos_rect, font);
+        return Some(num_effect);
+    }
 }
 
 impl DiceBox {

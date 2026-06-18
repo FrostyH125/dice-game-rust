@@ -45,6 +45,9 @@ pub enum GameState {
 
 // update infohover to save font_size and font_spacing so you dont need to pass them in update/draw
 
+// num effect is working, but it could use some cleaning up in how its invoked. i guess it could
+// use an easier way to find the proper rectangle to use for it
+
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
 // ACTUAL IMPLEMENTATION
@@ -158,6 +161,7 @@ fn main() {
     while !rl.window_should_close() {
         rl.hide_cursor();
         let dt = rl.get_frame_time();
+        let total_time = rl.get_time() as f32;
 
         game_context.input_state.update(&mut rl, camera.zoom);
         player.update(
@@ -171,7 +175,7 @@ fn main() {
 
         game_context.sprite_particle_system.update(dt);
         game_context.dialogue_system.update(&game_context.input_state);
-        game_context.battle_effect_manager.update(dt);
+        game_context.battle_effect_manager.update(dt, total_time);
         
         scoreboard.update(&mut player, &current_enemy, dt);
 
@@ -307,7 +311,7 @@ fn main() {
             }
         }
 
-        game_context.battle_effect_manager.draw(&mut cam_handle, &game_context.texture);
+        game_context.battle_effect_manager.draw(&mut cam_handle, &game_context.texture, &game_context.font);
         game_context.sprite_particle_system.draw(&mut cam_handle, &game_context.texture);
         game_context.dialogue_system.draw(&mut cam_handle, &game_context.font);
 

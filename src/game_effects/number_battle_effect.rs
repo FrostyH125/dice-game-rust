@@ -1,6 +1,7 @@
 use rand::RngExt;
 use raylib::{
     color::Color,
+    drawing::{RaylibDraw, RaylibDrawHandle},
     math::{Rectangle, Vector2},
     text::{Font, RaylibFont},
 };
@@ -15,7 +16,9 @@ pub enum NumberEffectType {
 
 pub struct NumberEffect {
     value_as_str: String,
-    pos: Vector2,
+
+    // remove public access eventually
+    pub pos: Vector2,
     velocity: Vector2,
     acceleration: Vector2,
     font_size: f32,
@@ -24,16 +27,16 @@ pub struct NumberEffect {
 
     // used in some update instances to stop the number from going below this
     start_pos_y: f32,
+
     lifespan: f32,
     vertical_sine_wave: bool,
-    num_effect_type: NumberEffectType,
 }
 
 impl NumberEffect {
     ///Font spacing and font size are automatic based on value, this system is very much not general use
-    pub fn new(num_effect_type: NumberEffectType, value: i64, pos_rect: Rectangle, font: &Font) -> Self {
+    pub fn new(num_effect_type: NumberEffectType, value: i32, pos_rect: Rectangle, font: &Font) -> Self {
         let (font_size, font_spacing) = match value {
-            0..=10 => (5.0, 0.0),
+            ..=10 => (5.0, 0.0),
             11..=100 => (10.0, 1.0),
             101.. => (15.0, 2.0),
         };
@@ -54,7 +57,6 @@ impl NumberEffect {
                 let acc_y: f32 = GRAVITY;
 
                 NumberEffect {
-                    num_effect_type,
                     value_as_str,
                     pos,
                     velocity: Vector2::new(vel_x, vel_y),
@@ -85,7 +87,6 @@ impl NumberEffect {
                     start_pos_y,
                     lifespan: 2.0,
                     vertical_sine_wave: true,
-                    num_effect_type,
                 }
             }
             NumberEffectType::Block => {
@@ -106,16 +107,40 @@ impl NumberEffect {
                     start_pos_y,
                     lifespan: 2.0,
                     vertical_sine_wave: false,
-                    num_effect_type,
                 }
             }
         };
 
         return effect;
     }
-}
 
-//new makes new and sets these fields, should center x pos ideally
-//update adds vel to pos and acc to vel, and if sin_wave,
-//adds '(dt * sin(total_game_time)) * magnitude' to vel.x
-//draw simply draws number at pos in color of color field
+    pub fn update(&mut self, dt: f32, total_time: f32) {
+
+        self.lifespan -= dt;
+        
+        self.pos.x += self.velocity.x * dt;
+        self.pos.y += self.velocity.y * dt;
+
+        self.velocity.x += self.acceleration.x * dt;
+        self.velocity.y += self.acceleration.y * dt;
+
+        match self.vertical_sine_wave {
+            true => {
+                self.pos.x += (dt * total_time.sin()) * 5.0;
+            }
+            false => (),
+        }
+    }
+
+    pub fn draw(&self, d: &mut RaylibDrawHandle, font: &Font) {
+        d.draw_text_ex(font, &self.value_as_str, self.pos, self.font_size, self.font_spacing, self.color);
+    }
+
+    pub fn is_done(&self) -> bool {
+        if self.lifespan <= 0.0 {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
