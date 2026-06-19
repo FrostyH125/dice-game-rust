@@ -25,7 +25,10 @@ impl BattleEffectsManager {
         self.battle_effects.push(effect);
     }
 
-    pub fn add_number_effect(&mut self, num_effect: NumberEffect) {
+    pub fn add_number_effect(&mut self, num_effect_type: NumberEffectType, pos_rect: Rectangle, value: i32, font: &Font) {
+
+        let num_effect = NumberEffect::new(num_effect_type, value, pos_rect, font);
+        
         self.number_effects.push(num_effect);
     }
 

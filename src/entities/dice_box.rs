@@ -36,17 +36,16 @@ pub enum DiceBoxResult {
 }
 
 impl DiceBoxResult {
-    pub fn get_num_effect(&self, pos_rect: Rectangle, font: &Font) -> Option<NumberEffect> {
+    pub fn get_num_effect_type(&self) -> Option<NumberEffectType> {
 
-        let (num_effect_type, value) = match self {
-            DiceBoxResult::BasicAttack(num) => (NumberEffectType::Damage, *num),
-            DiceBoxResult::BasicHeal(num) => (NumberEffectType::Heal, *num),
+        let num_effect_type = match self {
+            DiceBoxResult::BasicAttack(_) => NumberEffectType::Damage,
+            DiceBoxResult::BasicHeal(_) => NumberEffectType::Heal,
             DiceBoxResult::ChargeShield(_) => return None,
             DiceBoxResult::None => return None,
         };
 
-        let num_effect = NumberEffect::new(num_effect_type, value, pos_rect, font);
-        return Some(num_effect);
+        return Some(num_effect_type);
     }
 }
 

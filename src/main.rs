@@ -19,7 +19,7 @@ use crate::{
         player::{Player, PlayerState},
         player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox},
         scoreboard::ScoreBoard,
-    }, game_effects::battle_effects_manager::{self, BattleEffectsManager}, system::{button::Button, dialogue_system::DialogueSystem}
+    }, game_effects::battle_effects_manager::{BattleEffectsManager}, system::{button::Button, dialogue_system::DialogueSystem}
 };
 use rand::random_range;
 
@@ -35,7 +35,7 @@ const VIRTUAL_HEIGHT: f32 = 270.0;
 const PLAYER_UI_Y_BASE_CORD: f32 = VIRTUAL_HEIGHT - 75.0;
 const PLAYER_UI_X_CENTER_CORD: f32 = 100.0;
 
-pub const GRAVITY: f32 = 10.0;
+pub const GRAVITY: f32 = 80.0;
 
 pub enum GameState {
     Travelling,

@@ -36,9 +36,9 @@ impl NumberEffect {
     ///Font spacing and font size are automatic based on value, this system is very much not general use
     pub fn new(num_effect_type: NumberEffectType, value: i32, pos_rect: Rectangle, font: &Font) -> Self {
         let (font_size, font_spacing) = match value {
-            ..=10 => (5.0, 0.0),
-            11..=100 => (10.0, 1.0),
-            101.. => (15.0, 2.0),
+            ..=10 => (10.0, 0.0),
+            11..=100 => (14.0, 1.0),
+            101.. => (18.0, 2.0),
         };
 
         let mut rng = rand::rng();
@@ -51,7 +51,7 @@ impl NumberEffect {
         let effect = match num_effect_type {
             NumberEffectType::Damage => {
                 let vel_x: f32 = rng.random_range(-5.0..=5.0);
-                let vel_y: f32 = rng.random_range(-60.0..=-30.0);
+                let vel_y: f32 = rng.random_range(-90.0..=-70.0);
 
                 let acc_x: f32 = rng.random_range(-2.0..=2.0);
                 let acc_y: f32 = GRAVITY;

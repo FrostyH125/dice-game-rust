@@ -16,7 +16,7 @@ use crate::{
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::{DiceBox, DiceBoxResult},
-    },
+    }, game_effects::number_battle_effect::NumberEffect,
 };
 use crate::{
     entities::{
@@ -79,10 +79,11 @@ pub enum PlayerState {
     ///can be applied to multiple boxes, unlike player animations which are planned to be
     ///mostly unique, or at the very least, if the player animation isnt unique, other effects
     ///relating to the specific box's primary action visual will be unique, such as in magic 
-    ///boxes, different magic projectiles being part of the visual
-    ///will definitely need 2 different timings at least to be implemented for these action visuals
-    ///probably need to have a PostActionVisual state or something, or a ResultVisual maybe, that
-    ///only plays once the ActionResult state is reached (ideal solution if can make work)
+    ///boxes, different magic projectiles being part of the visual.
+    ///will definitely need 2 different timings at least to be implemented for these action visuals,
+    ///one timing is fully implemented at the moment, in the transition from tallying to the action visual,
+    ///the second timing will most likely be at the same time the action is applied, which is also
+    ///when the number effect is applied
     ActionVisual,
     ActionResult,
     EndTurnDelay,
@@ -276,9 +277,8 @@ impl Player {
                     self.acting_timer.reset();
                     self.state = PlayerState::ActionVisual;
 
-                    // add a battle effect to the game based on current box of applicable
-                    // this method can return none, in which case it'll be skipped
-                    
+                    // add a battle effect to the game based on current box if applicable
+                    // this method can return none, in which case it'll be skipped.                 
                     // I put it in this state because it should only run once and it should
                     // only run right at the same time the pre action visual would run
                     if let Some(effect_type) = self.dice_boxes[self.current_box].get_battle_effect_type_pre_action_result() {
@@ -302,15 +302,24 @@ impl Player {
 
                 let box_result = self.dice_boxes[self.current_box].get_result();
 
-                let num_effect_rect: Option<Rectangle> = match box_result {
-                    DiceBoxResult::BasicAttack(_)  => Some(enemy.get_rect()),
-                    DiceBoxResult::BasicHeal(_) => Some(self.get_rect()),
-                    DiceBoxResult::ChargeShield(_) => None,
-                    DiceBoxResult::None => None,
-                };
+                // check if theres a number effect type for this box result
+                if let Some(num_effect_type) = box_result.get_num_effect_type() {
 
-                if let Some(num_effect) = box_result.get_num_effect(num_effect_rect.unwrap(), &game_context.font) {
-                    game_context.battle_effect_manager.add_number_effect(num_effect);
+                    // if there is a box result, find the proper rectangle (player or enemy)
+                    // find the value of the action as well to display
+                    // i kinda wanted to see if this process could be generalized, so if you
+                    // happen to be doing a code review for me, perhaps its just something
+                    // to consider, since doing this every time i need to do a number effect
+                    // just seems to smell a little bit even if theres technically nothing wrong
+                    // with doing so
+                    let (num_effect_rect, value) = match box_result {
+                        DiceBoxResult::BasicAttack(num)  => (enemy.get_rect(), num),
+                        DiceBoxResult::BasicHeal(num) => (self.get_rect(), num),
+                        DiceBoxResult::ChargeShield(_) => panic!("shouldn't have a num effect rect"),
+                        DiceBoxResult::None => panic!("shouldn't have a num effect rect"),
+                    };
+                    
+                    game_context.battle_effect_manager.add_number_effect(num_effect_type, num_effect_rect, value, &game_context.font);
                     println!("I got added")
                 }
 
@@ -323,12 +332,10 @@ impl Player {
 
                 self.current_box += 1;
 
+                // make sure current box index never gets above the actual number of boxes
+                // this same exact check exists in tallying current box as well as it is 
+                // possible for the current box to be empty and the index to be incremented there
                 if self.current_box > self.dice_boxes.len() - 1 {
-                    // even though this value isnt read here, it causes problems
-                    // in places like scoreboard that rely on this data
-
-                    // note that this correction exists in tallying current box as well
-                    // in the event that the current box is empty
                     self.current_box = self.dice_boxes.len() - 1;
                     self.state = PlayerState::EndTurnDelay;
                 } else {
