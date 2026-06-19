@@ -12,11 +12,12 @@ use raylib::{
 };
 
 use crate::{
-    EMPTY_SPRITE, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
+    EMPTY_SPRITE, GameContext, HitType, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::{DiceBox, DiceBoxResult},
-    }, game_effects::number_battle_effect::NumberEffect,
+    },
+    game_effects::number_battle_effect::NumberEffect,
 };
 use crate::{
     entities::{
@@ -78,7 +79,7 @@ pub enum PlayerState {
     ///are a part of a different system really boils down to usability, as the same effect
     ///can be applied to multiple boxes, unlike player animations which are planned to be
     ///mostly unique, or at the very least, if the player animation isnt unique, other effects
-    ///relating to the specific box's primary action visual will be unique, such as in magic 
+    ///relating to the specific box's primary action visual will be unique, such as in magic
     ///boxes, different magic projectiles being part of the visual.
     ///will definitely need 2 different timings at least to be implemented for these action visuals,
     ///one timing is fully implemented at the moment, in the transition from tallying to the action visual,
@@ -89,7 +90,9 @@ pub enum PlayerState {
     EndTurnDelay,
     EndTurn,
     WaitingForEnemy,
-    HitDelay,
+    HitDelay {
+        hit_type: HitType,
+    },
     Dead,
 }
 
@@ -278,10 +281,12 @@ impl Player {
                     self.state = PlayerState::ActionVisual;
 
                     // add a battle effect to the game based on current box if applicable
-                    // this method can return none, in which case it'll be skipped.                 
+                    // this method can return none, in which case it'll be skipped.
                     // I put it in this state because it should only run once and it should
                     // only run right at the same time the pre action visual would run
-                    if let Some(effect_type) = self.dice_boxes[self.current_box].get_battle_effect_type_pre_action_result() {
+                    if let Some(effect_type) =
+                        self.dice_boxes[self.current_box].get_battle_effect_type_pre_action_result()
+                    {
                         game_context.battle_effect_manager.add_effect(effect_type, enemy.get_rect());
                     }
                 }
@@ -292,7 +297,7 @@ impl Player {
                     game_context,
                     self.pos,
                     dt,
-                ) { 
+                ) {
                     self.acting_anim.reset();
                     self.state = PlayerState::ActionResult;
                 }
@@ -304,7 +309,6 @@ impl Player {
 
                 // check if theres a number effect type for this box result
                 if let Some(num_effect_type) = box_result.get_num_effect_type() {
-
                     // if there is a box result, find the proper rectangle (player or enemy)
                     // find the value of the action as well to display
                     // i kinda wanted to see if this process could be generalized, so if you
@@ -313,13 +317,18 @@ impl Player {
                     // just seems to smell a little bit even if theres technically nothing wrong
                     // with doing so
                     let (num_effect_rect, value) = match box_result {
-                        DiceBoxResult::BasicAttack(num)  => (enemy.get_rect(), num),
+                        DiceBoxResult::BasicAttack(num) => (enemy.get_rect(), num),
                         DiceBoxResult::BasicHeal(num) => (self.get_rect(), num),
                         DiceBoxResult::ChargeShield(_) => panic!("shouldn't have a num effect rect"),
                         DiceBoxResult::None => panic!("shouldn't have a num effect rect"),
                     };
-                    
-                    game_context.battle_effect_manager.add_number_effect(num_effect_type, num_effect_rect, value, &game_context.font);
+
+                    game_context.battle_effect_manager.add_number_effect(
+                        num_effect_type,
+                        num_effect_rect,
+                        value,
+                        &game_context.font,
+                    );
                     println!("I got added")
                 }
 
@@ -333,7 +342,7 @@ impl Player {
                 self.current_box += 1;
 
                 // make sure current box index never gets above the actual number of boxes
-                // this same exact check exists in tallying current box as well as it is 
+                // this same exact check exists in tallying current box as well as it is
                 // possible for the current box to be empty and the index to be incremented there
                 if self.current_box > self.dice_boxes.len() - 1 {
                     self.current_box = self.dice_boxes.len() - 1;
@@ -368,7 +377,7 @@ impl Player {
                     self.waiting_anim.reset();
                 }
             }
-            PlayerState::HitDelay => {
+            PlayerState::HitDelay { hit_type } => {
                 self.hit_delay_timer.track(dt);
                 PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
                 if self.hit_delay_timer.is_done() {
@@ -406,7 +415,7 @@ impl Player {
                     dice_box.draw(d, game_context);
                 }
             }
-            PlayerState::HitDelay => {
+            PlayerState::HitDelay { hit_type } => {
                 PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture);
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, game_context);
@@ -476,8 +485,38 @@ impl Player {
     }
 
     pub fn take_hit(&mut self, damage: i32) {
-        self.health -= damage;
-        self.state = PlayerState::HitDelay;
+
+        // had no shield
+        if self.shield_power == 0 {
+            self.health -= damage;
+            self.state = PlayerState::HitDelay { hit_type: HitType::Unblocked };
+            return;
+        // had shield
+        } else if self.shield_power > 0 {
+            self.shield_power -= damage;
+
+            match self.shield_power {
+
+                // shield blocked all damage
+                1.. => {
+                    self.shield_power = 0;
+                    self.state = PlayerState::HitDelay { hit_type: HitType::Blocked };
+                }
+
+                // shield blocked it just perfectly with no shield to spare
+                0 => {
+                    self.state = PlayerState::HitDelay { hit_type: HitType::PerfectBreak };
+                }
+
+                // shield broke and some damage came through
+                ..=-1 => {
+                    let overflow = self.shield_power.abs();
+                    self.health -= overflow;
+                    self.shield_power = 0;
+                    self.state = PlayerState::HitDelay { hit_type: HitType::BlockedBroken };
+                }
+            }
+        }
     }
 
     pub fn heal(&mut self, heal_amount: i32) {

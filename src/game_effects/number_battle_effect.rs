@@ -44,16 +44,16 @@ impl NumberEffect {
         let mut rng = rand::rng();
         let value_as_str = value.to_string();
         let text_size = font.measure_text(&value_as_str, font_size, font_spacing);
-        let start_pos_y = pos_rect.y + pos_rect.width - text_size.y;
+        let start_pos_y = pos_rect.y + pos_rect.height - text_size.y;
         let start_pos_x = pos_rect.x + (pos_rect.width / 2.0) - (text_size.x / 2.0);
         let pos = Vector2::new(start_pos_x, start_pos_y);
 
         let effect = match num_effect_type {
             NumberEffectType::Damage => {
-                let vel_x: f32 = rng.random_range(-5.0..=5.0);
-                let vel_y: f32 = rng.random_range(-90.0..=-70.0);
+                let vel_x: f32 = rng.random_range(-10.0..=10.0);
+                let vel_y: f32 = rng.random_range(-180.0..=-160.0);
 
-                let acc_x: f32 = rng.random_range(-2.0..=2.0);
+                let acc_x: f32 = rng.random_range(-5.0..=5.0);
                 let acc_y: f32 = GRAVITY;
 
                 NumberEffect {
@@ -66,7 +66,7 @@ impl NumberEffect {
                     font_size,
                     font_spacing,
                     start_pos_y,
-                    lifespan: 2.0,
+                    lifespan: 3.0,
                 }
             }
             NumberEffectType::Heal => {
@@ -91,9 +91,9 @@ impl NumberEffect {
             }
             NumberEffectType::Block => {
                 let vel_x: f32 = rng.random_range(-5.0..=1.0);
-                let vel_y: f32 = rng.random_range(-30.0..=-15.0);
+                let vel_y: f32 = rng.random_range(-150.0..=-120.0);
 
-                let acc_x: f32 = rng.random_range(-2.0..=1.0);
+                let acc_x: f32 = 0.0;
                 let acc_y: f32 = GRAVITY;
 
                 NumberEffect {
@@ -117,6 +117,10 @@ impl NumberEffect {
     pub fn update(&mut self, dt: f32, total_time: f32) {
 
         self.lifespan -= dt;
+
+        if self.pos.y > self.start_pos_y {
+            return;
+        }
         
         self.pos.x += self.velocity.x * dt;
         self.pos.y += self.velocity.y * dt;
@@ -126,7 +130,7 @@ impl NumberEffect {
 
         match self.vertical_sine_wave {
             true => {
-                self.pos.x += (dt * total_time.sin()) * 5.0;
+                self.pos.x += ((total_time.sin()) * 30.0) * dt;
             }
             false => (),
         }
