@@ -2,7 +2,7 @@ use raylib::{drawing::RaylibDrawHandle, math::Rectangle, text::Font, texture::Te
 
 use crate::game_effects::{
     battle_effect::{BattleEffect, BattleEffectType},
-    number_battle_effect::{self, NumberEffect, NumberEffectType},
+    number_battle_effect::{NumberEffect, NumberEffectType},
 };
 
 ///Responsible for slashes and explosions before and after attacks.

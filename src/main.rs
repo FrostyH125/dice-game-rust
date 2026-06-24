@@ -43,8 +43,6 @@ pub enum GameState {
     GameOver,
 }
 
-// update infohover to save font_size and font_spacing so you dont need to pass them in update/draw
-
 // shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
 // shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
 // ACTUAL IMPLEMENTATION
@@ -297,7 +295,7 @@ fn main() {
             PlayerState::WaitingForEnemy
             | PlayerState::StartTurn
             | PlayerState::WaitingForDiceToMoveToHand
-            | PlayerState::HitDelay
+            | PlayerState::HitDelay {..}
             | PlayerState::Dead
             | PlayerState::Walking => (),
             _ => {

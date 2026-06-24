@@ -1,5 +1,3 @@
-use std::num;
-
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
@@ -16,8 +14,7 @@ use crate::{
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::{DiceBox, DiceBoxResult},
-    },
-    game_effects::number_battle_effect::NumberEffect,
+    }
 };
 use crate::{
     entities::{
