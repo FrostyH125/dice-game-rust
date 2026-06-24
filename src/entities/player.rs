@@ -14,7 +14,7 @@ use crate::{
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box::{DiceBox, DiceBoxResult},
-    }
+    },
 };
 use crate::{
     entities::{
@@ -25,7 +25,6 @@ use crate::{
     system::button::Button,
 };
 
-const HIT_DELAY_DURATION: f32 = 1.0;
 pub const PLAYER_WIDTH: f32 = 32.0;
 pub const PLAYER_HEIGHT: f32 = 48.0;
 const PLAYER_POS: Vector2 = Vector2::new(84.0, 125.0);
@@ -51,9 +50,9 @@ static PLAYER_WAITING_ANIM: AnimationData = AnimationData {
 };
 
 static PLAYER_HIT_ANIM: AnimationData = AnimationData {
-    frames: &[EMPTY_SPRITE, Sprite::new(240, 128, 32, 48)],
-    frame_duration: HIT_DELAY_DURATION / 4.0,
-    should_loop: true,
+    frames: &[EMPTY_SPRITE, Sprite::new(240, 128, 32, 48), EMPTY_SPRITE, Sprite::new(240, 128, 32, 48)],
+    frame_duration: 0.25,
+    should_loop: false,
 };
 
 #[derive(PartialEq, Eq)]
@@ -107,7 +106,6 @@ pub struct Player {
     pos: raylib::math::Vector2,
     acting_timer: Timer,
     end_turn_delay_timer: Timer,
-    hit_delay_timer: Timer,
     pub state: PlayerState,
     pub is_dragging_dice: bool,
     pub was_dragging_dice: bool,
@@ -132,7 +130,6 @@ impl Player {
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
-            hit_delay_timer: Timer::new(HIT_DELAY_DURATION),
             is_dragging_dice: false,
             was_dragging_dice: false,
             current_box: 0,
@@ -375,9 +372,8 @@ impl Player {
                 }
             }
             PlayerState::HitDelay { hit_type } => {
-                self.hit_delay_timer.track(dt);
                 PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
-                if self.hit_delay_timer.is_done() {
+                if self.hit_anim.finished_playing {
                     if self.health <= 0 {
                         self.state = PlayerState::Dead
                     } else {
@@ -482,7 +478,6 @@ impl Player {
     }
 
     pub fn take_hit(&mut self, damage: i32) {
-
         // had no shield
         if self.shield_power == 0 {
             self.health -= damage;
@@ -493,7 +488,6 @@ impl Player {
             self.shield_power -= damage;
 
             match self.shield_power {
-
                 // shield blocked all damage
                 1.. => {
                     self.shield_power = 0;

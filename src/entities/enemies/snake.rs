@@ -5,22 +5,26 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font};
 
 use crate::{
-    EMPTY_SPRITE, GameContext, VIRTUAL_WIDTH, entities::{
+    EMPTY_SPRITE, GameContext, VIRTUAL_WIDTH,
+    entities::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         dice_box::DiceBox,
-        enemy::{ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData, EnemyState::{self, StartTurn}},
+        enemy::{
+            ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData,
+            EnemyState::{self, StartTurn},
+        },
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::{Player, PlayerState},
-    }
+    },
 };
 
 const BEFORE_ATTACKING_TIME: f32 = 2.0;
-const HIT_TIME: f32 = 1.0;
 const SNAKE_POS: Vector2 = Vector2::new(VIRTUAL_WIDTH - 116.0, 125.0);
 const SNAKE_WIDTH: u32 = 32;
 const SNAKE_HEIGHT: u32 = 48;
-const CENTER_OF_SNAKE: Vector2 = Vector2::new(SNAKE_POS.x + SNAKE_WIDTH as f32 / 2.0, SNAKE_POS.y + SNAKE_HEIGHT as f32 / 2.0);
+const CENTER_OF_SNAKE: Vector2 =
+    Vector2::new(SNAKE_POS.x + SNAKE_WIDTH as f32 / 2.0, SNAKE_POS.y + SNAKE_HEIGHT as f32 / 2.0);
 
 const SNAKE_EYES_INDEX: usize = 0;
 
@@ -47,15 +51,19 @@ static SNAKE_ATTACK_ANIM: AnimationData = AnimationData {
 };
 
 static SNAKE_HIT_ANIM: AnimationData = AnimationData {
-    frames: &[EMPTY_SPRITE, Sprite::new(272, 176, SNAKE_WIDTH, SNAKE_HEIGHT)],
-    frame_duration: HIT_TIME / 4.0,
-    should_loop: true,
+    frames: &[
+        EMPTY_SPRITE,
+        Sprite::new(272, 176, SNAKE_WIDTH, SNAKE_HEIGHT),
+        EMPTY_SPRITE,
+        Sprite::new(272, 176, SNAKE_WIDTH, SNAKE_HEIGHT),
+    ],
+    frame_duration: 0.25,
+    should_loop: false,
 };
 
 pub struct Snake {
     pub data: EnemyData,
     pub hand: Hand,
-    hit_timer: Timer,
     dice_add_timer: Timer,
     before_stopping_dice_timer: Timer,
     before_tally_timer: Timer,
@@ -92,7 +100,6 @@ impl Snake {
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
             before_attack_timer: Timer::new(BEFORE_ATTACKING_TIME),
-            hit_timer: Timer::new(HIT_TIME),
             turn_end_timer: Timer::new(2.0),
             idle_anim: SpriteAnimationInstance::new(),
             attack_anim: SpriteAnimationInstance::new(),
@@ -100,12 +107,7 @@ impl Snake {
         }
     }
 
-    pub fn update(
-        &mut self,
-        player: &mut Player,
-        game_context: &mut GameContext,
-        dt: f32,
-    ) {
+    pub fn update(&mut self, player: &mut Player, game_context: &mut GameContext, dt: f32) {
         self.hand.update_for_enemy(dt);
         self.data.dice_boxes[SNAKE_EYES_INDEX].update_for_enemy(&game_context.input_state, dt);
 
@@ -205,7 +207,12 @@ impl Snake {
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
 
                 let result = self.data.dice_boxes[SNAKE_EYES_INDEX].get_result();
-                self.data.dice_boxes[SNAKE_EYES_INDEX].enemy_action(result, player, &mut self.data.health, &mut self.data.shield_power);
+                self.data.dice_boxes[SNAKE_EYES_INDEX].enemy_action(
+                    result,
+                    player,
+                    &mut self.data.health,
+                    &mut self.data.shield_power,
+                );
 
                 self.data.state = EnemyState::EndTurnDelay;
                 self.attack_anim.reset();
@@ -221,7 +228,9 @@ impl Snake {
             }
             EnemyState::EndTurn => {
                 self.data.state = EnemyState::WaitingForPlayer;
-                self.data.dice_boxes[SNAKE_EYES_INDEX].get_mut_data().emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                self.data.dice_boxes[SNAKE_EYES_INDEX]
+                    .get_mut_data()
+                    .emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
                 self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
                 self.data.dice_boxes[SNAKE_EYES_INDEX]
                     .reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
@@ -235,20 +244,18 @@ impl Snake {
             }
             EnemyState::HitDelay => {
                 SNAKE_HIT_ANIM.update(&mut self.hit_anim, dt);
-                self.hit_timer.track(dt);
-                if self.hit_timer.is_done() {
+                if self.hit_anim.finished_playing {
                     if self.data.health <= 0 {
                         self.data.state = EnemyState::Dead;
                     } else {
-
-                        // needed to add this if else statement because 
-                        // when the player would hit the enemy, making them go to 
-                        // hit delay, when they came out of hit delay, they would 
+                        // needed to add this if else statement because
+                        // when the player would hit the enemy, making them go to
+                        // hit delay, when they came out of hit delay, they would
                         // originally automatically go to waiting for player
                         // which was a problem, because the player by that time had
                         // already gone to waiting for enemy, and in that one frame
-                        // of being in waiting for player, the player would, who updated next
-                        // would naturally start their turn because they saw that the 
+                        // of being in waiting for player, the player would
+                        // naturally start their turn because they saw that the
                         // enemy was waiting for them
                         // this if clause means that if the player is waiting instead,
                         // meaning their turn is over, to just go straight to starting
@@ -256,12 +263,10 @@ impl Snake {
                         if player.state == PlayerState::WaitingForEnemy {
                             self.data.state = StartTurn;
                         } else {
-                            self.data.state = EnemyState::WaitingForPlayer;       
+                            self.data.state = EnemyState::WaitingForPlayer;
                         }
-                        
                     }
                     self.hit_anim.reset();
-                    self.hit_timer.reset();
                 }
             }
             EnemyState::Dead => (),
