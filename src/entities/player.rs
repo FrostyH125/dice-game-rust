@@ -372,14 +372,35 @@ impl Player {
                 }
             }
             PlayerState::HitDelay { hit_type } => {
-                PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
-                if self.hit_anim.finished_playing {
+
+                let mut should_end_hit_delay = false;
+
+                match hit_type {
+                    HitType::Unblocked => {
+                        PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
+                        if self.hit_anim.finished_playing {
+                            should_end_hit_delay = true;
+                            self.hit_anim.reset();
+                        }
+                    },
+                    HitType::Blocked => {
+                        // play the full blocking animation
+                        // make the number fly like the block is supposed to, i think this would be better to have happen in take_hit()
+                    },
+                    HitType::BlockedBroken => {
+                        // play the blocking animation, and when its done, play the hit animation, with a shatter particle effect
+                    },
+                    HitType::PerfectBreak => {
+                        // play the blocking animation, have a screen pause (?), and have a ton of shiny particles of lighter sparkle colors and more numerous and faster
+                    },
+                }  
+
+                if should_end_hit_delay {
                     if self.health <= 0 {
                         self.state = PlayerState::Dead
                     } else {
                         self.state = PlayerState::WaitingForEnemy;
                     }
-                    self.hit_anim.reset();
                 }
             }
             PlayerState::Dead => (),
