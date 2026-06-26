@@ -193,7 +193,7 @@ fn main() {
                 current_enemy.update(&mut player, &mut game_context, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
-                    player.take_hit(100);
+                    player.take_hit(10);
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {

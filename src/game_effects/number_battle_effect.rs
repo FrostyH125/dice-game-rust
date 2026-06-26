@@ -70,6 +70,10 @@ impl NumberEffect {
                 }
             }
             NumberEffectType::Heal => {
+
+                // THIS REALLY NEEDS FIXING
+                // the number doesnt move in a wave pattern :(
+                
                 let vel_x: f32 = 0.0;
                 let vel_y: f32 = -15.0;
 
@@ -90,6 +94,13 @@ impl NumberEffect {
                 }
             }
             NumberEffectType::Block => {
+
+                // WHENEVER YOU COME HERE
+                // make the block number move very slowly upward
+                // this signifies a different movement from being attacked
+                // so you can tell at a glance this is a block (unmoving) number vs
+                // the number flying out of you at an angle like damage would
+                
                 let vel_x: f32 = rng.random_range(-5.0..=1.0);
                 let vel_y: f32 = rng.random_range(-150.0..=-120.0);
 

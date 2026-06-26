@@ -55,6 +55,52 @@ static PLAYER_HIT_ANIM: AnimationData = AnimationData {
     should_loop: false,
 };
 
+static PLAYER_BLOCK_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(0, 416, 32, 48),
+        Sprite::new(32, 416, 32, 48),
+        Sprite::new(64, 416, 32, 48),
+        Sprite::new(96, 416, 32, 48),
+        Sprite::new(128, 416, 32, 48),
+        Sprite::new(128, 416, 32, 48),
+        Sprite::new(128, 416, 32, 48),
+        Sprite::new(128, 416, 32, 48),
+        Sprite::new(128, 416, 32, 48),
+        Sprite::new(128, 416, 32, 48),
+    ],
+    frame_duration: 0.1,
+    should_loop: false
+};
+
+static PLAYER_BLOCK_BREAK_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(0, 416, 32, 48),
+        Sprite::new(32, 416, 32, 48),
+        Sprite::new(64, 416, 32, 48),
+        Sprite::new(96, 416, 32, 48),
+        Sprite::new(128, 416, 32, 48),
+        Sprite::new(160, 416, 32, 48),
+        Sprite::new(192, 416, 32, 48),
+        Sprite::new(224, 416, 32, 48), 
+            // piece locations (x, y) & [w, h] - from top to bottom, left edge first, right edge second (relative to player x, y of this sprite (224, 416))
+            // (26, 19 [2, 4]) (26, 24 [3, 4]) (26, 29 [2, 5]) (26, 35 [3, 6]) | (29, 19 [2, 2]) (28, 22 [3, 3]) (29, 26 [2, 2]) (29, 29 [2, 4]) (29, 34 [2, 5])
+        Sprite::new(224, 416, 32, 48),
+        Sprite::new(224, 416, 32, 48),
+    ],
+    frame_duration: 0.1,
+    should_loop: false
+};
+
+static SHIELD_PIECE_ONE_SPRITE: Sprite = Sprite::new(250, 435, 2, 4);
+static SHIELD_PIECE_TWO_SPRITE: Sprite = Sprite::new(250, 440, 3, 4);
+static SHIELD_PIECE_THREE_SPRITE: Sprite = Sprite::new(250, 445, 2, 5);
+static SHIELD_PIECE_FOUR_SPRITE: Sprite = Sprite::new(250, 451, 3, 6);
+static SHIELD_PIECE_FIVE_SPRITE: Sprite = Sprite::new(253, 435, 2, 2);
+static SHIELD_PIECE_SIX_SPRITE: Sprite = Sprite::new(252, 438, 3, 3);
+static SHIELD_PIECE_SEVEN_SPRITE: Sprite = Sprite::new(253, 442, 2, 2);
+static SHIELD_PIECE_EIGHT_SPRITE: Sprite = Sprite::new(253, 445, 2, 4);
+static SHIELD_PIECE_NINE_SPRITE: Sprite = Sprite::new(253, 450, 2, 5);
+
 #[derive(PartialEq, Eq)]
 pub enum PlayerState {
     Walking,
@@ -126,7 +172,7 @@ impl Player {
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
             health: 100,
-            shield_power: 0,
+            shield_power: 100,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
@@ -384,13 +430,25 @@ impl Player {
                         }
                     },
                     HitType::Blocked => {
-                        // play the full blocking animation
-                        // make the number fly like the block is supposed to, i think this would be better to have happen in take_hit()
+                        PLAYER_BLOCK_ANIM.update(&mut self.hit_anim, dt);
+                        if self.hit_anim.finished_playing {
+                            should_end_hit_delay = true;
+                            self.hit_anim.reset();
+                            // make the number fly like the block is supposed to, i think this would be better to have happen in take_hit()
+                        }
                     },
                     HitType::BlockedBroken => {
-                        // play the blocking animation, and when its done, play the hit animation, with a shatter particle effect
+                        PLAYER_BLOCK_BREAK_ANIM.update(&mut self.hit_anim, dt);
+                        if self.hit_anim.finished_playing {
+                            should_end_hit_delay = true;
+                            self.hit_anim.reset();
+                            // make shield break apart into particles that fly backwards
+                            // make some other particles
+                            // make number of block taken show and number of damage taken show
+                        }
                     },
                     HitType::PerfectBreak => {
+                        todo!()
                         // play the blocking animation, have a screen pause (?), and have a ton of shiny particles of lighter sparkle colors and more numerous and faster
                     },
                 }  
@@ -430,7 +488,13 @@ impl Player {
                 }
             }
             PlayerState::HitDelay { hit_type } => {
-                PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture);
+                match hit_type {
+                    HitType::Unblocked => PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
+                    HitType::Blocked => PLAYER_BLOCK_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
+                    HitType::BlockedBroken => todo!(),
+                    HitType::PerfectBreak => todo!(),
+                }
+                
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, game_context);
                 }
@@ -530,7 +594,6 @@ impl Player {
             match self.shield_power {
                 // shield blocked all damage
                 1.. => {
-                    self.shield_power = 0;
                     self.state = PlayerState::HitDelay { hit_type: HitType::Blocked };
                 }
 
