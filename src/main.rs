@@ -43,15 +43,14 @@ pub enum GameState {
     GameOver,
 }
 
-// shield box, make the player hold out shield when attacked when they still have defense, make it break perfectly if damage equals shield power, if damage exceeds
-// shield power, make it shatter and make player take damage with flashing animation, different pose than normal one though
-// ACTUAL IMPLEMENTATION
-//  have a BlockType enum with { None, Blocked, Break, PerfectBreak } 
-//  in player.takehit() assign the enum
-//  then match it in Player::TakeHit to properly do the visual 
-
-// make CombatEffectManager also responsible for having damage numbers fly off of hits and blocks
+// rotation to sprite particles
+// fix heal num effect
+// fix shield num effect
+// make shield piece particles
+// make shield break shimmer particles
 // disable input if the dialogue is running
+
+
 
 
 // if a function needs one of these fields, pass the field itself by reference

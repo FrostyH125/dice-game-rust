@@ -443,8 +443,8 @@ impl Player {
                             should_end_hit_delay = true;
                             self.hit_anim.reset();
                             // make shield break apart into particles that fly backwards
-                            // make some other particles
-                            // make number of block taken show and number of damage taken show
+                            // make some other particles for dust-ish look
+                            // make number of block taken show and number of damage taken show (probably easiest in take_hit())
                         }
                     },
                     HitType::PerfectBreak => {
