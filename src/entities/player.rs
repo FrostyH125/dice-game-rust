@@ -451,29 +451,48 @@ impl Player {
             }
         }
 
-        // don't draw the health if you're walking or dead
+        // don't draw the health and shield power if you're walking or dead
         if let PlayerState::Walking | PlayerState::Dead = self.state {
             return;
         }
 
-        let health_str = &format!("HP: {}", self.health);
-        let font_size = 10.0;
-        let spacing = 0.5;
-        let size_of_str = game_context.font.measure_text(health_str, font_size, spacing);
-        let self_width = 32.0;
-        let self_height = 48.0;
+        self.draw_health_and_shield(d, game_context);
+    }
+
+    fn draw_health_and_shield(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+        const SH_HP_STR_FONT_SIZE: f32 = 10.0;
+        const SH_HP_STR_SPACING: f32 = 0.5;
+        const MARGIN_BETWEEN_SH_AND_HP_STRINGS: f32 = 10.0;
+        const SHIELD_STR_COLOR: Color = Color::new(180, 180, 200, 255);
+        const HEALTH_STR_COLOR: Color = Color::WHITE;
+        
+        let health_str = &format!("HP:{}", self.health);
+        let shield_str = &format!("SH:{}", self.shield_power);
+        
+        let size_of_hp_str = game_context.font.measure_text(health_str, SH_HP_STR_FONT_SIZE, SH_HP_STR_SPACING);
+        let size_of_sh_str = game_context.font.measure_text(shield_str, SH_HP_STR_FONT_SIZE, SH_HP_STR_SPACING);
+
+        let hp_pos_x =
+            self.pos.x + PLAYER_WIDTH / 2.0 - (size_of_hp_str.x + size_of_sh_str.x + MARGIN_BETWEEN_SH_AND_HP_STRINGS) / 2.0;
+        let sh_pos_x = hp_pos_x + size_of_hp_str.x + MARGIN_BETWEEN_SH_AND_HP_STRINGS;
+        let strings_pos_y = self.pos.y + PLAYER_HEIGHT + PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE;
 
         d.draw_text_ex(
             &game_context.font,
             health_str,
-            self.pos
-                + Vector2::new(
-                    self_width / 2.0 - size_of_str.x / 2.0,
-                    self_height + PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE,
-                ),
-            font_size,
-            spacing,
-            Color::WHITE,
+            Vector2::new(hp_pos_x, strings_pos_y),
+            SH_HP_STR_FONT_SIZE,
+            SH_HP_STR_SPACING,
+            HEALTH_STR_COLOR,
+        );
+
+        d.draw_text_ex(
+            &game_context.font,
+            shield_str,
+            Vector2::new(sh_pos_x, strings_pos_y),
+            SH_HP_STR_FONT_SIZE,
+            SH_HP_STR_SPACING,
+            SHIELD_STR_COLOR,
         );
     }
 
