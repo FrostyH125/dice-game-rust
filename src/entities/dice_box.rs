@@ -28,6 +28,14 @@ pub enum DiceBox {
     SnakeEyes { snake_eyes_box: SnakeEyes },
 }
 
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum HitType {
+    Unblocked,
+    Blocked,
+    BlockedBroken,
+    PerfectBreak
+}
+
 pub enum DiceBoxResult {
     BasicAttack(i32),
     BasicHeal(i32),
@@ -158,17 +166,17 @@ impl DiceBox {
         }
     }
 
-    pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut i32, enemy_shield_power: &mut i32) {   
+    pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut i32, enemy_shield_power: &mut i32, game_context: &mut GameContext) {   
         match result {
-            DiceBoxResult::BasicAttack(damage) => Self::enemy_basic_attack(damage, player),
+            DiceBoxResult::BasicAttack(damage) => Self::enemy_basic_attack(damage, player, game_context),
             DiceBoxResult::BasicHeal(heal_amount) => *enemy_health += heal_amount,
             DiceBoxResult::ChargeShield(charge_amount) => *enemy_shield_power += charge_amount,
             DiceBoxResult::None => (),
         }
     }
 
-    pub fn enemy_basic_attack(power: i32, player: &mut Player) {
-        player.take_hit(power);
+    pub fn enemy_basic_attack(power: i32, player: &mut Player, game_context: &mut GameContext) {
+        player.take_hit(power, game_context);
     }
 
     pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {

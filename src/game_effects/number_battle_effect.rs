@@ -28,12 +28,15 @@ pub struct NumberEffect {
     // used in some update instances to stop the number from going below this
     start_pos_y: f32,
 
+    // used for sin wave calculations
+    start_pos_x: f32,
+
     lifespan: f32,
     vertical_sine_wave: bool,
 }
 
 impl NumberEffect {
-    ///Font spacing and font size are automatic based on value, this system is very much not general use
+    /// Font spacing and font size are automatic based on value, this system is very much not general use
     pub fn new(num_effect_type: NumberEffectType, value: i32, pos_rect: Rectangle, font: &Font) -> Self {
         let (font_size, font_spacing) = match value {
             ..=10 => (10.0, 0.0),
@@ -49,7 +52,7 @@ impl NumberEffect {
         let pos = Vector2::new(start_pos_x, start_pos_y);
 
         let effect = match num_effect_type {
-            NumberEffectType::Damage => {
+            NumberEffectType::Damage => {         
                 let vel_x: f32 = rng.random_range(-10.0..=10.0);
                 let vel_y: f32 = rng.random_range(-180.0..=-160.0);
 
@@ -65,17 +68,15 @@ impl NumberEffect {
                     vertical_sine_wave: false,
                     font_size,
                     font_spacing,
+                    start_pos_x,
                     start_pos_y,
                     lifespan: 3.0,
                 }
             }
             NumberEffectType::Heal => {
-
-                // THIS REALLY NEEDS FIXING
-                // the number doesnt move in a wave pattern :(
                 
                 let vel_x: f32 = 0.0;
-                let vel_y: f32 = -15.0;
+                let vel_y: f32 = -25.0;
 
                 let acc_x = 0.0;
                 let acc_y = 0.0;
@@ -88,6 +89,7 @@ impl NumberEffect {
                     font_size,
                     font_spacing,
                     color: Color::LIGHTGREEN,
+                    start_pos_x,
                     start_pos_y,
                     lifespan: 2.0,
                     vertical_sine_wave: true,
@@ -115,8 +117,9 @@ impl NumberEffect {
                     font_size,
                     font_spacing,
                     color: Color::SANDYBROWN,
+                    start_pos_x,
                     start_pos_y,
-                    lifespan: 2.0,
+                    lifespan: 2.5,
                     vertical_sine_wave: false,
                 }
             }
@@ -141,7 +144,9 @@ impl NumberEffect {
 
         match self.vertical_sine_wave {
             true => {
-                self.pos.x += ((total_time.sin()) * 30.0) * dt;
+                let frequency = 4.0;
+                let magnitude = 15.0;
+                self.pos.x = self.start_pos_x + (total_time * frequency).sin() * magnitude;
             }
             false => (),
         }

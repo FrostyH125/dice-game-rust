@@ -43,15 +43,10 @@ pub enum GameState {
     GameOver,
 }
 
-// rotation to sprite particles
-// fix heal num effect
 // fix shield num effect
 // make shield piece particles
 // make shield break shimmer particles
 // disable input if the dialogue is running
-
-
-
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference
@@ -65,14 +60,6 @@ pub struct GameContext {
     input_state: InputState,
     texture: Texture2D,
     font: Font,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum HitType {
-    Unblocked,
-    Blocked,
-    BlockedBroken,
-    PerfectBreak
 }
 
 fn main() {
@@ -192,7 +179,7 @@ fn main() {
                 current_enemy.update(&mut player, &mut game_context, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
-                    player.take_hit(10);
+                    player.take_hit(10, &mut game_context);
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {

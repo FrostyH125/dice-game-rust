@@ -10,11 +10,11 @@ use raylib::{
 };
 
 use crate::{
-    EMPTY_SPRITE, GameContext, HitType, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
+    EMPTY_SPRITE, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
     entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
-        dice_box::{DiceBox, DiceBoxResult},
-    },
+        dice_box::{DiceBox, DiceBoxResult, HitType},
+    }, game_effects::number_battle_effect::NumberEffectType,
 };
 use crate::{
     entities::{
@@ -69,7 +69,7 @@ static PLAYER_BLOCK_ANIM: AnimationData = AnimationData {
         Sprite::new(128, 416, 32, 48),
     ],
     frame_duration: 0.1,
-    should_loop: false
+    should_loop: false,
 };
 
 static PLAYER_BLOCK_BREAK_ANIM: AnimationData = AnimationData {
@@ -81,14 +81,14 @@ static PLAYER_BLOCK_BREAK_ANIM: AnimationData = AnimationData {
         Sprite::new(128, 416, 32, 48),
         Sprite::new(160, 416, 32, 48),
         Sprite::new(192, 416, 32, 48),
-        Sprite::new(224, 416, 32, 48), 
-            // piece locations (x, y) & [w, h] - from top to bottom, left edge first, right edge second (relative to player x, y of this sprite (224, 416))
-            // (26, 19 [2, 4]) (26, 24 [3, 4]) (26, 29 [2, 5]) (26, 35 [3, 6]) | (29, 19 [2, 2]) (28, 22 [3, 3]) (29, 26 [2, 2]) (29, 29 [2, 4]) (29, 34 [2, 5])
+        Sprite::new(224, 416, 32, 48),
+        // piece locations (x, y) & [w, h] - from top to bottom, left edge first, right edge second (relative to player x, y of this sprite (224, 416))
+        // (26, 19 [2, 4]) (26, 24 [3, 4]) (26, 29 [2, 5]) (26, 35 [3, 6]) | (29, 19 [2, 2]) (28, 22 [3, 3]) (29, 26 [2, 2]) (29, 29 [2, 4]) (29, 34 [2, 5])
         Sprite::new(224, 416, 32, 48),
         Sprite::new(224, 416, 32, 48),
     ],
     frame_duration: 0.1,
-    should_loop: false
+    should_loop: false,
 };
 
 static SHIELD_PIECE_ONE_SPRITE: Sprite = Sprite::new(250, 435, 2, 4);
@@ -172,7 +172,7 @@ impl Player {
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
             health: 100,
-            shield_power: 100,
+            shield_power: 0,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
@@ -347,34 +347,9 @@ impl Player {
 
                 let box_result = self.dice_boxes[self.current_box].get_result();
 
-                // check if theres a number effect type for this box result
-                if let Some(num_effect_type) = box_result.get_num_effect_type() {
-                    // if there is a box result, find the proper rectangle (player or enemy)
-                    // find the value of the action as well to display
-                    // i kinda wanted to see if this process could be generalized, so if you
-                    // happen to be doing a code review for me, perhaps its just something
-                    // to consider, since doing this every time i need to do a number effect
-                    // just seems to smell a little bit even if theres technically nothing wrong
-                    // with doing so
-                    let (num_effect_rect, value) = match box_result {
-                        DiceBoxResult::BasicAttack(num) => (enemy.get_rect(), num),
-                        DiceBoxResult::BasicHeal(num) => (self.get_rect(), num),
-                        DiceBoxResult::ChargeShield(_) => panic!("shouldn't have a num effect rect"),
-                        DiceBoxResult::None => panic!("shouldn't have a num effect rect"),
-                    };
-
-                    game_context.battle_effect_manager.add_number_effect(
-                        num_effect_type,
-                        num_effect_rect,
-                        value,
-                        &game_context.font,
-                    );
-                    println!("I got added")
-                }
-
                 match box_result {
-                    DiceBoxResult::BasicAttack(damage) => enemy.take_hit(damage),
-                    DiceBoxResult::BasicHeal(heal_amount) => self.heal(heal_amount),
+                    DiceBoxResult::BasicAttack(damage) => enemy.take_hit(damage, game_context),
+                    DiceBoxResult::BasicHeal(heal_amount) => self.heal(heal_amount, game_context),
                     DiceBoxResult::ChargeShield(shield_charge) => self.shield_power += shield_charge,
                     DiceBoxResult::None => (),
                 }
@@ -418,7 +393,6 @@ impl Player {
                 }
             }
             PlayerState::HitDelay { hit_type } => {
-
                 let mut should_end_hit_delay = false;
 
                 match hit_type {
@@ -428,7 +402,7 @@ impl Player {
                             should_end_hit_delay = true;
                             self.hit_anim.reset();
                         }
-                    },
+                    }
                     HitType::Blocked => {
                         PLAYER_BLOCK_ANIM.update(&mut self.hit_anim, dt);
                         if self.hit_anim.finished_playing {
@@ -436,7 +410,7 @@ impl Player {
                             self.hit_anim.reset();
                             // make the number fly like the block is supposed to, i think this would be better to have happen in take_hit()
                         }
-                    },
+                    }
                     HitType::BlockedBroken => {
                         PLAYER_BLOCK_BREAK_ANIM.update(&mut self.hit_anim, dt);
                         if self.hit_anim.finished_playing {
@@ -446,12 +420,12 @@ impl Player {
                             // make some other particles for dust-ish look
                             // make number of block taken show and number of damage taken show (probably easiest in take_hit())
                         }
-                    },
+                    }
                     HitType::PerfectBreak => {
                         todo!()
                         // play the blocking animation, have a screen pause (?), and have a ton of shiny particles of lighter sparkle colors and more numerous and faster
-                    },
-                }  
+                    }
+                }
 
                 if should_end_hit_delay {
                     if self.health <= 0 {
@@ -494,7 +468,7 @@ impl Player {
                     HitType::BlockedBroken => todo!(),
                     HitType::PerfectBreak => todo!(),
                 }
-                
+
                 for dice_box in &mut self.dice_boxes {
                     dice_box.draw(d, game_context);
                 }
@@ -550,15 +524,15 @@ impl Player {
         const MARGIN_BETWEEN_SH_AND_HP_STRINGS: f32 = 10.0;
         const SHIELD_STR_COLOR: Color = Color::new(180, 180, 200, 255);
         const HEALTH_STR_COLOR: Color = Color::WHITE;
-        
+
         let health_str = &format!("HP:{}", self.health);
         let shield_str = &format!("SH:{}", self.shield_power);
-        
+
         let size_of_hp_str = game_context.font.measure_text(health_str, SH_HP_STR_FONT_SIZE, SH_HP_STR_SPACING);
         let size_of_sh_str = game_context.font.measure_text(shield_str, SH_HP_STR_FONT_SIZE, SH_HP_STR_SPACING);
 
-        let hp_pos_x =
-            self.pos.x + PLAYER_WIDTH / 2.0 - (size_of_hp_str.x + size_of_sh_str.x + MARGIN_BETWEEN_SH_AND_HP_STRINGS) / 2.0;
+        let hp_pos_x = self.pos.x + PLAYER_WIDTH / 2.0
+            - (size_of_hp_str.x + size_of_sh_str.x + MARGIN_BETWEEN_SH_AND_HP_STRINGS) / 2.0;
         let sh_pos_x = hp_pos_x + size_of_hp_str.x + MARGIN_BETWEEN_SH_AND_HP_STRINGS;
         let strings_pos_y = self.pos.y + PLAYER_HEIGHT + PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE;
 
@@ -581,11 +555,17 @@ impl Player {
         );
     }
 
-    pub fn take_hit(&mut self, damage: i32) {
+    pub fn take_hit(&mut self, damage: i32, game_context: &mut GameContext) {
         // had no shield
         if self.shield_power == 0 {
             self.health -= damage;
             self.state = PlayerState::HitDelay { hit_type: HitType::Unblocked };
+            game_context.battle_effect_manager.add_number_effect(
+                NumberEffectType::Damage,
+                self.get_rect(),
+                damage,
+                &game_context.font,
+            );
             return;
         // had shield
         } else if self.shield_power > 0 {
@@ -613,8 +593,9 @@ impl Player {
         }
     }
 
-    pub fn heal(&mut self, heal_amount: i32) {
+    pub fn heal(&mut self, heal_amount: i32, game_context: &mut GameContext) {
         self.health += heal_amount;
+        game_context.battle_effect_manager.add_number_effect(NumberEffectType::Heal, self.get_rect(), heal_amount, &game_context.font);
     }
 
     pub fn add_box(&mut self, dice_box: DiceBox) {
@@ -724,7 +705,7 @@ impl Player {
         return false;
     }
 
-    fn get_rect(&self) -> Rectangle {
+    pub fn get_rect(&self) -> Rectangle {
         let rect = Rectangle::new(self.pos.x, self.pos.y, PLAYER_WIDTH, PLAYER_HEIGHT);
         return rect;
     }

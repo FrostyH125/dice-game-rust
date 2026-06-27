@@ -212,6 +212,7 @@ impl Snake {
                     player,
                     &mut self.data.health,
                     &mut self.data.shield_power,
+                    game_context
                 );
 
                 self.data.state = EnemyState::EndTurnDelay;
@@ -242,7 +243,7 @@ impl Snake {
                     self.data.state = EnemyState::StartTurn;
                 }
             }
-            EnemyState::HitDelay => {
+            EnemyState::HitDelay {..} => {
                 SNAKE_HIT_ANIM.update(&mut self.hit_anim, dt);
                 if self.hit_anim.finished_playing {
                     if self.data.health <= 0 {
@@ -281,7 +282,7 @@ impl Snake {
                 SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, &game_context.texture);
                 // hand not supposed to be drawn here, so thats why this exists
             }
-            EnemyState::HitDelay => {
+            EnemyState::HitDelay {..} => {
                 SNAKE_HIT_ANIM.draw(&mut self.hit_anim, d, self.data.pos, &game_context.texture);
             }
             EnemyState::BeforeActingDelay | EnemyState::Acting => {

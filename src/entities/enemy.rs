@@ -1,6 +1,10 @@
 use crate::{
     GameContext, VIRTUAL_WIDTH,
-    entities::{dice_box::DiceBox, enemies::snake::Snake, player::Player},
+    entities::{
+        dice_box::{DiceBox, HitType},
+        enemies::snake::Snake,
+        player::Player,
+    },
 };
 use raylib::{
     color::Color,
@@ -50,7 +54,9 @@ pub enum EnemyState {
     Acting,
 
     ///handles being hit, animation for being hit, other effects for being hit, before turning back to waiting for player
-    HitDelay,
+    HitDelay {
+        hit_type: HitType,
+    },
 
     ///the delay before fully ending turn for seamless, sensible transitions
     EndTurnDelay,
@@ -80,6 +86,12 @@ pub struct EnemyData {
     pub current_box: usize,
 }
 
+impl EnemyData {
+    pub fn get_rect(&self) -> Rectangle {
+        return Rectangle::new(self.pos.x, self.pos.y, self.width, self.height);
+    }
+}
+
 pub enum Enemy {
     Snake { snake: Snake },
 }
@@ -97,9 +109,45 @@ impl Enemy {
         }
     }
 
-    pub fn take_hit(&mut self, damage: i32) {
-        self.get_mut_data().health -= damage;
-        self.get_mut_data().state = EnemyState::HitDelay;
+    pub fn take_hit(&mut self, damage: i32, game_context: &mut GameContext) {
+        let data = self.get_mut_data();
+
+        game_context.battle_effect_manager.add_number_effect(
+            crate::game_effects::number_battle_effect::NumberEffectType::Damage,
+            data.get_rect(),
+            damage,
+            &game_context.font,
+        );
+
+        // had no shield
+        if data.shield_power == 0 {
+            data.health -= damage;
+            data.state = EnemyState::HitDelay { hit_type: HitType::Unblocked };
+            return;
+        // had shield
+        } else if data.shield_power > 0 {
+            data.shield_power -= damage;
+
+            match data.shield_power {
+                // shield blocked all damage
+                1.. => {
+                    data.state = EnemyState::HitDelay { hit_type: HitType::Blocked };
+                }
+
+                // shield blocked it just perfectly with no shield to spare
+                0 => {
+                    data.state = EnemyState::HitDelay { hit_type: HitType::PerfectBreak };
+                }
+
+                // shield broke and some damage came through
+                ..=-1 => {
+                    let overflow = data.shield_power.abs();
+                    data.health -= overflow;
+                    data.shield_power = 0;
+                    data.state = EnemyState::HitDelay { hit_type: HitType::BlockedBroken };
+                }
+            }
+        }
     }
 
     pub fn update(&mut self, player: &mut Player, game_context: &mut GameContext, dt: f32) {
