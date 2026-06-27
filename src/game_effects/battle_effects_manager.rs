@@ -62,7 +62,6 @@ impl BattleEffectsManager {
 
         for num_effect in &mut self.number_effects {
             num_effect.draw(d, font);
-            println!("my current positonn x: {}, y: {}", num_effect.pos.x, num_effect.pos.y);
         }
     }
 }

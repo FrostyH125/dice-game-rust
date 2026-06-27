@@ -18,7 +18,7 @@ use raylib::{
 use crate::{
     GameContext, entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox}
-    }, game_effects::{battle_effect::BattleEffectType, number_battle_effect::{NumberEffectType}}
+    }, game_effects::battle_effect::BattleEffectType
 };
 
 pub enum DiceBox {
@@ -41,20 +41,6 @@ pub enum DiceBoxResult {
     BasicHeal(i32),
     ChargeShield(i32),
     None,
-}
-
-impl DiceBoxResult {
-    pub fn get_num_effect_type(&self) -> Option<NumberEffectType> {
-
-        let num_effect_type = match self {
-            DiceBoxResult::BasicAttack(_) => NumberEffectType::Damage,
-            DiceBoxResult::BasicHeal(_) => NumberEffectType::Heal,
-            DiceBoxResult::ChargeShield(_) => return None,
-            DiceBoxResult::None => return None,
-        };
-
-        return Some(num_effect_type);
-    }
 }
 
 impl DiceBox {
@@ -176,7 +162,7 @@ impl DiceBox {
     }
 
     pub fn enemy_basic_attack(power: i32, player: &mut Player, game_context: &mut GameContext) {
-        player.take_hit(power, game_context);
+        player.manage_getting_hit_into_correct_hit_state(power, game_context);
     }
 
     pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {

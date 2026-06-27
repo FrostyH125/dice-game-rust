@@ -44,7 +44,11 @@ pub enum GameState {
 }
 
 // fix shield num effect
-// make shield piece particles
+// make shield num effect and shield action separated from getting hit. what i mean is:
+//  i want the health and shield numbers to only go down when the shield breaks / is put up / player gets hit through shield
+//  maybe we should have a function like put up shield -> bool, and only when the shield is done, change health and shield power and add number effects
+//  and if there is no shield, then do it right away. i guess HitDelay would be the perfect spot for this change in functionality.
+//  just make the player go to hit delay again after a shield break
 // make shield break shimmer particles
 // disable input if the dialogue is running
 
@@ -179,7 +183,7 @@ fn main() {
                 current_enemy.update(&mut player, &mut game_context, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
-                    player.take_hit(10, &mut game_context);
+                    player.manage_getting_hit_into_correct_hit_state(11, &mut game_context);
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {

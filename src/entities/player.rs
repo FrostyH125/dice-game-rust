@@ -2,6 +2,7 @@ use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
     system::timer::Timer,
 };
+use rand::RngExt;
 use raylib::{
     color::Color,
     math::{Rectangle, Vector2},
@@ -10,10 +11,8 @@ use raylib::{
 };
 
 use crate::{
-    EMPTY_SPRITE, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD,
-    entities::{
-        dice::{DICE_WIDTH_HEIGHT, DiceState},
-        dice_box::{DiceBox, DiceBoxResult, HitType},
+    EMPTY_SPRITE, GRAVITY, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
+        dice::{DICE_WIDTH_HEIGHT, DiceState}, dice_box::{DiceBox, DiceBoxResult, HitType}, player,
     }, game_effects::number_battle_effect::NumberEffectType,
 };
 use crate::{
@@ -82,8 +81,6 @@ static PLAYER_BLOCK_BREAK_ANIM: AnimationData = AnimationData {
         Sprite::new(160, 416, 32, 48),
         Sprite::new(192, 416, 32, 48),
         Sprite::new(224, 416, 32, 48),
-        // piece locations (x, y) & [w, h] - from top to bottom, left edge first, right edge second (relative to player x, y of this sprite (224, 416))
-        // (26, 19 [2, 4]) (26, 24 [3, 4]) (26, 29 [2, 5]) (26, 35 [3, 6]) | (29, 19 [2, 2]) (28, 22 [3, 3]) (29, 26 [2, 2]) (29, 29 [2, 4]) (29, 34 [2, 5])
         Sprite::new(224, 416, 32, 48),
         Sprite::new(224, 416, 32, 48),
     ],
@@ -91,15 +88,17 @@ static PLAYER_BLOCK_BREAK_ANIM: AnimationData = AnimationData {
     should_loop: false,
 };
 
-static SHIELD_PIECE_ONE_SPRITE: Sprite = Sprite::new(250, 435, 2, 4);
-static SHIELD_PIECE_TWO_SPRITE: Sprite = Sprite::new(250, 440, 3, 4);
-static SHIELD_PIECE_THREE_SPRITE: Sprite = Sprite::new(250, 445, 2, 5);
-static SHIELD_PIECE_FOUR_SPRITE: Sprite = Sprite::new(250, 451, 3, 6);
-static SHIELD_PIECE_FIVE_SPRITE: Sprite = Sprite::new(253, 435, 2, 2);
-static SHIELD_PIECE_SIX_SPRITE: Sprite = Sprite::new(252, 438, 3, 3);
-static SHIELD_PIECE_SEVEN_SPRITE: Sprite = Sprite::new(253, 442, 2, 2);
-static SHIELD_PIECE_EIGHT_SPRITE: Sprite = Sprite::new(253, 445, 2, 4);
-static SHIELD_PIECE_NINE_SPRITE: Sprite = Sprite::new(253, 450, 2, 5);
+static SHIELD_PIECE_SPRITES_AND_TARGET_POS: &[(Sprite, Vector2)] = &[
+    (Sprite::new(250, 435, 2, 4), Vector2::new(26.0, 19.0)),
+    (Sprite::new(250, 440, 3, 4), Vector2::new(26.0, 24.0)),
+    (Sprite::new(250, 445, 2, 5), Vector2::new(26.0, 29.0)),
+    (Sprite::new(250, 451, 3, 6), Vector2::new(26.0, 35.0)),
+    (Sprite::new(253, 435, 2, 2), Vector2::new(29.0, 19.0)),
+    (Sprite::new(252, 438, 3, 3), Vector2::new(28.0, 22.0)),
+    (Sprite::new(253, 442, 2, 2), Vector2::new(29.0, 26.0)),
+    (Sprite::new(253, 445, 2, 4), Vector2::new(29.0, 29.0)),
+    (Sprite::new(253, 450, 2, 5), Vector2::new(29.0, 34.0)),
+];
 
 #[derive(PartialEq, Eq)]
 pub enum PlayerState {
@@ -134,6 +133,8 @@ pub enum PlayerState {
     WaitingForEnemy,
     HitDelay {
         hit_type: HitType,
+        player_damage: i32,
+        shield_damage: i32
     },
     Dead,
 }
@@ -172,7 +173,7 @@ impl Player {
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
             health: 100,
-            shield_power: 0,
+            shield_power: 10,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
@@ -392,15 +393,16 @@ impl Player {
                     self.waiting_anim.reset();
                 }
             }
-            PlayerState::HitDelay { hit_type } => {
+            PlayerState::HitDelay { hit_type, player_damage, shield_damage } => {
                 let mut should_end_hit_delay = false;
 
                 match hit_type {
                     HitType::Unblocked => {
+                        println!("{}", self.hit_anim.current_frame_index);
                         PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
                         if self.hit_anim.finished_playing {
-                            should_end_hit_delay = true;
                             self.hit_anim.reset();
+                            should_end_hit_delay = true;
                         }
                     }
                     HitType::Blocked => {
@@ -408,17 +410,20 @@ impl Player {
                         if self.hit_anim.finished_playing {
                             should_end_hit_delay = true;
                             self.hit_anim.reset();
-                            // make the number fly like the block is supposed to, i think this would be better to have happen in take_hit()
+                            self.shield_power -= shield_damage;
+                            game_context.battle_effect_manager.add_number_effect(NumberEffectType::Block, self.get_rect(), shield_damage, &game_context.font);
                         }
                     }
                     HitType::BlockedBroken => {
                         PLAYER_BLOCK_BREAK_ANIM.update(&mut self.hit_anim, dt);
                         if self.hit_anim.finished_playing {
-                            should_end_hit_delay = true;
+                            self.add_shield_pieces(game_context);
+                            self.shield_power = 0;
                             self.hit_anim.reset();
-                            // make shield break apart into particles that fly backwards
-                            // make some other particles for dust-ish look
-                            // make number of block taken show and number of damage taken show (probably easiest in take_hit())
+                            game_context.battle_effect_manager.add_number_effect(NumberEffectType::Block, self.get_rect(), shield_damage, &game_context.font);
+
+                            // hit player w leftover damage
+                            self.manage_getting_hit_into_correct_hit_state(player_damage, game_context);
                         }
                     }
                     HitType::PerfectBreak => {
@@ -461,11 +466,11 @@ impl Player {
                     dice_box.draw(d, game_context);
                 }
             }
-            PlayerState::HitDelay { hit_type } => {
+            PlayerState::HitDelay { hit_type, .. } => {
                 match hit_type {
                     HitType::Unblocked => PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
                     HitType::Blocked => PLAYER_BLOCK_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
-                    HitType::BlockedBroken => todo!(),
+                    HitType::BlockedBroken => PLAYER_BLOCK_BREAK_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
                     HitType::PerfectBreak => todo!(),
                 }
 
@@ -555,11 +560,11 @@ impl Player {
         );
     }
 
-    pub fn take_hit(&mut self, damage: i32, game_context: &mut GameContext) {
+    pub fn manage_getting_hit_into_correct_hit_state(&mut self, damage: i32, game_context: &mut GameContext) {
         // had no shield
         if self.shield_power == 0 {
+            self.state = PlayerState::HitDelay { hit_type: HitType::Unblocked, player_damage: damage, shield_damage: 0 };
             self.health -= damage;
-            self.state = PlayerState::HitDelay { hit_type: HitType::Unblocked };
             game_context.battle_effect_manager.add_number_effect(
                 NumberEffectType::Damage,
                 self.get_rect(),
@@ -569,25 +574,25 @@ impl Player {
             return;
         // had shield
         } else if self.shield_power > 0 {
-            self.shield_power -= damage;
 
-            match self.shield_power {
+            let leftover_shield_power = self.shield_power - damage;
+            
+            match leftover_shield_power {
                 // shield blocked all damage
                 1.. => {
-                    self.state = PlayerState::HitDelay { hit_type: HitType::Blocked };
+                    self.state = PlayerState::HitDelay { hit_type: HitType::Blocked, player_damage: 0, shield_damage: damage };
                 }
 
                 // shield blocked it just perfectly with no shield to spare
                 0 => {
-                    self.state = PlayerState::HitDelay { hit_type: HitType::PerfectBreak };
+                    self.state = PlayerState::HitDelay { hit_type: HitType::PerfectBreak, player_damage: 0, shield_damage: damage };
                 }
 
                 // shield broke and some damage came through
                 ..=-1 => {
-                    let overflow = self.shield_power.abs();
-                    self.health -= overflow;
-                    self.shield_power = 0;
-                    self.state = PlayerState::HitDelay { hit_type: HitType::BlockedBroken };
+                    let overflow = leftover_shield_power.abs();
+                    println!("{}", self.shield_power);
+                    self.state = PlayerState::HitDelay { hit_type: HitType::BlockedBroken, player_damage: overflow, shield_damage: self.shield_power };
                 }
             }
         }
@@ -595,7 +600,12 @@ impl Player {
 
     pub fn heal(&mut self, heal_amount: i32, game_context: &mut GameContext) {
         self.health += heal_amount;
-        game_context.battle_effect_manager.add_number_effect(NumberEffectType::Heal, self.get_rect(), heal_amount, &game_context.font);
+        game_context.battle_effect_manager.add_number_effect(
+            NumberEffectType::Heal,
+            self.get_rect(),
+            heal_amount,
+            &game_context.font,
+        );
     }
 
     pub fn add_box(&mut self, dice_box: DiceBox) {
@@ -708,5 +718,30 @@ impl Player {
     pub fn get_rect(&self) -> Rectangle {
         let rect = Rectangle::new(self.pos.x, self.pos.y, PLAYER_WIDTH, PLAYER_HEIGHT);
         return rect;
+    }
+
+    fn add_shield_pieces(&self, game_context: &mut GameContext) {
+        let mut rng = rand::rng();
+
+        for (sprite, pos) in SHIELD_PIECE_SPRITES_AND_TARGET_POS {
+            let x_speed: f32 = rng.random_range(90.0..=120.0);
+            let y_speed: f32 = rng.random_range(300.0..=360.0);
+            let x_dir: f32 = rng.random_range(-1.0..=-0.75);
+            let y_dir: f32 = rng.random_range(-1.0..=0.25);
+            let velocity = Vector2::new(x_dir * x_speed, y_dir * y_speed);
+            let acceleration = Vector2::new(-x_dir * x_speed / 100.0, GRAVITY);
+            let rotation_speed: f32 = rng.random_range(-360.0..=360.0);
+
+            game_context.sprite_particle_system.emit_ex(
+                sprite,
+                *pos + self.pos,
+                velocity,
+                acceleration,
+                rotation_speed,
+                0.0,
+                3.0,
+                true,
+            );
+        }
     }
 }
