@@ -205,7 +205,8 @@ impl Dice {
     }
 
     pub fn stop(&mut self) {
-        let new_value = random_range(1..=self.kind.num_of_sides());
+        // will need to adjust in future for negative dice
+        let new_value = self.roll_anim.current_frame_index as i8 + 1;
         self.value = new_value;
         self.stopped_frame_to_draw = self.value as usize - 1;
         self.state = Stopped;

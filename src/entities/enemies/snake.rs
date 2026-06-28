@@ -301,7 +301,7 @@ impl Snake {
             if self.hand.dice[i].value == 1 {
                 let dice = self.hand.remove_dice(i);
                 let snake_eyes_box = &mut self.data.dice_boxes[0];
-                snake_eyes_box.get_mut_data().add_dice(dice);
+                snake_eyes_box.add_dice(dice);
                 snake_eyes_box.enemy_set_dice_positions();
                 return;
             }

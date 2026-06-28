@@ -303,6 +303,7 @@ impl Player {
                 if self.dice_boxes[self.current_box].get_data().dice_in_box.is_empty() {
                     self.current_box += 1;
                     if self.current_box > self.dice_boxes.len() - 1 {
+                        
                         // even though this value isnt read here, it causes problems
                         // in places like scoreboard that rely on this data
                         self.current_box = self.dice_boxes.len() - 1;

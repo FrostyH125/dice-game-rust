@@ -1,3 +1,9 @@
+
+// this file contains generic functions that dice boxes that dont deviate away from the norm
+// in size or tallying. It's set up in an a la carte kind of way, so that the actual dice boxes
+// can still be as expressive as they want, as they can technically implement any of these
+// methods themselves and have them dispatched in dice_box.rs accordingly.
+
 use std::{i8, usize};
 
 use basic_raylib_core::{
@@ -56,21 +62,28 @@ const NO_DICE_COUNTED_INDEX: usize = usize::MAX;
 pub struct DiceBoxData {
     pub dice_in_box: Vec<Dice>,
     pub info_hover: InfoHover,
+
+    // collect rect fields
+    pub dice_collect_rect: Rectangle,
+    pub collect_rect_offset_x: f32,
+    pub collect_rect_offset_y: f32,
+
+    // tallying fields
     pub current_dice_index: usize,
+    pub base_multi: f64,
+    pub dice_tally_timer: Timer,
     pub tally: i32,
     pub multi: i32,
-    pub base_multi: f64,
     pub total_points: i32,
-    pub scoreboard_info_color: Color,
+    pub previous_dice_value: i8,
+    pub current_streak: i8,
+
+    // positional fields
     pub pos: Vector2,
     pub width: f32,
     pub height: f32,
-    pub dice_collect_rect: Rectangle,
-    pub dice_tally_timer: Timer,
-    pub previous_dice_value: i8,
-    pub current_streak: i8,
-    pub collect_rect_offset_x: f32,
-    pub collect_rect_offset_y: f32,
+
+    pub scoreboard_info_color: Color,
 }
 
 impl DiceBoxData {
@@ -114,7 +127,6 @@ impl DiceBoxData {
 
 impl DiceBoxData {
     pub fn pull_in_dragged_dice(&mut self, hand: &mut Hand) {
-        
         for i in (0..hand.dice.len()).rev() {
             match hand.dice[i].state {
                 DiceState::Stopped => {
@@ -145,12 +157,11 @@ impl DiceBoxData {
         input_state: &InputState,
         dt: f32,
     ) {
-        for i in 0..self.dice_in_box.len() {
-            self.dice_in_box[i].update_for_player(is_player_dragging_any_dice, hand_stopped, input_state, dt);
+        for dice in &mut self.dice_in_box {
+            dice.update_for_player(is_player_dragging_any_dice, hand_stopped, input_state, dt);
         }
     }
 
-    //dice box being empty handled by call site
     pub fn tally_points(&mut self, dt: f32) -> bool {
         self.dice_tally_timer.track(dt);
 
@@ -183,7 +194,7 @@ impl DiceBoxData {
             }
 
             self.total_points = self.get_value();
-            
+
             println!(
                 "Current tally: {}, Current Multi: {}, Current Streak: {}, value of the dice just tallied: {}",
                 self.tally, self.multi, self.current_streak, current_dice.value
@@ -217,9 +228,6 @@ impl DiceBoxData {
         self.tally = 0;
     }
 
-
-    // this function may need to be altered in the future to allow for more specialize dice arrangements,
-    // that would be perfectly fine to do as long as you avoid messes
     pub fn arrange_dice(&mut self) {
         let mut target_pos = self.pos + DICE_DRAW_START_OFFSET;
         let mut times_increased_x = 0;
@@ -360,7 +368,7 @@ impl DiceBoxData {
         self.info_hover.activation_rect =
             Rectangle::new(pos.x, pos.y, self.info_hover.activation_rect.width, self.info_hover.activation_rect.height);
     }
-
+    
     pub fn add_dice(&mut self, dice: Dice) {
         self.dice_in_box.push(dice);
         self.arrange_dice();

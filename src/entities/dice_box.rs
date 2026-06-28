@@ -207,4 +207,19 @@ impl DiceBox {
             DiceBox::SnakeEyes { .. } => todo!("add bite effect"), 
         }
     }
+
+
+    // these two methods are just for convenience
+    // is it a bit smelly to have one in both dice box data and dice box... ? maybe
+    // but dice box data itself needs access to this method. i dont want to need to access data
+    // every time i need to do this however
+    pub fn add_dice(&mut self, dice: Dice) {
+        let data = self.get_mut_data();
+        data.add_dice(dice);
+    }
+
+    pub fn remove_dice(&mut self, index_to_remove: usize) -> Dice {
+        let data = self.get_mut_data();
+        return data.remove_dice(index_to_remove);
+    }
 }
