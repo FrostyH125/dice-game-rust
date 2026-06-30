@@ -222,4 +222,9 @@ impl DiceBox {
         let data = self.get_mut_data();
         return data.remove_dice(index_to_remove);
     }
+
+    pub fn emit_smoke_at_each_dice(&mut self, game_context: &mut GameContext) {
+        let data = self.get_mut_data();
+        data.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+    }
 }

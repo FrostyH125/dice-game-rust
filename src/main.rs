@@ -43,14 +43,11 @@ pub enum GameState {
     GameOver,
 }
 
-// fix shield num effect
-// make shield num effect and shield action separated from getting hit. what i mean is:
-//  i want the health and shield numbers to only go down when the shield breaks / is put up / player gets hit through shield
-//  maybe we should have a function like put up shield -> bool, and only when the shield is done, change health and shield power and add number effects
-//  and if there is no shield, then do it right away. i guess HitDelay would be the perfect spot for this change in functionality.
-//  just make the player go to hit delay again after a shield break
+// perfect break implementation
+// snake bite hit effect
 // make shield break shimmer particles
 // disable input if the dialogue is running
+// clean up const variables
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference

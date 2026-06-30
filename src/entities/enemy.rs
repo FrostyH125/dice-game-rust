@@ -90,6 +90,11 @@ impl EnemyData {
     pub fn get_rect(&self) -> Rectangle {
         return Rectangle::new(self.pos.x, self.pos.y, self.width, self.height);
     }
+
+    pub fn get_center(&self) -> Vector2 {
+        let rect = self.get_rect();
+        return Vector2::new(rect.x + (rect.width / 2.0), rect.y + (rect.height / 2.0));
+    }
 }
 
 pub enum Enemy {

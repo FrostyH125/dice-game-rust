@@ -30,7 +30,6 @@ impl DialogueSystem {
         }
     }
     
-    // 480 x 270
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, font: &Font) {
         
         if let Some(dialogue) = &self.current_dialogue {

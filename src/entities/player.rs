@@ -173,7 +173,7 @@ impl Player {
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
             health: 100,
-            shield_power: 10,
+            shield_power: 30,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
@@ -381,7 +381,7 @@ impl Player {
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
                 for dice_box in &mut self.dice_boxes {
-                    dice_box.get_mut_data().emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                    dice_box.emit_smoke_at_each_dice(game_context);
                     dice_box.reset(&mut self.hand.dice, PLAYER_CENTER + DICE_WIDTH_HEIGHT / 2.0);
                 }
                 self.state = PlayerState::WaitingForEnemy;
@@ -399,7 +399,6 @@ impl Player {
 
                 match hit_type {
                     HitType::Unblocked => {
-                        println!("{}", self.hit_anim.current_frame_index);
                         PLAYER_HIT_ANIM.update(&mut self.hit_anim, dt);
                         if self.hit_anim.finished_playing {
                             self.hit_anim.reset();

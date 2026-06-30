@@ -74,7 +74,6 @@ impl NumberEffect {
                 }
             }
             NumberEffectType::Heal => {
-                
                 let vel_x: f32 = 0.0;
                 let vel_y: f32 = -25.0;
 
@@ -96,22 +95,17 @@ impl NumberEffect {
                 }
             }
             NumberEffectType::Block => {
-
-                // WHENEVER YOU COME HERE
-                // make the block number move very slowly upward
-                // this signifies a different movement from being attacked
-                // so you can tell at a glance this is a block (unmoving) number vs
-                // the number flying out of you at an angle like damage would
-                
-                let vel_x: f32 = rng.random_range(-5.0..=1.0);
-                let vel_y: f32 = rng.random_range(-150.0..=-120.0);
+                let vel_x: f32 = 0.0;
+                let vel_y: f32 = rng.random_range(-90.0..=-80.0);
 
                 let acc_x: f32 = 0.0;
-                let acc_y: f32 = GRAVITY;
+                let acc_y: f32 = -vel_y / 1.5;
+
+                const SHIELD_NUM_OFFSET: Vector2 = Vector2::new(10.0, 0.0);
 
                 NumberEffect {
                     value_as_str,
-                    pos,
+                    pos: pos + SHIELD_NUM_OFFSET,
                     velocity: Vector2::new(vel_x, vel_y),
                     acceleration: Vector2::new(acc_x, acc_y),
                     font_size,
@@ -119,7 +113,7 @@ impl NumberEffect {
                     color: Color::SANDYBROWN,
                     start_pos_x,
                     start_pos_y,
-                    lifespan: 2.5,
+                    lifespan: 1.5,
                     vertical_sine_wave: false,
                 }
             }

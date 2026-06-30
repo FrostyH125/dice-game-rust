@@ -7,7 +7,7 @@ use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font};
 use crate::{
     EMPTY_SPRITE, GameContext, VIRTUAL_WIDTH,
     entities::{
-        dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
+        dice::{Dice, DiceKind, DiceState},
         dice_box::DiceBox,
         enemy::{
             ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData,
@@ -19,14 +19,9 @@ use crate::{
     },
 };
 
-const BEFORE_ATTACKING_TIME: f32 = 2.0;
-const SNAKE_POS: Vector2 = Vector2::new(VIRTUAL_WIDTH - 116.0, 125.0);
+const SNAKE_EYES_INDEX: usize = 0;
 const SNAKE_WIDTH: u32 = 32;
 const SNAKE_HEIGHT: u32 = 48;
-const CENTER_OF_SNAKE: Vector2 =
-    Vector2::new(SNAKE_POS.x + SNAKE_WIDTH as f32 / 2.0, SNAKE_POS.y + SNAKE_HEIGHT as f32 / 2.0);
-
-const SNAKE_EYES_INDEX: usize = 0;
 
 static SNAKE_IDLE_ANIM: AnimationData = AnimationData {
     frames: &[
@@ -45,9 +40,13 @@ static SNAKE_ATTACK_ANIM: AnimationData = AnimationData {
         Sprite::new(176, 224, 32, 48),
         Sprite::new(208, 224, 32, 48),
         Sprite::new(240, 224, 32, 48),
+        Sprite::new(144, 224, 32, 48),
+        Sprite::new(176, 224, 32, 48),
+        Sprite::new(208, 224, 32, 48),
+        Sprite::new(240, 224, 32, 48),
     ],
-    frame_duration: BEFORE_ATTACKING_TIME / 8.0,
-    should_loop: true,
+    frame_duration: 0.25,
+    should_loop: false,
 };
 
 static SNAKE_HIT_ANIM: AnimationData = AnimationData {
@@ -67,7 +66,6 @@ pub struct Snake {
     dice_add_timer: Timer,
     before_stopping_dice_timer: Timer,
     before_tally_timer: Timer,
-    before_attack_timer: Timer,
     turn_end_timer: Timer,
     idle_anim: SpriteAnimationInstance,
     attack_anim: SpriteAnimationInstance,
@@ -76,11 +74,13 @@ pub struct Snake {
 
 impl Snake {
     pub fn new(font: &Font) -> Self {
+        const SNAKE_START_POS: Vector2 = Vector2::new(VIRTUAL_WIDTH - 116.0, 125.0);
+        
         Snake {
             data: EnemyData {
                 health: 100,
                 shield_power: 0,
-                pos: SNAKE_POS,
+                pos: SNAKE_START_POS,
                 state: EnemyState::WaitingForPlayer,
                 width: 32.0,
                 height: 48.0,
@@ -99,7 +99,6 @@ impl Snake {
             dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
-            before_attack_timer: Timer::new(BEFORE_ATTACKING_TIME),
             turn_end_timer: Timer::new(2.0),
             idle_anim: SpriteAnimationInstance::new(),
             attack_anim: SpriteAnimationInstance::new(),
@@ -196,10 +195,9 @@ impl Snake {
             }
             EnemyState::BeforeActingDelay => {
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
-                self.before_attack_timer.track(dt);
 
-                if self.before_attack_timer.is_done() {
-                    self.before_attack_timer.reset();
+                if self.attack_anim.finished_playing {
+                    self.attack_anim.reset();
                     self.data.state = EnemyState::Acting
                 }
             }
@@ -212,7 +210,7 @@ impl Snake {
                     player,
                     &mut self.data.health,
                     &mut self.data.shield_power,
-                    game_context
+                    game_context,
                 );
 
                 self.data.state = EnemyState::EndTurnDelay;
@@ -228,13 +226,13 @@ impl Snake {
                 }
             }
             EnemyState::EndTurn => {
-                self.data.state = EnemyState::WaitingForPlayer;
-                self.data.dice_boxes[SNAKE_EYES_INDEX]
-                    .get_mut_data()
-                    .emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                let center_pos = self.data.get_center();
+
+                self.data.dice_boxes[SNAKE_EYES_INDEX].emit_smoke_at_each_dice(game_context);
                 self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
-                self.data.dice_boxes[SNAKE_EYES_INDEX]
-                    .reset(&mut self.hand.dice, CENTER_OF_SNAKE + DICE_WIDTH_HEIGHT / 2.0);
+                self.data.dice_boxes[SNAKE_EYES_INDEX].reset(&mut self.hand.dice, center_pos);
+
+                self.data.state = EnemyState::WaitingForPlayer;
             }
             EnemyState::WaitingForPlayer => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
@@ -243,7 +241,7 @@ impl Snake {
                     self.data.state = EnemyState::StartTurn;
                 }
             }
-            EnemyState::HitDelay {..} => {
+            EnemyState::HitDelay { .. } => {
                 SNAKE_HIT_ANIM.update(&mut self.hit_anim, dt);
                 if self.hit_anim.finished_playing {
                     if self.data.health <= 0 {
@@ -282,7 +280,7 @@ impl Snake {
                 SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, &game_context.texture);
                 // hand not supposed to be drawn here, so thats why this exists
             }
-            EnemyState::HitDelay {..} => {
+            EnemyState::HitDelay { .. } => {
                 SNAKE_HIT_ANIM.draw(&mut self.hit_anim, d, self.data.pos, &game_context.texture);
             }
             EnemyState::BeforeActingDelay | EnemyState::Acting => {
