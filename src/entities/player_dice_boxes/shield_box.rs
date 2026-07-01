@@ -18,7 +18,7 @@ use crate::{
     system::info_hover::InfoHover,
 };
 
-const BASE_MULTI_TEXT_COLOR: Color = Color::new(180, 197, 209, 255);
+
 static SHIELD_BOX_SPRITE: Sprite = Sprite::new(14, 128, 52, 16);
 static PLAYER_SHIELD_UP_ANIM: AnimationData = AnimationData {
     frames: &[
@@ -69,6 +69,9 @@ impl ShieldBox {
     }
 
     pub fn draw_box_and_dice(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+
+        const BASE_MULTI_TEXT_COLOR: Color = Color::new(180, 197, 209, 255);
+        
         SHIELD_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
         d.draw_rectangle_lines(
             self.data.dice_collect_rect.x as i32,

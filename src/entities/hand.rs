@@ -96,7 +96,7 @@ impl Hand {
         if self.dice_stop_timer.is_done() {
             self.dice_stop_timer.reset();
 
-            self.dice[self.current_index_of_dice_stopping].stop();
+            self.dice[self.current_index_of_dice_stopping].state = DiceState::Stopping;
             self.current_index_of_dice_stopping += 1;
 
             //is done
@@ -115,7 +115,7 @@ impl Hand {
 
     pub fn reset_dice_and_arrange_hand(&mut self) {
         for i in 0..self.dice.len() {
-            self.dice[i].reset();
+            self.dice[i].set_rolling();
         }
         
         self.arrange_hand(true);

@@ -3,7 +3,7 @@ use crate::entities::dice_box_data::{D4_DICE_BORDER_SPRITE, D6_DICE_BORDER_SPRIT
 use self::DiceState::*;
 use basic_raylib_core::{
     graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::{timer::Timer, input_handler::InputState},
+    system::{input_handler::InputState, timer::Timer},
     utils::math_utils::smooth_lerp,
 };
 use rand::random_range;
@@ -46,6 +46,7 @@ pub enum DiceState {
         should_roll_after: bool,
     },
     Rolling,
+    Stopping,
     Dragging,
 }
 
@@ -102,7 +103,15 @@ impl Dice {
 
     pub fn update_for_enemy(&mut self, dt: f32) {
         match self.state {
-            DiceState::Rolling => self.update_roll_anim_random(dt),
+            DiceState::Stopping => {
+                if self.update_roll_anim_random(dt) {
+                    self.stop();
+                    self.state = Stopped;
+                }
+            }
+            DiceState::Rolling => {
+                self.update_roll_anim_random(dt);
+            }
             Rearranging { old_pos, target_pos, should_roll_after } => {
                 self.rearranging_timer.track(dt);
 
@@ -138,6 +147,12 @@ impl Dice {
         dt: f32,
     ) {
         match self.state {
+            DiceState::Stopping => {
+                if self.update_roll_anim_random(dt) {
+                    self.stop();
+                    self.state = Stopped;
+                }
+            }
             DiceState::Stopped => {
                 if !hand_stopped {
                     return;
@@ -191,7 +206,9 @@ impl Dice {
                     self.state = DiceState::Stopped;
                 }
             }
-            DiceState::Rolling => self.update_roll_anim_random(dt),
+            DiceState::Rolling => {
+                self.update_roll_anim_random(dt);
+            }
         }
     }
 
@@ -212,17 +229,20 @@ impl Dice {
         self.state = Stopped;
     }
 
-    pub fn reset(&mut self) {
+    pub fn set_rolling(&mut self) {
         self.state = Rolling;
     }
 
-    pub fn update_roll_anim_random(&mut self, dt: f32) {
+    pub fn update_roll_anim_random(&mut self, dt: f32) -> bool {
         self.roll_anim.current_frame_time += dt;
 
         while self.roll_anim.current_frame_time >= DICE_ROLL_FRAME_DURATION {
             let new_frame_index = random_range(0..=self.kind.num_of_sides() as u8 - 1);
             self.roll_anim.current_frame_index = new_frame_index;
             self.roll_anim.current_frame_time -= DICE_ROLL_FRAME_DURATION;
+            return true;
         }
+
+        return false;
     }
 }

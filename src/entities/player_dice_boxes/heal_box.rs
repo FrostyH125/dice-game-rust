@@ -24,7 +24,6 @@ use crate::{
     system::info_hover::InfoHover,
 };
 
-const BASE_MULTI_TEXT_COLOR: Color = Color::new(146, 215, 200, 255);
 static HEAL_BOX_SPRITE: Sprite = Sprite::new(14, 144, 52, 16);
 static PLAYER_HEAL_ANIM: AnimationData = AnimationData {
     frames: &[
@@ -83,6 +82,9 @@ impl HealBox {
     }
 
     pub fn draw_box_and_dice(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+
+        const BASE_MULTI_TEXT_COLOR: Color = Color::new(146, 215, 200, 255);
+        
         HEAL_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
         d.draw_rectangle_lines(
             self.data.dice_collect_rect.x as i32,

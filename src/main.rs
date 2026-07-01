@@ -46,6 +46,7 @@ pub enum GameState {
 // perfect break implementation
 // snake bite hit effect
 // make shield break shimmer particles
+// make dice wait until a perfect time to stop
 // disable input if the dialogue is running
 // clean up const variables
 // separate reset boxes and reset hand on player without changing functionality. have one reset() that includes both

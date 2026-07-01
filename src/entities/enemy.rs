@@ -1,9 +1,6 @@
 use crate::{
-    GameContext, VIRTUAL_WIDTH,
-    entities::{
-        dice_box::{DiceBox, HitType},
-        enemies::snake::Snake,
-        player::Player,
+    GameContext, VIRTUAL_WIDTH, entities::{
+        dice::DiceState, dice_box::{DiceBox, HitType}, enemies::snake::Snake, hand::Hand, player::Player,
     },
 };
 use raylib::{
@@ -83,12 +80,27 @@ pub struct EnemyData {
 
     // added the boxes as official enemy data for the scoreboard to function
     pub dice_boxes: Vec<DiceBox>,
+    pub hand: Hand,
     pub current_box: usize,
 }
 
 impl EnemyData {
     pub fn get_rect(&self) -> Rectangle {
         return Rectangle::new(self.pos.x, self.pos.y, self.width, self.height);
+    }
+
+    pub fn are_dice_back_in_hand(&self) -> bool {
+        
+        for dice in &self.hand.dice {
+            match dice.state {
+                // only move on if every dice is rolling
+                DiceState::Rolling => continue,
+                _ => return false
+            }
+        }
+
+        // can only make it here if each dice is rolling
+        return true;
     }
 }
 

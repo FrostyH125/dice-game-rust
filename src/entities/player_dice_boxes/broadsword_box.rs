@@ -9,9 +9,15 @@ use raylib::{
     texture::Texture2D,
 };
 
-use crate::{GameContext, entities::dice_box_data::{DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X, STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH}, system::info_hover::InfoHover};
+use crate::{
+    GameContext,
+    entities::dice_box_data::{
+        DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
+        STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH,
+    },
+    system::info_hover::InfoHover,
+};
 
-const BASE_MULTI_TEXT_COLOR: Color = Color::new(208, 184, 184, 255);
 static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14, 112, 52, 16);
 static PLAYER_ATTACK_ANIM: AnimationData = AnimationData {
     frames: &[
@@ -26,7 +32,7 @@ static PLAYER_ATTACK_ANIM: AnimationData = AnimationData {
         Sprite::new(224, 272, 32, 48),
     ],
     frame_duration: 0.075,
-    should_loop: false
+    should_loop: false,
 };
 
 pub struct BroadSwordBox {
@@ -45,23 +51,21 @@ impl BroadSwordBox {
                 STANDARD_BOX_HEIGHT,
                 InfoHover::new(
                     "Broadsword:\n just an average weapon, should be enough to defend yourself for a while...",
-                    Rectangle::new(
-                        0.0,
-                        0.0,
-                        STANDARD_BOX_WIDTH,
-                        STANDARD_BOX_HEIGHT,
-                    ),
+                    Rectangle::new(0.0, 0.0, STANDARD_BOX_WIDTH, STANDARD_BOX_HEIGHT),
                     font,
                     5.0,
                     0.5,
                 ),
                 Color::DARKRED,
-                1.0
+                1.0,
             ),
         }
     }
 
     pub fn draw_box_and_dice(&self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
+
+        const BASE_MULTI_TEXT_COLOR: Color = Color::new(208, 184, 184, 255);
+        
         BROADSWORD_BOX_SPRITE.draw(d, self.data.pos, &game_context.texture);
         d.draw_rectangle_lines(
             self.data.dice_collect_rect.x as i32,

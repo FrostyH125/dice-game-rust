@@ -1,5 +1,7 @@
 use basic_raylib_core::{
-    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance}, system::timer::Timer, utils::math_utils::center_of_rect,
+    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
+    system::timer::Timer,
+    utils::math_utils::center_of_rect,
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font};
 
@@ -61,7 +63,6 @@ static SNAKE_HIT_ANIM: AnimationData = AnimationData {
 
 pub struct Snake {
     pub data: EnemyData,
-    pub hand: Hand,
     dice_add_timer: Timer,
     before_stopping_dice_timer: Timer,
     before_tally_timer: Timer,
@@ -74,9 +75,18 @@ pub struct Snake {
 impl Snake {
     pub fn new(font: &Font) -> Self {
         const SNAKE_START_POS: Vector2 = Vector2::new(VIRTUAL_WIDTH - 116.0, 125.0);
-        
+
         Snake {
             data: EnemyData {
+                hand: Hand::new(
+                    vec![
+                        Dice::new(DiceKind::D4),
+                        Dice::new(DiceKind::D4),
+                        Dice::new(DiceKind::D4),
+                        Dice::new(DiceKind::D4),
+                    ],
+                    Vector2::new(ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD),
+                ),
                 health: 100,
                 shield_power: 0,
                 pos: SNAKE_START_POS,
@@ -86,15 +96,7 @@ impl Snake {
                 dice_boxes: vec![DiceBox::SnakeEyes { snake_eyes_box: SnakeEyes::new(font) }],
                 current_box: SNAKE_EYES_INDEX,
             },
-            hand: Hand::new(
-                vec![
-                    Dice::new(DiceKind::D4),
-                    Dice::new(DiceKind::D4),
-                    Dice::new(DiceKind::D4),
-                    Dice::new(DiceKind::D4),
-                ],
-                Vector2::new(ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD),
-            ),
+            
             dice_add_timer: Timer::new(1.5),
             before_stopping_dice_timer: Timer::new(1.0),
             before_tally_timer: Timer::new(1.0),
@@ -106,31 +108,22 @@ impl Snake {
     }
 
     pub fn update(&mut self, player: &mut Player, game_context: &mut GameContext, dt: f32) {
-        self.hand.update_for_enemy(dt);
+        self.data.hand.update_for_enemy(dt);
         self.data.dice_boxes[SNAKE_EYES_INDEX].update_for_enemy(&game_context.input_state, dt);
 
         match self.data.state {
             EnemyState::StartTurn => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
-                self.hand.reset_dice_and_arrange_hand();
+                self.data.hand.reset_dice_and_arrange_hand();
                 self.dice_add_timer.reset();
                 self.data.state = EnemyState::WaitingForDiceToReturnToHand;
             }
             EnemyState::WaitingForDiceToReturnToHand => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
-                let mut should_move_on = false;
 
-                for dice in &self.hand.dice {
-                    if let DiceState::Rolling = dice.state {
-                        should_move_on = true;
-                    } else {
-                        should_move_on = false;
-                    }
-                }
-
-                if should_move_on {
+                if self.data.are_dice_back_in_hand() {
                     self.data.state = EnemyState::StartDiceStopDelayTime;
-                    self.hand.roll_dice();
+                    self.data.hand.roll_dice();
                 }
             }
             EnemyState::StartDiceStopDelayTime => {
@@ -139,12 +132,12 @@ impl Snake {
                 if self.before_stopping_dice_timer.is_done() {
                     self.before_stopping_dice_timer.reset();
                     self.data.state = EnemyState::StoppingDice;
-                    self.hand.begin_dice_stop();
+                    self.data.hand.begin_dice_stop();
                 }
             }
             EnemyState::StoppingDice => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
-                if self.hand.stop_dice(dt) {
+                if self.data.hand.stop_dice(dt) {
                     self.data.state = EnemyState::EvaluateRoll;
                 }
             }
@@ -227,9 +220,11 @@ impl Snake {
             EnemyState::EndTurn => {
                 let center_pos = center_of_rect(self.data.get_rect());
 
-                self.data.dice_boxes[SNAKE_EYES_INDEX].emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
-                self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
-                self.data.dice_boxes[SNAKE_EYES_INDEX].reset_and_place_dice_at_pos_for_next_round(&mut self.hand.dice, center_pos);
+                self.data.dice_boxes[SNAKE_EYES_INDEX]
+                    .emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                self.data.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+                self.data.dice_boxes[SNAKE_EYES_INDEX]
+                    .reset_and_place_dice_at_pos_for_next_round(&mut self.data.hand.dice, center_pos);
 
                 self.data.state = EnemyState::WaitingForPlayer;
             }
@@ -284,19 +279,19 @@ impl Snake {
             }
             EnemyState::BeforeActingDelay | EnemyState::Acting => {
                 SNAKE_ATTACK_ANIM.draw(&mut self.attack_anim, d, self.data.pos, &game_context.texture);
-                self.hand.draw(d, &game_context.texture);
+                self.data.hand.draw(d, &game_context.texture);
             }
             _ => {
                 SNAKE_IDLE_ANIM.draw(&self.idle_anim, d, self.data.pos, &game_context.texture);
-                self.hand.draw(d, &game_context.texture);
+                self.data.hand.draw(d, &game_context.texture);
             }
         }
     }
 
     fn add_one_die(&mut self) {
-        for i in (0..self.hand.dice.len()).rev() {
-            if self.hand.dice[i].value == 1 {
-                let dice = self.hand.remove_dice(i);
+        for i in (0..self.data.hand.dice.len()).rev() {
+            if self.data.hand.dice[i].value == 1 {
+                let dice = self.data.hand.remove_dice(i);
                 let snake_eyes_box = &mut self.data.dice_boxes[0];
                 snake_eyes_box.add_dice(dice);
                 snake_eyes_box.enemy_set_dice_positions();
@@ -308,7 +303,7 @@ impl Snake {
     fn check_for_two_dice_with_value_one_in_hand(&self) -> bool {
         let mut num_of_ones = 0;
 
-        for dice in &self.hand.dice {
+        for dice in &self.data.hand.dice {
             if dice.value == 1 {
                 num_of_ones += 1;
             }
