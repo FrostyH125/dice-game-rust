@@ -1,6 +1,5 @@
 use basic_raylib_core::{
-    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::timer::Timer,
+    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance}, system::timer::Timer, utils::math_utils::center_of_rect,
 };
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font};
 
@@ -113,7 +112,7 @@ impl Snake {
         match self.data.state {
             EnemyState::StartTurn => {
                 SNAKE_IDLE_ANIM.update(&mut self.idle_anim, dt);
-                self.hand.reset_hand();
+                self.hand.reset_dice_and_arrange_hand();
                 self.dice_add_timer.reset();
                 self.data.state = EnemyState::WaitingForDiceToReturnToHand;
             }
@@ -226,11 +225,11 @@ impl Snake {
                 }
             }
             EnemyState::EndTurn => {
-                let center_pos = self.data.get_center();
+                let center_pos = center_of_rect(self.data.get_rect());
 
-                self.data.dice_boxes[SNAKE_EYES_INDEX].emit_smoke_at_each_dice(game_context);
+                self.data.dice_boxes[SNAKE_EYES_INDEX].emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
                 self.hand.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
-                self.data.dice_boxes[SNAKE_EYES_INDEX].reset(&mut self.hand.dice, center_pos);
+                self.data.dice_boxes[SNAKE_EYES_INDEX].reset_and_place_dice_at_pos_for_next_round(&mut self.hand.dice, center_pos);
 
                 self.data.state = EnemyState::WaitingForPlayer;
             }

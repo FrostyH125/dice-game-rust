@@ -1,6 +1,5 @@
 use basic_raylib_core::{
-    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance},
-    system::timer::Timer,
+    graphics::{animation_data::AnimationData, sprite::Sprite, sprite_animation::SpriteAnimationInstance}, system::{sprite_particle_system::SpriteParticleSystem, timer::Timer}, utils::math_utils::{self, center_of_rect},
 };
 use rand::RngExt;
 use raylib::{
@@ -12,7 +11,7 @@ use raylib::{
 
 use crate::{
     EMPTY_SPRITE, GRAVITY, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
-        dice::{DICE_WIDTH_HEIGHT, DiceState}, dice_box::{DiceBox, DiceBoxResult, HitType}, player,
+        dice::{DiceState}, dice_box::{DiceBox, DiceBoxResult, HitType}, 
     }, game_effects::number_battle_effect::NumberEffectType,
 };
 use crate::{
@@ -27,7 +26,6 @@ use crate::{
 pub const PLAYER_WIDTH: f32 = 32.0;
 pub const PLAYER_HEIGHT: f32 = 48.0;
 const PLAYER_POS: Vector2 = Vector2::new(84.0, 125.0);
-const PLAYER_CENTER: Vector2 = Vector2::new(PLAYER_POS.x + PLAYER_WIDTH / 2.0, PLAYER_POS.y + PLAYER_HEIGHT / 2.0);
 const PLAYER_HEALTH_TEXT_Y_OFFSET_FROM_BOTTOM_OF_SPRITE: f32 = 6.0;
 
 static PLAYER_WALK_ANIM: AnimationData = AnimationData {
@@ -218,7 +216,7 @@ impl Player {
                 PLAYER_WALK_ANIM.update(&mut self.walk_anim, dt);
             }
             PlayerState::StartTurn => {
-                self.reset();
+                self.reset_player_dice_and_arrange_hand();
                 self.state = PlayerState::WaitingForDiceToMoveToHand;
                 self.walk_anim.reset();
             }
@@ -261,7 +259,7 @@ impl Player {
                 PLAYER_THINKING_ANIM.update(&mut self.thinking_anim, dt);
 
                 if self.hand.dice.len() > 0 && reroll_button.is_pressed(&game_context.input_state) {
-                    self.hand.reset_hand();
+                    self.hand.reset_dice_and_arrange_hand();
                     self.hand.begin_dice_stop();
 
                     confirm_button.deactivate();
@@ -380,10 +378,8 @@ impl Player {
             }
             PlayerState::EndTurn => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
-                for dice_box in &mut self.dice_boxes {
-                    dice_box.emit_smoke_at_each_dice(game_context);
-                    dice_box.reset(&mut self.hand.dice, PLAYER_CENTER + DICE_WIDTH_HEIGHT / 2.0);
-                }
+
+                self.reset_boxes_and_put_dice_at_center_pos(true, Some(&mut game_context.sprite_particle_system));
                 self.state = PlayerState::WaitingForEnemy;
             }
             PlayerState::WaitingForEnemy => {
@@ -446,12 +442,39 @@ impl Player {
         self.was_dragging_dice = self.is_dragging_dice;
     }
 
-    pub fn reset(&mut self) {
-        for dice_box in &mut self.dice_boxes {
-            dice_box.reset(&mut self.hand.dice, PLAYER_CENTER + DICE_WIDTH_HEIGHT / 2.0);
-        }
+    // this fn is basically only used in main.rs for game over and transition stuff
+    pub fn reset_boxes_and_hand(&mut self) {
 
-        self.hand.reset_hand();
+        let center = center_of_rect(self.get_rect());
+        
+        for dice_box in &mut self.dice_boxes {
+            dice_box.reset_and_place_dice_at_pos_for_next_round(&mut self.hand.dice, center);
+        }
+        self.current_box = 0;
+
+        self.hand.reset_dice_and_arrange_hand();
+    }
+
+    fn reset_player_dice_and_arrange_hand(&mut self) {
+        self.hand.reset_dice_and_arrange_hand();
+    }
+
+    fn reset_boxes_and_put_dice_at_center_pos(&mut self, emit_smoke: bool, sprite_particle_system: Option<&mut SpriteParticleSystem>) {
+        let center = center_of_rect(self.get_rect());
+        
+        if emit_smoke {
+            let ps = sprite_particle_system.expect("particle system required when emit_smoke is true");
+        
+            for dice_box in &mut self.dice_boxes {
+                dice_box.emit_smoke_at_each_dice(ps);
+                dice_box.reset_and_place_dice_at_pos_for_next_round(&mut self.hand.dice, center);
+            }
+        } else {
+            for dice_box in &mut self.dice_boxes {
+                dice_box.reset_and_place_dice_at_pos_for_next_round(&mut self.hand.dice, center);
+            }
+        }
+        
         self.current_box = 0;
     }
 

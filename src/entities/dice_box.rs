@@ -9,7 +9,7 @@
 // dice boxes having different animations for player and enemy being the main differences)
 
 
-use basic_raylib_core::{graphics::sprite_animation::SpriteAnimationInstance, system::input_handler::InputState};
+use basic_raylib_core::{graphics::sprite_animation::SpriteAnimationInstance, system::{input_handler::InputState, sprite_particle_system::SpriteParticleSystem}};
 use raylib::{
     math::{Vector2}, prelude::RaylibDrawHandle, texture::Texture2D
 };
@@ -165,7 +165,7 @@ impl DiceBox {
         player.manage_getting_hit_into_correct_hit_state(power, game_context);
     }
 
-    pub fn reset(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {
+    pub fn reset_and_place_dice_at_pos_for_next_round(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {
         self.get_mut_data().reset_box(dice_in_hand, dice_origin_pos);
     }
 
@@ -223,8 +223,8 @@ impl DiceBox {
         return data.remove_dice(index_to_remove);
     }
 
-    pub fn emit_smoke_at_each_dice(&mut self, game_context: &mut GameContext) {
+    pub fn emit_smoke_at_each_dice(&mut self, sprite_particle_system: &mut SpriteParticleSystem) {
         let data = self.get_mut_data();
-        data.emit_smoke_at_each_dice(&mut game_context.sprite_particle_system);
+        data.emit_smoke_at_each_dice(sprite_particle_system);
     }
 }

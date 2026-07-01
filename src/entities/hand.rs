@@ -113,7 +113,7 @@ impl Hand {
         }
     }
 
-    pub fn reset_hand(&mut self) {
+    pub fn reset_dice_and_arrange_hand(&mut self) {
         for i in 0..self.dice.len() {
             self.dice[i].reset();
         }

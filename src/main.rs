@@ -48,6 +48,7 @@ pub enum GameState {
 // make shield break shimmer particles
 // disable input if the dialogue is running
 // clean up const variables
+// separate reset boxes and reset hand on player without changing functionality. have one reset() that includes both
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference
@@ -184,7 +185,7 @@ fn main() {
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {
-                    player.reset();
+                    player.reset_boxes_and_hand();
                     state = GameState::Travelling;
                     player.state = PlayerState::Walking;
                 }
@@ -203,7 +204,7 @@ fn main() {
 
                 if restart_pressed {
                     state = GameState::Travelling;
-                    player.reset();
+                    player.reset_boxes_and_hand();
                     player.state = PlayerState::Walking;
                     current_enemy = get_random_enemy(&game_context.font);
                 }
