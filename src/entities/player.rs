@@ -81,6 +81,7 @@ static PLAYER_BLOCK_BREAK_ANIM: AnimationData = AnimationData {
         Sprite::new(224, 416, 32, 48),
         Sprite::new(224, 416, 32, 48),
         Sprite::new(224, 416, 32, 48),
+        Sprite::new(224, 416, 32, 48),
     ],
     frame_duration: 0.1,
     should_loop: false,
@@ -171,7 +172,7 @@ impl Player {
             acting_anim: SpriteAnimationInstance::new(),
             pos: PLAYER_POS,
             health: 100,
-            shield_power: 30,
+            shield_power: 10,
             state: PlayerState::Walking,
             acting_timer: Timer::new(1.0),
             end_turn_delay_timer: Timer::new(2.0),
@@ -413,7 +414,7 @@ impl Player {
                     HitType::BlockedBroken => {
                         PLAYER_BLOCK_BREAK_ANIM.update(&mut self.hit_anim, dt);
                         if self.hit_anim.finished_playing {
-                            self.add_shield_pieces(game_context);
+                            self.add_shield_pieces_normal_break(&mut game_context.sprite_particle_system);
                             self.shield_power = 0;
                             self.hit_anim.reset();
                             game_context.battle_effect_manager.add_number_effect(NumberEffectType::Block, self.get_rect(), shield_damage, &game_context.font);
@@ -423,8 +424,13 @@ impl Player {
                         }
                     }
                     HitType::PerfectBreak => {
-                        todo!()
-                        // play the blocking animation, have a screen pause (?), and have a ton of shiny particles of lighter sparkle colors and more numerous and faster
+                        PLAYER_BLOCK_BREAK_ANIM.update(&mut self.hit_anim, dt);
+                        if self.hit_anim.finished_playing {
+                            self.add_shield_pieces_perfect_break(&mut game_context.sprite_particle_system);
+                            self.hit_anim.reset();
+                            game_context.battle_effect_manager.add_number_effect(NumberEffectType::Block, self.get_rect(), shield_damage, &game_context.font);
+                            should_end_hit_delay = true;
+                        }
                     }
                 }
 
@@ -494,7 +500,7 @@ impl Player {
                     HitType::Unblocked => PLAYER_HIT_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
                     HitType::Blocked => PLAYER_BLOCK_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
                     HitType::BlockedBroken => PLAYER_BLOCK_BREAK_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
-                    HitType::PerfectBreak => todo!(),
+                    HitType::PerfectBreak => PLAYER_BLOCK_BREAK_ANIM.draw(&mut self.hit_anim, d, self.pos, &game_context.texture),
                 }
 
                 for dice_box in &mut self.dice_boxes {
@@ -743,7 +749,7 @@ impl Player {
         return rect;
     }
 
-    fn add_shield_pieces(&self, game_context: &mut GameContext) {
+    fn add_shield_pieces_normal_break(&self, sprite_particle_system: &mut SpriteParticleSystem) {
         let mut rng = rand::rng();
 
         for (sprite, pos) in SHIELD_PIECE_SPRITES_AND_TARGET_POS {
@@ -755,7 +761,7 @@ impl Player {
             let acceleration = Vector2::new(-x_dir * x_speed / 100.0, GRAVITY);
             let rotation_speed: f32 = rng.random_range(-360.0..=360.0);
 
-            game_context.sprite_particle_system.emit_ex(
+            sprite_particle_system.emit_ex(
                 sprite,
                 *pos + self.pos,
                 velocity,
@@ -765,6 +771,29 @@ impl Player {
                 3.0,
                 true,
             );
+        }
+    }
+
+    fn add_shield_pieces_perfect_break(&self, sprite_particle_system: &mut SpriteParticleSystem) {
+        // editors note: i was shocked it was a perfect square from the sprite origin
+        const SHIELD_CENTER_OFFSET: Vector2 = Vector2::new(28.0, 28.0);
+        
+        let shield_center_pos = self.pos + SHIELD_CENTER_OFFSET;
+        
+        for (sprite, pos) in SHIELD_PIECE_SPRITES_AND_TARGET_POS {
+
+            let shield_piece_pos = *pos + self.pos;
+            
+            let delta = shield_center_pos - shield_piece_pos;
+            let dir = delta.normalized();
+            let speed = 40.0;
+            let lifespan = 2.5;
+            let vel_x = -dir.x * speed;
+            let vel_y = -dir.y * speed;
+            let acc_x = dir.x * speed / lifespan;
+            let acc_y = dir.y * speed / lifespan;
+
+            sprite_particle_system.emit(sprite, shield_piece_pos + Vector2::new(sprite.src_rect.width / 2.0, sprite.src_rect.height / 2.0), Vector2::new(vel_x, vel_y), Vector2::new(acc_x, acc_y), lifespan);
         }
     }
 }

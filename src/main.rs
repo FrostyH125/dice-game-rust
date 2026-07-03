@@ -46,10 +46,8 @@ pub enum GameState {
 // perfect break implementation
 // snake bite hit effect
 // make shield break shimmer particles
-// make dice wait until a perfect time to stop
-// disable input if the dialogue is running
 // clean up const variables
-// separate reset boxes and reset hand on player without changing functionality. have one reset() that includes both
+// disable input if the dialogue is running
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference
@@ -182,7 +180,7 @@ fn main() {
                 current_enemy.update(&mut player, &mut game_context, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
-                    player.manage_getting_hit_into_correct_hit_state(11, &mut game_context);
+                    player.manage_getting_hit_into_correct_hit_state(10, &mut game_context);
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {
