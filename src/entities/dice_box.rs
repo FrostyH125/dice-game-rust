@@ -204,7 +204,7 @@ impl DiceBox {
             DiceBox::BroadSwordBox { .. } => Some(BattleEffectType::Slash),
             DiceBox::HealBox { .. } => None,
             DiceBox::ShieldBox { .. } => None,
-            DiceBox::SnakeEyes { .. } => todo!("add bite effect"), 
+            DiceBox::SnakeEyes { .. } => unimplemented!("right now player doesnt need it and snake can call directly since its the only box it has"), 
         }
     }
 

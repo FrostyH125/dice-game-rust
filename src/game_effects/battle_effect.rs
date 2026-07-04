@@ -14,8 +14,22 @@ static SLASH_ANIM: AnimationData = AnimationData {
     should_loop: false,
 };
 
+static SNAKE_BITE_ANIM: AnimationData = AnimationData {
+    frames: &[
+        Sprite::new(272, 224, 16, 16),
+        Sprite::new(272, 240, 16, 16),
+        Sprite::new(272, 256, 16, 16),
+        Sprite::new(288, 224, 16, 16),
+        Sprite::new(288, 240, 16, 16),
+        Sprite::new(288, 256, 16, 16),
+    ],
+    frame_duration: 0.20,
+    should_loop: false
+};
+
 pub enum BattleEffectType {
     Slash,
+    SnakeBite
 }
 
 impl BattleEffectType {
@@ -23,6 +37,7 @@ impl BattleEffectType {
     pub fn get_anim(&self) -> &AnimationData {
         match self {
             Self::Slash => &SLASH_ANIM,
+            Self::SnakeBite => &SNAKE_BITE_ANIM
         }
     }
 }

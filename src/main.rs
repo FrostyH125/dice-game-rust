@@ -43,7 +43,6 @@ pub enum GameState {
     GameOver,
 }
 
-// perfect break implementation
 // snake bite hit effect
 // make shield break shimmer particles
 // clean up const variables

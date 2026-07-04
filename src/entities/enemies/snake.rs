@@ -194,6 +194,8 @@ impl Snake {
                 }
             }
             EnemyState::Acting => {
+                game_context.battle_effect_manager.add_effect(crate::game_effects::battle_effect::BattleEffectType::SnakeBite, player.get_rect());
+                
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
 
                 let result = self.data.dice_boxes[SNAKE_EYES_INDEX].get_result();

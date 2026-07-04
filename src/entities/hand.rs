@@ -91,6 +91,11 @@ impl Hand {
     }
 
     pub fn stop_dice(&mut self, dt: f32) -> bool {
+
+        if self.all_dice_stopped_passive_check() {
+            return true;
+        }
+        
         self.dice_stop_timer.track(dt);
 
         if self.dice_stop_timer.is_done() {
@@ -98,12 +103,8 @@ impl Hand {
 
             self.dice[self.current_index_of_dice_stopping].state = DiceState::Stopping;
             self.current_index_of_dice_stopping += 1;
-
-            //is done
-            if self.current_index_of_dice_stopping >= self.dice.len() {
-                return true;
-            }
         }
+
         return false;
     }
     
@@ -122,8 +123,12 @@ impl Hand {
     }
     
     pub fn all_dice_stopped_passive_check(&self) -> bool {
+
+        
         for dice in &self.dice {
-            if let DiceState::Rolling = dice.state {
+            if let DiceState::Stopped = dice.state {
+                // idk how to flip these if let expressions
+            } else {
                 return false;
             }
         }

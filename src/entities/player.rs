@@ -72,9 +72,9 @@ static PLAYER_BLOCK_ANIM: AnimationData = AnimationData {
 static PLAYER_BLOCK_BREAK_ANIM: AnimationData = AnimationData {
     frames: &[
         Sprite::new(0, 416, 32, 48),
-        Sprite::new(32, 416, 32, 48),
+        //Sprite::new(32, 416, 32, 48),
         Sprite::new(64, 416, 32, 48),
-        Sprite::new(96, 416, 32, 48),
+        //Sprite::new(96, 416, 32, 48),
         Sprite::new(128, 416, 32, 48),
         Sprite::new(160, 416, 32, 48),
         Sprite::new(192, 416, 32, 48),
