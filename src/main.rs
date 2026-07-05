@@ -46,7 +46,13 @@ pub enum GameState {
 // make shield break shimmer particles
 // make shield perfect break shimmer particles
 // make a fire ball box
+//      will require to have a DiceBox::get_post_action_effect(&self) -> BattleEffect
 // make a fire debuff on dice
+//      enum DiceDebuff { OnFire, etc etc }
+//      DiceDebuff::get_anim(&self) -> &AnimationData
+//      Dice { debuff: Option<DiceDebuff>, debuff_anim: Anim::new() }
+//      Dice::update_debuff(&mut self)
+//      Dice::draw_debuff(&mut self)
 // make a weakness and resistance system
 //      have a weak and resist battle effect type
 //      simply make the tools 
