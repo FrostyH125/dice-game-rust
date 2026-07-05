@@ -63,8 +63,6 @@ pub struct Dialogue {
 }
 
 impl Dialogue {
-    // this is going to be a little more than just a new function
-    // its going to actually wrap the text it recieves as well.
     pub fn new(text_blocks: Vec<String>, font: &Font) -> Self {
         
         let wrapped_blocks: Vec<String> = text_blocks.iter().map(|text| wrap_string(&text, 400.0, font, 10.0, 0.5)).collect();

@@ -43,7 +43,6 @@ pub enum GameState {
     GameOver,
 }
 
-// snake bite hit effect
 // make shield break shimmer particles
 // clean up const variables
 // disable input if the dialogue is running
