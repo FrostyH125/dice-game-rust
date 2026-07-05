@@ -590,6 +590,11 @@ impl Player {
     }
 
     pub fn manage_getting_hit_into_correct_hit_state(&mut self, damage: i32, game_context: &mut GameContext) {
+
+        //let affinity_result = affinity.get_affinity_result(&self.weaknesses, &self.resistances)
+        //let real_damage = affinity_result.resolve(damage)
+        //add effect
+        
         // had no shield
         if self.shield_power == 0 {
             self.state = PlayerState::HitDelay { hit_type: HitType::Unblocked, player_damage: damage, shield_damage: 0 };
@@ -620,7 +625,6 @@ impl Player {
                 // shield broke and some damage came through
                 ..=-1 => {
                     let overflow = leftover_shield_power.abs();
-                    println!("{}", self.shield_power);
                     self.state = PlayerState::HitDelay { hit_type: HitType::BlockedBroken, player_damage: overflow, shield_damage: self.shield_power };
                 }
             }

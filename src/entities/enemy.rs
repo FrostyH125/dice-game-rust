@@ -124,6 +124,10 @@ impl Enemy {
     pub fn take_hit(&mut self, damage: i32, game_context: &mut GameContext) {
         let data = self.get_mut_data();
 
+        //let affinity_result = affinity.get_affinity_result(&self.weaknesses, &self.resistances)
+        //let real_damage = affinity_result.resolve(damage)
+        //add effect
+
         game_context.battle_effect_manager.add_number_effect(
             crate::game_effects::number_battle_effect::NumberEffectType::Damage,
             data.get_rect(),

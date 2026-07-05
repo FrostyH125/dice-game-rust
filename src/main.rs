@@ -44,8 +44,19 @@ pub enum GameState {
 }
 
 // make shield break shimmer particles
-// clean up const variables
-// disable input if the dialogue is running
+// make shield perfect break shimmer particles
+// make a fire ball box
+// make a fire debuff on dice
+// make a weakness and resistance system
+//      have a weak and resist battle effect type
+//      simply make the tools 
+//          enum Affinity { Phys, Fire, etc, ... }
+//          enum AffinityResult { Weak, Resist, None }
+//          Affinity::get_affinity_result(weaknesses: &Vec<Affinity>, resistances: &Vec<Affinity>, damage_affinity: Affinity) -> AffinityResult
+//          AffinityResult::resolve_affinity(self, damage) -> i32
+//          BattleEffect::add_affinity_effect(affinity_result, rect)
+//      these tools will allow you to use them either in the damage resolution methods OR before the damage is actually resolved in the state machine
+//      probably best to do it in damage calculation to be honest, that way it can be generalized for enemies and not needed to be specifically coded each enemy
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference
