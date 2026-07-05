@@ -144,7 +144,13 @@ fn main() {
         let dt = rl.get_frame_time();
         let total_time = rl.get_time() as f32;
 
-        game_context.input_state.update(&mut rl, camera.zoom);
+        if !game_context.dialogue_system.is_active() {
+            game_context.input_state.update(&mut rl, camera.zoom);   
+        } else {
+            game_context.input_state.reset_and_set_zero_inputs();
+        }
+
+        
         player.update(
             &mut confirm_button,
             &mut stop_button,
