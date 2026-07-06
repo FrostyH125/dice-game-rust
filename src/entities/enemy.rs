@@ -1,7 +1,7 @@
 use crate::{
     GameContext, VIRTUAL_WIDTH, entities::{
         dice::DiceState, dice_box::{DiceBox, HitType}, enemies::snake::Snake, hand::Hand, player::Player,
-    },
+    }, game_effects::affinity::AttackAffinity,
 };
 use raylib::{
     color::Color,
@@ -53,6 +53,8 @@ pub enum EnemyState {
     ///handles being hit, animation for being hit, other effects for being hit, before turning back to waiting for player
     HitDelay {
         hit_type: HitType,
+        enemy_damage: i32,
+        shield_damage: i32
     },
 
     ///the delay before fully ending turn for seamless, sensible transitions
@@ -69,6 +71,9 @@ pub enum EnemyState {
 }
 
 pub struct EnemyData {
+    pub weaknesses: Vec<AttackAffinity>,
+    pub resistances: Vec<AttackAffinity>,
+    
     pub health: i32,
     pub shield_power: i32,
     pub pos: Vector2,
@@ -121,46 +126,43 @@ impl Enemy {
         }
     }
 
-    pub fn take_hit(&mut self, damage: i32, game_context: &mut GameContext) {
+    pub fn take_hit(&mut self, damage: i32, affinity: AttackAffinity, game_context: &mut GameContext) {
         let data = self.get_mut_data();
 
-        //let affinity_result = affinity.get_affinity_result(&self.weaknesses, &self.resistances)
-        //let real_damage = affinity_result.resolve(damage)
-        //add effect
+        let final_damage = affinity.get_final_damage(damage, &data.weaknesses, &data.resistances);
 
         game_context.battle_effect_manager.add_number_effect(
             crate::game_effects::number_battle_effect::NumberEffectType::Damage,
             data.get_rect(),
-            damage,
+            final_damage,
             &game_context.font,
         );
 
         // had no shield
         if data.shield_power == 0 {
-            data.health -= damage;
-            data.state = EnemyState::HitDelay { hit_type: HitType::Unblocked };
+            data.health -= final_damage;
+            data.state = EnemyState::HitDelay { hit_type: HitType::Unblocked, enemy_damage: final_damage, shield_damage: 0 };
             return;
         // had shield
         } else if data.shield_power > 0 {
-            data.shield_power -= damage;
+            data.shield_power -= final_damage;
 
             match data.shield_power {
                 // shield blocked all damage
                 1.. => {
-                    data.state = EnemyState::HitDelay { hit_type: HitType::Blocked };
+                    data.state = EnemyState::HitDelay { hit_type: HitType::Blocked, enemy_damage: 0, shield_damage: final_damage };
                 }
 
                 // shield blocked it just perfectly with no shield to spare
                 0 => {
-                    data.state = EnemyState::HitDelay { hit_type: HitType::PerfectBreak };
+                    data.state = EnemyState::HitDelay { hit_type: HitType::PerfectBreak, enemy_damage: 0, shield_damage: final_damage };
                 }
 
                 // shield broke and some damage came through
                 ..=-1 => {
                     let overflow = data.shield_power.abs();
-                    data.health -= overflow;
                     data.shield_power = 0;
-                    data.state = EnemyState::HitDelay { hit_type: HitType::BlockedBroken };
+                    data.state = EnemyState::HitDelay { hit_type: HitType::BlockedBroken, enemy_damage: overflow, shield_damage: final_damage - overflow };
                 }
             }
         }

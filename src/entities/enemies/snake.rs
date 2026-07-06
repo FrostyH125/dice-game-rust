@@ -6,9 +6,8 @@ use basic_raylib_core::{
 use raylib::{math::Vector2, prelude::RaylibDrawHandle, text::Font};
 
 use crate::{
-    EMPTY_SPRITE, GameContext, VIRTUAL_WIDTH,
-    entities::{
-        dice::{Dice, DiceKind, DiceState},
+    EMPTY_SPRITE, GameContext, VIRTUAL_WIDTH, entities::{
+        dice::{Dice, DiceKind},
         dice_box::DiceBox,
         enemy::{
             ENEMY_HAND_X_CENTER_CORD, ENEMY_HAND_Y_CORD, EnemyData,
@@ -17,7 +16,7 @@ use crate::{
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::{Player, PlayerState},
-    },
+    }, game_effects::affinity::AttackAffinity,
 };
 
 const SNAKE_EYES_INDEX: usize = 0;
@@ -78,6 +77,8 @@ impl Snake {
 
         Snake {
             data: EnemyData {
+                weaknesses: vec![AttackAffinity::Fire],
+                resistances: Vec::new(),
                 hand: Hand::new(
                     vec![
                         Dice::new(DiceKind::D4),

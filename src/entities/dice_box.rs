@@ -18,7 +18,7 @@ use raylib::{
 use crate::{
     GameContext, entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox}
-    }, game_effects::battle_effect::BattleEffectType
+    }, game_effects::{affinity::AttackAffinity, battle_effect::BattleEffectType}
 };
 
 pub enum DiceBox {
@@ -37,8 +37,8 @@ pub enum HitType {
 }
 
 pub enum DiceBoxResult {
-    BasicAttack(i32),
-    BasicHeal(i32),
+    Attack(i32, AttackAffinity),
+    Heal(i32),
     ChargeShield(i32),
     None,
 }
@@ -108,12 +108,12 @@ impl DiceBox {
 
     pub fn get_result(&self) -> DiceBoxResult {
         match self {
-            DiceBox::BroadSwordBox { broadsword_box } => DiceBoxResult::BasicAttack(broadsword_box.data.get_value()),
-            DiceBox::HealBox { heal_box } => DiceBoxResult::BasicHeal(heal_box.data.get_value()),
+            DiceBox::BroadSwordBox { broadsword_box } => DiceBoxResult::Attack(broadsword_box.data.get_value(), AttackAffinity::Phys),
+            DiceBox::HealBox { heal_box } => DiceBoxResult::Heal(heal_box.data.get_value()),
             DiceBox::ShieldBox { shield_box } => DiceBoxResult::ChargeShield(shield_box.data.get_value()),
             DiceBox::SnakeEyes { snake_eyes_box } => {
                 if snake_eyes_box.data.dice_in_box.len() == 2 {
-                    DiceBoxResult::BasicAttack(11)
+                    DiceBoxResult::Attack(11, AttackAffinity::Phys)
                 } else {
                     // tbh because snake is pretty deterministic this is pretty unlikely, but if i ever decide to give player access
                     // to snake eyes, then i need this to be a thing
@@ -154,15 +154,11 @@ impl DiceBox {
 
     pub fn enemy_action(&self, result: DiceBoxResult, player: &mut Player, enemy_health: &mut i32, enemy_shield_power: &mut i32, game_context: &mut GameContext) {   
         match result {
-            DiceBoxResult::BasicAttack(damage) => Self::enemy_basic_attack(damage, player, game_context),
-            DiceBoxResult::BasicHeal(heal_amount) => *enemy_health += heal_amount,
+            DiceBoxResult::Attack(damage, affinity) => player.manage_getting_hit_into_correct_hit_state(damage, affinity, game_context),
+            DiceBoxResult::Heal(heal_amount) => *enemy_health += heal_amount,
             DiceBoxResult::ChargeShield(charge_amount) => *enemy_shield_power += charge_amount,
             DiceBoxResult::None => (),
         }
-    }
-
-    pub fn enemy_basic_attack(power: i32, player: &mut Player, game_context: &mut GameContext) {
-        player.manage_getting_hit_into_correct_hit_state(power, game_context);
     }
 
     pub fn reset_and_place_dice_at_pos_for_next_round(&mut self, dice_in_hand: &mut Vec<Dice>, dice_origin_pos: Vector2) {

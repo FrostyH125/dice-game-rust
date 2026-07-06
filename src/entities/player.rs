@@ -11,8 +11,8 @@ use raylib::{
 
 use crate::{
     EMPTY_SPRITE, GRAVITY, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
-        dice::{DiceState}, dice_box::{DiceBox, DiceBoxResult, HitType}, 
-    }, game_effects::number_battle_effect::NumberEffectType,
+        dice::DiceState, dice_box::{DiceBox, DiceBoxResult, HitType}, 
+    }, game_effects::{affinity::AttackAffinity, number_battle_effect::NumberEffectType},
 };
 use crate::{
     entities::{
@@ -140,6 +140,8 @@ pub enum PlayerState {
 
 pub struct Player {
     pub dice_boxes: Vec<DiceBox>,
+    weaknesses: Vec<AttackAffinity>,
+    resistances: Vec<AttackAffinity>,
     pub hand: Hand,
     health: i32,
     shield_power: i32,
@@ -161,6 +163,8 @@ impl Player {
     pub fn new() -> Self {
         Player {
             dice_boxes: Vec::new(),
+            weaknesses: vec![AttackAffinity::Phys],
+            resistances: Vec::new(),
             hand: Hand::new(
                 std::iter::repeat_with(|| Dice::new(DiceKind::D6)).take(5).collect(),
                 Vector2::new(PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD),
@@ -349,8 +353,8 @@ impl Player {
                 let box_result = self.dice_boxes[self.current_box].get_result();
 
                 match box_result {
-                    DiceBoxResult::BasicAttack(damage) => enemy.take_hit(damage, game_context),
-                    DiceBoxResult::BasicHeal(heal_amount) => self.heal(heal_amount, game_context),
+                    DiceBoxResult::Attack(damage, affinity) => enemy.take_hit(damage, affinity, game_context),
+                    DiceBoxResult::Heal(heal_amount) => self.heal(heal_amount, game_context),
                     DiceBoxResult::ChargeShield(shield_charge) => self.shield_power += shield_charge,
                     DiceBoxResult::None => (),
                 }
@@ -420,7 +424,7 @@ impl Player {
                             game_context.battle_effect_manager.add_number_effect(NumberEffectType::Block, self.get_rect(), shield_damage, &game_context.font);
 
                             // hit player w leftover damage
-                            self.manage_getting_hit_into_correct_hit_state(player_damage, game_context);
+                            self.manage_getting_hit_into_correct_hit_state(player_damage, AttackAffinity::None, game_context);
                         }
                     }
                     HitType::PerfectBreak => {
@@ -589,37 +593,36 @@ impl Player {
         );
     }
 
-    pub fn manage_getting_hit_into_correct_hit_state(&mut self, damage: i32, game_context: &mut GameContext) {
-
-        //let affinity_result = affinity.get_affinity_result(&self.weaknesses, &self.resistances)
-        //let real_damage = affinity_result.resolve(damage)
-        //add effect
+    pub fn manage_getting_hit_into_correct_hit_state(&mut self, damage: i32, affinity: AttackAffinity, game_context: &mut GameContext) {
+        
+    
+        let final_damage = affinity.get_final_damage(damage, &self.weaknesses, &self.resistances);
         
         // had no shield
         if self.shield_power == 0 {
-            self.state = PlayerState::HitDelay { hit_type: HitType::Unblocked, player_damage: damage, shield_damage: 0 };
-            self.health -= damage;
+            self.state = PlayerState::HitDelay { hit_type: HitType::Unblocked, player_damage: final_damage, shield_damage: 0 };
+            self.health -= final_damage;
             game_context.battle_effect_manager.add_number_effect(
                 NumberEffectType::Damage,
                 self.get_rect(),
-                damage,
+                final_damage,
                 &game_context.font,
             );
             return;
         // had shield
         } else if self.shield_power > 0 {
 
-            let leftover_shield_power = self.shield_power - damage;
+            let leftover_shield_power = self.shield_power - final_damage;
             
             match leftover_shield_power {
                 // shield blocked all damage
                 1.. => {
-                    self.state = PlayerState::HitDelay { hit_type: HitType::Blocked, player_damage: 0, shield_damage: damage };
+                    self.state = PlayerState::HitDelay { hit_type: HitType::Blocked, player_damage: 0, shield_damage: final_damage };
                 }
 
                 // shield blocked it just perfectly with no shield to spare
                 0 => {
-                    self.state = PlayerState::HitDelay { hit_type: HitType::PerfectBreak, player_damage: 0, shield_damage: damage };
+                    self.state = PlayerState::HitDelay { hit_type: HitType::PerfectBreak, player_damage: 0, shield_damage: final_damage };
                 }
 
                 // shield broke and some damage came through

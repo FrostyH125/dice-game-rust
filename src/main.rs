@@ -19,7 +19,7 @@ use crate::{
         player::{Player, PlayerState},
         player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox},
         scoreboard::ScoreBoard,
-    }, game_effects::battle_effects_manager::{BattleEffectsManager}, system::{button::Button, dialogue_system::DialogueSystem}
+    }, game_effects::{affinity::AttackAffinity, battle_effects_manager::BattleEffectsManager}, system::{button::Button, dialogue_system::DialogueSystem}
 };
 use rand::random_range;
 
@@ -43,6 +43,7 @@ pub enum GameState {
     GameOver,
 }
 
+// attack affinity effect
 // make shield break shimmer particles
 // make shield perfect break shimmer particles
 // make a fire ball box
@@ -53,14 +54,6 @@ pub enum GameState {
 //      Dice { debuff: Option<DiceDebuff>, debuff_anim: Anim::new() }
 //      Dice::update_debuff(&mut self)
 //      Dice::draw_debuff(&mut self)
-// make a weakness and resistance system
-//      have a weak and resist battle effect type
-//      simply make the tools 
-//          enum Affinity { Phys, Fire, etc, ... }
-//          enum AffinityResult { Weak, Resist, None }
-//          Affinity::get_affinity_result(weaknesses: &Vec<Affinity>, resistances: &Vec<Affinity>, damage_affinity: Affinity) -> AffinityResult
-//          AffinityResult::resolve_affinity(self, damage) -> i32
-//          BattleEffect::add_affinity_effect(affinity_result, rect)
 //      these tools will allow you to use them either in the damage resolution methods OR before the damage is actually resolved in the state machine
 //      probably best to do it in damage calculation to be honest, that way it can be generalized for enemies and not needed to be specifically coded each enemy
 
@@ -201,7 +194,7 @@ fn main() {
                 current_enemy.update(&mut player, &mut game_context, dt);
 
                 if rl.is_key_pressed(KeyboardKey::KEY_A) {
-                    player.manage_getting_hit_into_correct_hit_state(10, &mut game_context);
+                    player.manage_getting_hit_into_correct_hit_state(10, AttackAffinity::Phys, &mut game_context);
                 }
 
                 if let EnemyState::Dead = current_enemy.get_data().state {
