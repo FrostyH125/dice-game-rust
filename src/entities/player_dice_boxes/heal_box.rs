@@ -12,16 +12,14 @@ use raylib::{
 };
 
 use crate::{
-    GameContext,
-    entities::{
+    GameContext, entities::{
         dice_box_data::{
             DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
             STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT,
             STANDARD_BOX_WIDTH,
         },
         player::{PLAYER_HEIGHT, PLAYER_WIDTH},
-    },
-    system::info_hover::InfoHover,
+    }, game_effects::battle_effect::AttackVisualEffectType, system::info_hover::InfoHover,
 };
 
 static HEAL_BOX_SPRITE: Sprite = Sprite::new(14, 144, 52, 16);
@@ -71,7 +69,9 @@ impl HealBox {
                 0.5,
             ),
             Color::MEDIUMBLUE,
-            0.25
+            0.25,
+            AttackVisualEffectType::None,
+            AttackVisualEffectType::None
         );
         
         return HealBox {

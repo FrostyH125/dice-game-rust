@@ -19,12 +19,10 @@ use raylib::{
 };
 
 use crate::{
-    LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, VIRTUAL_HEIGHT, VIRTUAL_WIDTH,
-    entities::{
+    LARGE_DUST_SPRITE, SMALL_DUST_SPRITE, VIRTUAL_HEIGHT, VIRTUAL_WIDTH, entities::{
         dice::{DICE_WIDTH_HEIGHT, Dice, DiceKind, DiceState},
         hand::Hand,
-    },
-    system::info_hover::InfoHover,
+    }, game_effects::battle_effect::AttackVisualEffectType, system::info_hover::InfoHover,
 };
 
 pub const CURRENT_STREAK_OFFSET: Vector2 = Vector2::new(0.0, 20.0);
@@ -84,6 +82,12 @@ pub struct DiceBoxData {
     pub height: f32,
 
     pub scoreboard_info_color: Color,
+
+    pub pre_action_attack_visual_effect_kind: AttackVisualEffectType,
+    pub post_action_attack_visual_effect_kind: AttackVisualEffectType,
+
+    // this is for determining whether or not to show the dice border on the current index dice
+    is_finished: bool
 }
 
 impl DiceBoxData {
@@ -97,6 +101,8 @@ impl DiceBoxData {
         info_hover: InfoHover,
         scoreboard_info_color: Color,
         base_multi: f64,
+        pre_action_attack_visual_effect_kind: AttackVisualEffectType,
+        post_action_attack_visual_effect_kind: AttackVisualEffectType
     ) -> Self {
         DiceBoxData {
             dice_in_box: Vec::new(),
@@ -121,6 +127,9 @@ impl DiceBoxData {
             current_streak: 1,
             collect_rect_offset_x,
             collect_rect_offset_y,
+            is_finished: false,
+            pre_action_attack_visual_effect_kind,
+            post_action_attack_visual_effect_kind
         }
     }
 }
@@ -226,6 +235,7 @@ impl DiceBoxData {
         self.dice_tally_timer.reset();
         self.multi = 1;
         self.tally = 0;
+        self.is_finished = false;
     }
 
     pub fn arrange_dice(&mut self) {
@@ -262,6 +272,15 @@ impl DiceBoxData {
         return (self.tally as f64 * self.base_multi * self.multi as f64) as i32;
     }
 
+    // this function is really only relevant if you have more than one dice box
+    // the only reason it exists is to make sure any dice boxes not currently tallying
+    // their total are not drawing the dice border around the dice of the current dice index
+    // this variable will be reset automatically at the calling of DiceBoxData::Reset() which is called after
+    // the turn of whoever's turn it currently is has passed (it is called manually but it is called for everything)
+    pub fn mark_as_done_so_it_doesnt_draw_dice_border(&mut self) {
+        self.is_finished = true;
+    }
+
     pub fn draw_dice(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         let mut dice_being_dragged: Option<&Dice> = None;
 
@@ -285,14 +304,14 @@ impl DiceBoxData {
             return;
         }
 
-        let sprite = match self.dice_in_box[self.current_dice_index].kind {
-            DiceKind::D4 => &D4_DICE_BORDER_SPRITE,
-            DiceKind::D6 => &D6_DICE_BORDER_SPRITE,
-        };
+        if self.is_finished {
+            return;
+        }
 
-        let pos = self.dice_in_box[self.current_dice_index].pos + DICE_BORDER_OFFSET;
+        let dice = &self.dice_in_box[self.current_dice_index];
+        let pos = dice.pos + DICE_BORDER_OFFSET;
 
-        sprite.draw(d, pos, texture);
+        dice.draw_outline_sprite(d, texture, pos);
     }
 
     pub fn check_if_any_dice_need_to_go_back_to_hand(&mut self, hand: &mut Hand) {

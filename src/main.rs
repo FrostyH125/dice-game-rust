@@ -6,8 +6,7 @@ pub mod game_effects;
 use raylib::prelude::*;
 
 use basic_raylib_core::{
-    graphics::sprite::Sprite,
-    system::{input_handler::InputState, sprite_particle_system::SpriteParticleSystem, timer::Timer},
+    graphics::sprite::Sprite, system::{input_handler::InputState, sprite_particle_system::SpriteParticleSystem, timer::Timer}, utils::string_utils::{StringSinWaveParameters, draw_string_with_horizontal_sin_wave},
 };
 
 use crate::{
@@ -43,7 +42,10 @@ pub enum GameState {
     GameOver,
 }
 
-// attack affinity effect
+// attack affinity effect { weak, resist }
+// make proper shield charge number effect
+// make shield charge on the player have shield charging particles going into the shield... in ShieldBox::player_put_shield_up()
+// 
 // make shield break shimmer particles
 // make shield perfect break shimmer particles
 // make a fire ball box
@@ -340,3 +342,4 @@ pub fn draw_mouse(d: &mut RaylibDrawHandle, game_context: &GameContext) {
     // to accomodate the one instance where i need 2 fields from the struct
     MOUSE_SPRITE.draw(d, game_context.input_state.mouse_pos, &game_context.texture);
 }
+

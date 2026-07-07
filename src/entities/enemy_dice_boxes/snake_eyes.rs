@@ -7,7 +7,7 @@ use crate::{
     GameContext, entities::{
         dice::{DICE_WIDTH_HEIGHT, DiceState},
         dice_box_data::{DICE_BORDER_OFFSET, DiceBoxData},
-    }, system::info_hover::InfoHover
+    }, game_effects::battle_effect::AttackVisualEffectType, system::info_hover::InfoHover
 };
 
 static PLACEHOLDER_DICE_SPRITE: Sprite = Sprite::new(80, 160, DICE_WIDTH_HEIGHT as u32, DICE_WIDTH_HEIGHT as u32);
@@ -50,7 +50,9 @@ impl SnakeEyes {
                     0.5,
                 ),
                 Color::DARKOLIVEGREEN,
-                1.0
+                1.0,
+                AttackVisualEffectType::SnakeBite,
+                AttackVisualEffectType::None,
             ),
         }
     }
@@ -118,9 +120,7 @@ impl SnakeEyes {
     fn draw_dice_outlines(&self, d: &mut RaylibDrawHandle, texture: &Texture2D) {
         for i in 0..self.data.dice_in_box.len() {
             let dice = &self.data.dice_in_box[i];
-            let sprite = dice.kind.outline_sprite();
-
-            sprite.draw(d, dice.pos + DICE_BORDER_OFFSET, texture);
+            dice.draw_outline_sprite(d, texture, dice.pos + DICE_BORDER_OFFSET);
         }
     }
 }

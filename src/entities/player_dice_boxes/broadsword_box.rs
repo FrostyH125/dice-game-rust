@@ -10,12 +10,10 @@ use raylib::{
 };
 
 use crate::{
-    GameContext,
-    entities::dice_box_data::{
+    GameContext, entities::dice_box_data::{
         DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
         STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH,
-    },
-    system::info_hover::InfoHover,
+    }, game_effects::battle_effect::AttackVisualEffectType, system::info_hover::InfoHover,
 };
 
 static BROADSWORD_BOX_SPRITE: Sprite = Sprite::new(14, 112, 52, 16);
@@ -58,6 +56,8 @@ impl BroadSwordBox {
                 ),
                 Color::DARKRED,
                 1.0,
+                AttackVisualEffectType::Slash,
+                AttackVisualEffectType::None,
             ),
         }
     }

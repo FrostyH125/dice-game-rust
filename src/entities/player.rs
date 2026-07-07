@@ -12,7 +12,7 @@ use raylib::{
 use crate::{
     EMPTY_SPRITE, GRAVITY, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
         dice::DiceState, dice_box::{DiceBox, DiceBoxResult, HitType}, 
-    }, game_effects::{affinity::AttackAffinity, number_battle_effect::NumberEffectType},
+    }, game_effects::{affinity::AttackAffinity, battle_effect::AttackVisualEffectType, number_battle_effect::NumberEffectType},
 };
 use crate::{
     entities::{
@@ -145,7 +145,7 @@ pub struct Player {
     pub hand: Hand,
     health: i32,
     shield_power: i32,
-    pub current_box: usize,
+    pub current_box_index: usize,
     walk_anim: SpriteAnimationInstance,
     thinking_anim: SpriteAnimationInstance,
     waiting_anim: SpriteAnimationInstance,
@@ -182,7 +182,7 @@ impl Player {
             end_turn_delay_timer: Timer::new(2.0),
             is_dragging_dice: false,
             was_dragging_dice: false,
-            current_box: 0,
+            current_box_index: 0,
         }
     }
 
@@ -303,16 +303,16 @@ impl Player {
             PlayerState::TallyingCurrentBox => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
-                if self.dice_boxes[self.current_box].get_data().dice_in_box.is_empty() {
-                    self.current_box += 1;
-                    if self.current_box > self.dice_boxes.len() - 1 {
+                if self.dice_boxes[self.current_box_index].get_data().dice_in_box.is_empty() {
+                    self.current_box_index += 1;
+                    if self.current_box_index > self.dice_boxes.len() - 1 {
                         
                         // even though this value isnt read here, it causes problems
                         // in places like scoreboard that rely on this data
-                        self.current_box = self.dice_boxes.len() - 1;
+                        self.current_box_index = self.dice_boxes.len() - 1;
                         self.state = PlayerState::EndTurn;
                     }
-                } else if self.dice_boxes[self.current_box].tally(dt) {
+                } else if self.dice_boxes[self.current_box_index].tally(dt) {
                     self.state = PlayerState::BeforeActingDelay;
                 }
             }
@@ -325,19 +325,16 @@ impl Player {
                     self.acting_timer.reset();
                     self.state = PlayerState::ActionVisual;
 
-                    // add a battle effect to the game based on current box if applicable
-                    // this method can return none, in which case it'll be skipped.
-                    // I put it in this state because it should only run once and it should
-                    // only run right at the same time the pre action visual would run
-                    if let Some(effect_type) =
-                        self.dice_boxes[self.current_box].get_battle_effect_type_pre_action_result()
-                    {
-                        game_context.battle_effect_manager.add_effect(effect_type, enemy.get_rect());
+                    let pre_attack_visual_type = self.dice_boxes[self.current_box_index].get_data().pre_action_attack_visual_effect_kind;
+
+                    match pre_attack_visual_type {
+                        AttackVisualEffectType::None => (),
+                        _ => game_context.battle_effect_manager.add_effect(pre_attack_visual_type, enemy.get_rect()),
                     }
                 }
             }
             PlayerState::ActionVisual => {
-                if self.dice_boxes[self.current_box].player_update_before_action_visuals(
+                if self.dice_boxes[self.current_box_index].player_update_before_action_visuals(
                     &mut self.acting_anim,
                     game_context,
                     self.pos,
@@ -350,24 +347,38 @@ impl Player {
             PlayerState::ActionResult => {
                 PLAYER_WAITING_ANIM.update(&mut self.waiting_anim, dt);
 
-                let box_result = self.dice_boxes[self.current_box].get_result();
+                let box_result = self.dice_boxes[self.current_box_index].get_result();
 
+                let post_attack_visual_type = self.dice_boxes[self.current_box_index].get_data().post_action_attack_visual_effect_kind;
+
+                match post_attack_visual_type {
+                    AttackVisualEffectType::None => (),
+                    _ => game_context.battle_effect_manager.add_effect(post_attack_visual_type, enemy.get_rect()),
+                }
+                
                 match box_result {
                     DiceBoxResult::Attack(damage, affinity) => enemy.take_hit(damage, affinity, game_context),
                     DiceBoxResult::Heal(heal_amount) => self.heal(heal_amount, game_context),
-                    DiceBoxResult::ChargeShield(shield_charge) => self.shield_power += shield_charge,
+                    DiceBoxResult::ChargeShield(shield_charge) => {
+                        self.shield_power += shield_charge;
+                        game_context.battle_effect_manager.add_number_effect(NumberEffectType::Block, self.get_rect(), shield_charge, &game_context.font);
+                    },
                     DiceBoxResult::None => (),
                 }
 
-                self.current_box += 1;
+                self.current_box_index += 1;
 
                 // make sure current box index never gets above the actual number of boxes
                 // this same exact check exists in tallying current box as well as it is
                 // possible for the current box to be empty and the index to be incremented there
-                if self.current_box > self.dice_boxes.len() - 1 {
-                    self.current_box = self.dice_boxes.len() - 1;
+                if self.current_box_index > self.dice_boxes.len() - 1 {
+                    self.current_box_index = self.dice_boxes.len() - 1;
                     self.state = PlayerState::EndTurnDelay;
                 } else {
+                    // this should be self explanatory, but just in case, i set the previous box as done so
+                    // that it stops drawing the border
+                    // the end result should be fairly seamless
+                    self.dice_boxes[self.current_box_index - 1].get_mut_data().mark_as_done_so_it_doesnt_draw_dice_border();
                     self.state = PlayerState::TallyingCurrentBox;
                 }
             }
@@ -460,7 +471,7 @@ impl Player {
         for dice_box in &mut self.dice_boxes {
             dice_box.reset_and_place_dice_at_pos_for_next_round(&mut self.hand.dice, center);
         }
-        self.current_box = 0;
+        self.current_box_index = 0;
 
         self.hand.reset_dice_and_arrange_hand();
     }
@@ -485,7 +496,7 @@ impl Player {
             }
         }
         
-        self.current_box = 0;
+        self.current_box_index = 0;
     }
 
     pub fn draw(&mut self, d: &mut RaylibDrawHandle, game_context: &GameContext) {
@@ -529,7 +540,7 @@ impl Player {
                 self.hand.draw(d, &game_context.texture);
             }
             PlayerState::ActionVisual => {
-                self.dice_boxes[self.current_box].player_draw_action(
+                self.dice_boxes[self.current_box_index].player_draw_action(
                     &mut self.acting_anim,
                     d,
                     self.pos,

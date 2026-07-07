@@ -77,7 +77,7 @@ impl Snake {
 
         Snake {
             data: EnemyData {
-                weaknesses: vec![AttackAffinity::Fire],
+                weaknesses: vec![AttackAffinity::Fire, AttackAffinity::Phys],
                 resistances: Vec::new(),
                 hand: Hand::new(
                     vec![
@@ -195,7 +195,7 @@ impl Snake {
                 }
             }
             EnemyState::Acting => {
-                game_context.battle_effect_manager.add_effect(crate::game_effects::battle_effect::BattleEffectType::SnakeBite, player.get_rect());
+                game_context.battle_effect_manager.add_effect(crate::game_effects::battle_effect::AttackVisualEffectType::SnakeBite, player.get_rect());
                 
                 SNAKE_ATTACK_ANIM.update(&mut self.attack_anim, dt);
 

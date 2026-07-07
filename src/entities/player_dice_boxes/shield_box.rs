@@ -10,12 +10,10 @@ use raylib::{
 };
 
 use crate::{
-    GameContext,
-    entities::dice_box_data::{
+    GameContext, entities::dice_box_data::{
         DiceBoxData, STANDARD_BOX_COLLECT_RECT_HEIGHT, STANDARD_BOX_COLLECT_RECT_OFFSET_X,
         STANDARD_BOX_COLLECT_RECT_OFFSET_Y, STANDARD_BOX_COLLECT_RECT_WIDTH, STANDARD_BOX_HEIGHT, STANDARD_BOX_WIDTH,
-    },
-    system::info_hover::InfoHover,
+    }, game_effects::battle_effect::AttackVisualEffectType, system::info_hover::InfoHover,
 };
 
 
@@ -63,6 +61,8 @@ impl ShieldBox {
             ),
             Color::DARKGRAY,
             0.5,
+            AttackVisualEffectType::None,
+            AttackVisualEffectType::None,
         );
 
         return ShieldBox { data };

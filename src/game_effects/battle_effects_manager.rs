@@ -1,14 +1,14 @@
 use raylib::{drawing::RaylibDrawHandle, math::Rectangle, text::Font, texture::Texture2D};
 
 use crate::game_effects::{
-    battle_effect::{BattleEffect, BattleEffectType},
+    battle_effect::{AttackVisualEffect, AttackVisualEffectType},
     number_battle_effect::{NumberEffect, NumberEffectType},
 };
 
 ///Responsible for slashes and explosions before and after attacks.
 ///Also responsible for damage, blocking, and healing numbers after an action
 pub struct BattleEffectsManager {
-    battle_effects: Vec<BattleEffect>,
+    battle_effects: Vec<AttackVisualEffect>,
     number_effects: Vec<NumberEffect>,
 }
 
@@ -20,8 +20,8 @@ impl BattleEffectsManager {
         };
     }
 
-    pub fn add_effect(&mut self, effect_type: BattleEffectType, target_pos_rect: Rectangle) {
-        let effect = BattleEffect::new(effect_type, target_pos_rect);
+    pub fn add_effect(&mut self, effect_type: AttackVisualEffectType, target_pos_rect: Rectangle) {
+        let effect = AttackVisualEffect::new(effect_type, target_pos_rect);
         self.battle_effects.push(effect);
     }
 

@@ -27,17 +27,20 @@ static SNAKE_BITE_ANIM: AnimationData = AnimationData {
     should_loop: false
 };
 
-pub enum BattleEffectType {
+#[derive(Clone, Copy)]
+pub enum AttackVisualEffectType {
+    None,
     Slash,
     SnakeBite
 }
 
-impl BattleEffectType {
+impl AttackVisualEffectType {
     #[inline]
     pub fn get_anim(&self) -> &AnimationData {
         match self {
             Self::Slash => &SLASH_ANIM,
-            Self::SnakeBite => &SNAKE_BITE_ANIM
+            Self::SnakeBite => &SNAKE_BITE_ANIM,
+            Self::None => panic!("should never ask for animation on AttackVisualEffect::None")
         }
     }
 }
@@ -46,17 +49,22 @@ impl BattleEffectType {
 ///be visually run simultaneous to the visual of the action it is related to
 ///examples being a slash over the enemy being attacked, or fire being placed over
 ///something just hit with a fireball
-pub struct BattleEffect {
-    effect_type: BattleEffectType,
+pub struct AttackVisualEffect {
+    effect_type: AttackVisualEffectType,
     pos: Vector2,
     anim_instance: SpriteAnimationInstance,
 }
 
-impl BattleEffect {
+impl AttackVisualEffect {
     /// target pos rect is used as the rectangle of the target in order to
     /// properly center the effect without having to do the math
     /// every single time you wanna make a new effect
-    pub fn new(effect_type: BattleEffectType, target_pos_rect: Rectangle) -> Self {
+    pub fn new(effect_type: AttackVisualEffectType, target_pos_rect: Rectangle) -> Self {
+
+        if let AttackVisualEffectType::None = effect_type {
+            panic!("something is calling AttackVisualEffect::new() on AttackVisualEffectType::None")
+        }
+        
         let anim = effect_type.get_anim();
         let anim_width = anim.frames[0].src_rect.width;
         let anim_height = anim.frames[0].src_rect.height;
@@ -69,7 +77,7 @@ impl BattleEffect {
         let pos_of_animation =
             Vector2::new(center_pos_of_target.x - anim_width / 2.0, center_pos_of_target.y - anim_height / 2.0);
 
-        return BattleEffect {
+        return AttackVisualEffect {
             effect_type,
             pos: pos_of_animation,
             anim_instance: SpriteAnimationInstance::new(),

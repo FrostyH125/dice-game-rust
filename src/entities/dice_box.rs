@@ -18,7 +18,7 @@ use raylib::{
 use crate::{
     GameContext, entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox}
-    }, game_effects::{affinity::AttackAffinity, battle_effect::BattleEffectType}
+    }, game_effects::{affinity::AttackAffinity, battle_effect::AttackVisualEffectType}
 };
 
 pub enum DiceBox {
@@ -188,22 +188,6 @@ impl DiceBox {
             Self::SnakeEyes { .. } => unimplemented!(),
         }
     }
-
-    /// this function returns any battle effect type that should happen with the battle
-    /// action visual, not after it. there will be another function which will return
-    /// battle results that should happen after the battle action visual, hence, 
-    /// get_battle_effect_type_post_action_result(&self) (this will be used moreso
-    /// for things like spells where the explosion or whatever shouldnt happen until after
-    /// the action visual finishes, (which would involve some projectile hitting the enemy/player))
-    pub fn get_battle_effect_type_pre_action_result(&self) -> Option<BattleEffectType> {
-        match self {
-            DiceBox::BroadSwordBox { .. } => Some(BattleEffectType::Slash),
-            DiceBox::HealBox { .. } => None,
-            DiceBox::ShieldBox { .. } => None,
-            DiceBox::SnakeEyes { .. } => unimplemented!("right now player doesnt need it and snake can call directly since its the only box it has"), 
-        }
-    }
-
 
     // these two methods are just for convenience
     // is it a bit smelly to have one in both dice box data and dice box... ? maybe

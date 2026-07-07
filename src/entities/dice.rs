@@ -55,14 +55,8 @@ pub enum DiceKind {
     D6,
 }
 
-impl DiceKind {
-    pub fn num_of_sides(&self) -> i8 {
-        match self {
-            DiceKind::D4 => 4,
-            DiceKind::D6 => 6,
-        }
-    }
-
+// 
+impl DiceKind {  
     pub fn roll_anim(&self) -> &AnimationData {
         match self {
             DiceKind::D4 => &D4_ROLL_ANIM,
@@ -81,15 +75,22 @@ impl DiceKind {
 pub struct Dice {
     stopped_frame_to_draw: usize,
     pub pos: Vector2,
-    pub roll_anim: SpriteAnimationInstance,
+    roll_anim: SpriteAnimationInstance,
     rearranging_timer: Timer,
     pub state: DiceState,
-    pub kind: DiceKind,
+    kind: DiceKind,
     pub value: i8,
+    num_of_sides: u8
 }
 
 impl Dice {
     pub fn new(kind: DiceKind) -> Dice {
+
+        let num_of_sides = match kind {
+            DiceKind::D4 => 4,
+            DiceKind::D6 => 6,
+        };
+        
         Dice {
             pos: Default::default(),
             roll_anim: SpriteAnimationInstance::default(),
@@ -98,6 +99,7 @@ impl Dice {
             kind,
             rearranging_timer: Timer::new(0.25),
             stopped_frame_to_draw: Default::default(),
+            num_of_sides
         }
     }
 
@@ -221,6 +223,11 @@ impl Dice {
         }
     }
 
+    pub fn draw_outline_sprite(&self, d: &mut RaylibDrawHandle, texture: &Texture2D, pos: Vector2) {
+        let sprite = self.kind.outline_sprite();
+        sprite.draw(d, pos, texture);
+    }
+
     pub fn stop(&mut self) {
         // will need to adjust in future for negative dice
         let new_value = self.roll_anim.current_frame_index as i8 + 1;
@@ -237,7 +244,7 @@ impl Dice {
         self.roll_anim.current_frame_time += dt;
 
         while self.roll_anim.current_frame_time >= DICE_ROLL_FRAME_DURATION {
-            let new_frame_index = random_range(0..=self.kind.num_of_sides() as u8 - 1);
+            let new_frame_index = random_range(0..=self.num_of_sides - 1);
             self.roll_anim.current_frame_index = new_frame_index;
             self.roll_anim.current_frame_time -= DICE_ROLL_FRAME_DURATION;
             return true;

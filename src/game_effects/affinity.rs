@@ -1,9 +1,8 @@
-
 #[derive(PartialEq)]
 pub enum AttackAffinity {
     None,
     Phys,
-    Fire
+    Fire,
 }
 
 impl AttackAffinity {
@@ -13,10 +12,10 @@ impl AttackAffinity {
                 return AffinityResult::Weak;
             }
         }
-        
+
         for r in resistances {
             if self == r {
-                return AffinityResult::Resist
+                return AffinityResult::Resist;
             }
         }
 
@@ -24,7 +23,6 @@ impl AttackAffinity {
     }
 
     pub fn get_final_damage(&self, damage: i32, weaknesses: &[AttackAffinity], resistances: &[AttackAffinity]) -> i32 {
-
         let result = self.get_affinity_result(weaknesses, resistances);
 
         match result {
@@ -32,12 +30,11 @@ impl AttackAffinity {
             AffinityResult::Weak => damage * 2,
             AffinityResult::Resist => damage / 2,
         }
-        
     }
 }
 
 pub enum AffinityResult {
     None,
     Weak,
-    Resist
+    Resist,
 }

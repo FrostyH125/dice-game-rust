@@ -232,7 +232,7 @@ impl ScoreBoard {
                         | PlayerState::StoppingDice => {
                             self.draw_random_numbers(d, &game_context.font);
                         }
-                        _ => self.draw_box_data(d, &game_context.font, &player.dice_boxes[player.current_box]),
+                        _ => self.draw_box_data(d, &game_context.font, &player.dice_boxes[player.current_box_index]),
                     }
 
                     if enemy.get_data().state == EnemyState::Dead {
