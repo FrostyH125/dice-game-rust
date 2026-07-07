@@ -1,7 +1,7 @@
 use crate::{
     GameContext, VIRTUAL_WIDTH, entities::{
         dice::DiceState, dice_box::{DiceBox, HitType}, enemies::snake::Snake, hand::Hand, player::Player,
-    }, game_effects::affinity::AttackAffinity,
+    }, game_effects::attack_affinity::AttackAffinity,
 };
 use raylib::{
     color::Color,

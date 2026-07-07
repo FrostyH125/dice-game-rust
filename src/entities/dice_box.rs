@@ -18,7 +18,7 @@ use raylib::{
 use crate::{
     GameContext, entities::{
         dice::Dice, dice_box_data::DiceBoxData, enemy_dice_boxes::snake_eyes::SnakeEyes, hand::Hand, player::Player, player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox}
-    }, game_effects::{affinity::AttackAffinity, battle_effect::AttackVisualEffectType}
+    }, game_effects::{attack_affinity::AttackAffinity, battle_effect::AttackVisualEffectType}
 };
 
 pub enum DiceBox {

@@ -18,7 +18,7 @@ use crate::{
         player::{Player, PlayerState},
         player_dice_boxes::{broadsword_box::BroadSwordBox, heal_box::HealBox, shield_box::ShieldBox},
         scoreboard::ScoreBoard,
-    }, game_effects::{affinity::AttackAffinity, battle_effects_manager::BattleEffectsManager}, system::{button::Button, dialogue_system::DialogueSystem}
+    }, game_effects::{attack_affinity::AttackAffinity, battle_effects_manager::BattleEffectsManager}, system::{button::Button, dialogue_system::DialogueSystem}
 };
 use rand::random_range;
 
@@ -56,8 +56,6 @@ pub enum GameState {
 //      Dice { debuff: Option<DiceDebuff>, debuff_anim: Anim::new() }
 //      Dice::update_debuff(&mut self)
 //      Dice::draw_debuff(&mut self)
-//      these tools will allow you to use them either in the damage resolution methods OR before the damage is actually resolved in the state machine
-//      probably best to do it in damage calculation to be honest, that way it can be generalized for enemies and not needed to be specifically coded each enemy
 
 // if a function needs one of these fields, pass the field itself by reference
 // if a function needs more than one of these fields, pass the struct itself by reference

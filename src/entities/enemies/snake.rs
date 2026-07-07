@@ -16,7 +16,7 @@ use crate::{
         enemy_dice_boxes::snake_eyes::SnakeEyes,
         hand::Hand,
         player::{Player, PlayerState},
-    }, game_effects::affinity::AttackAffinity,
+    }, game_effects::attack_affinity::AttackAffinity,
 };
 
 const SNAKE_EYES_INDEX: usize = 0;

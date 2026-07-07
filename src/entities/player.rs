@@ -12,7 +12,7 @@ use raylib::{
 use crate::{
     EMPTY_SPRITE, GRAVITY, GameContext, PLAYER_UI_X_CENTER_CORD, PLAYER_UI_Y_BASE_CORD, entities::{
         dice::DiceState, dice_box::{DiceBox, DiceBoxResult, HitType}, 
-    }, game_effects::{affinity::AttackAffinity, battle_effect::AttackVisualEffectType, number_battle_effect::NumberEffectType},
+    }, game_effects::{attack_affinity::AttackAffinity, battle_effect::AttackVisualEffectType, number_battle_effect::NumberEffectType},
 };
 use crate::{
     entities::{
